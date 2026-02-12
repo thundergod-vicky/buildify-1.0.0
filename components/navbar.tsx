@@ -31,7 +31,7 @@ export default function Navbar() {
                             <MenuIcon className="size-6.5" />
                         </button>
 
-                        <Link href="#!" className="hidden md:inline-block py-2.5 px-6 shadow-[inset_0_2px_4px_rgba(255,255,255,0.6)] bg-orange-500 text-white rounded-full">
+                        <Link href="/auth" className="hidden md:inline-block py-2.5 px-6 shadow-[inset_0_2px_4px_rgba(255,255,255,0.6)] bg-orange-500 text-white rounded-full">
                             Get Started
                         </Link>
                     </div>
@@ -48,7 +48,7 @@ export default function Navbar() {
                             {link.name}
                         </Link>
                     ))}
-                    <Link href="#!" className="py-2.5 px-6 w-max text-sm shadow-[inset_0_2px_4px_rgba(255,255,255,0.6)] bg-linear-to-tl from-orange-600 to-orange-500 text-white rounded-full">
+                    <Link href="/auth" className="py-2.5 px-6 w-max text-sm shadow-[inset_0_2px_4px_rgba(255,255,255,0.6)] bg-linear-to-tl from-orange-600 to-orange-500 text-white rounded-full">
                         Get Started
                     </Link>
                 </div>
