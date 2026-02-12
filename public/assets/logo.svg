@@ -1,0 +1,11 @@
+<svg width="135" height="36" viewBox="0 0 135 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g clip-path="url(#a)" fill="#ff6900">
+    <path d="M17.4 3h-5.8v8.746A2.9 2.9 0 0 1 8.7 14.6H0v5.8h6.298a5.8 5.8 0 0 0 4.1-1.699l5.303-5.302A5.8 5.8 0 0 0 17.4 9.298zm-5.798 29h5.8v-8.746a2.9 2.9 0 0 1 2.9-2.854h8.7v-5.8h-6.298a5.8 5.8 0 0 0-4.101 1.698L13.3 21.601a5.8 5.8 0 0 0-1.698 4.101z"/>
+  </g>
+  <text x="38" y="24" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="600" fill="#364153">Adhyayan</text>
+  <defs>
+    <clipPath id="a">
+      <path fill="#fff" d="M0 3h29v29H0z"/>
+    </clipPath>
+  </defs>
+</svg>
