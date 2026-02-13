@@ -4,6 +4,8 @@ import { Metadata } from "next";
 import Navbar from "@/components/navbar";
 import LenisScroll from "@/components/lenis";
 import Footer from "@/components/footer";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { NotificationProvider } from "@/contexts/NotificationContext";
 
 const inter = Inter({
     variable: "--font-sans",
@@ -60,11 +62,15 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-            <body>
-                <LenisScroll />
-                <Navbar />
-                {children}
-                <Footer />
+            <body className={`${inter.variable} ${urbanist.variable}`}>
+                <AuthProvider>
+                    <NotificationProvider>
+                        <LenisScroll />
+                        <Navbar />
+                        {children}
+                        <Footer />
+                    </NotificationProvider>
+                </AuthProvider>
             </body>
         </html>
     );

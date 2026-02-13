@@ -1,8 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
+import { Role } from "@/types";
 import Link from "next/link";
-import { User, Lock, Mail } from "lucide-react";
+import { User, Lock, Mail, Phone } from "lucide-react";
 
 function GoogleLoginButton() {
     return (
@@ -34,7 +37,70 @@ function GoogleLoginButton() {
 }
 
 export default function AuthPage() {
+    const router = useRouter();
+    const { login, register } = useAuth();
     const [active, setActive] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+
+    // Login form state
+    const [loginData, setLoginData] = useState({
+        email: "",
+        password: "",
+    });
+
+    // Register form state
+    const [registerData, setRegisterData] = useState({
+        name: "",
+        email: "",
+        phone: "",
+        password: "",
+        role: Role.STUDENT,
+    });
+
+    const handleLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError("");
+        setLoading(true);
+
+        try {
+            await login(loginData);
+            
+            // Redirect based on role
+            const user = JSON.parse(localStorage.getItem('auth_user') || '{}');
+            switch (user.role) {
+                default:
+                    router.push('/dashboard');
+            }
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Login failed');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleRegister = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError("");
+        setLoading(true);
+
+        try {
+            await register({
+                name: registerData.name,
+                email: registerData.email,
+                password: registerData.password,
+                phone: registerData.phone || undefined,
+                role: registerData.role,
+            });
+
+            // Redirect to dashboard
+            router.push('/dashboard');
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Registration failed');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <main className="min-h-screen flex justify-center items-center px-4 py-8 bg-gradient-to-r from-gray-200 to-orange-100/50">
@@ -45,7 +111,7 @@ export default function AuthPage() {
                     <div className="flex border-b border-gray-200">
                         <button
                             type="button"
-                            onClick={() => setActive(false)}
+                            onClick={() => { setActive(false); setError(""); }}
                             className={`flex-1 py-4 text-sm font-semibold transition-colors ${
                                 !active
                                     ? "bg-orange-500 text-white"
@@ -56,7 +122,7 @@ export default function AuthPage() {
                         </button>
                         <button
                             type="button"
-                            onClick={() => setActive(true)}
+                            onClick={() => { setActive(true); setError(""); }}
                             className={`flex-1 py-4 text-sm font-semibold transition-colors ${
                                 active
                                     ? "bg-orange-500 text-white"
@@ -68,23 +134,33 @@ export default function AuthPage() {
                     </div>
                     {/* Forms - one visible at a time */}
                     <div className="p-6 pb-8">
+                        {error && (
+                            <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                                {error}
+                            </div>
+                        )}
+                        
                         {!active ? (
-                            <form action="#" className="w-full" onSubmit={(e) => e.preventDefault()}>
+                            <form onSubmit={handleLogin} className="w-full">
                                 <h1 className="text-2xl font-bold font-urbanist mb-5">Login</h1>
                                 <div className="relative my-4">
                                     <input
-                                        type="text"
-                                        placeholder="Username"
+                                        type="email"
+                                        placeholder="Email"
                                         required
+                                        value={loginData.email}
+                                        onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
                                         className="w-full py-3 pl-5 pr-12 bg-gray-100 rounded-lg border-0 outline-none text-base text-gray-800 font-medium placeholder:text-gray-500"
                                     />
-                                    <User className="absolute right-4 top-1/2 -translate-y-1/2 size-5 text-gray-500" />
+                                    <Mail className="absolute right-4 top-1/2 -translate-y-1/2 size-5 text-gray-500" />
                                 </div>
                                 <div className="relative my-4">
                                     <input
                                         type="password"
                                         placeholder="Password"
                                         required
+                                        value={loginData.password}
+                                        onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
                                         className="w-full py-3 pl-5 pr-12 bg-gray-100 rounded-lg border-0 outline-none text-base text-gray-800 font-medium placeholder:text-gray-500"
                                     />
                                     <Lock className="absolute right-4 top-1/2 -translate-y-1/2 size-5 text-gray-500" />
@@ -96,21 +172,24 @@ export default function AuthPage() {
                                 </div>
                                 <button
                                     type="submit"
-                                    className="w-full h-12 rounded-lg bg-orange-500 text-white font-semibold text-base shadow-md hover:bg-orange-600 transition-colors"
+                                    disabled={loading}
+                                    className="w-full h-12 rounded-lg bg-orange-500 text-white font-semibold text-base shadow-md hover:bg-orange-600 transition-colors disabled:opacity-50"
                                 >
-                                    Login
+                                    {loading ? 'Logging in...' : 'Login'}
                                 </button>
                                 <p className="text-sm text-gray-500 mt-5 mb-3">or</p>
                                 <GoogleLoginButton />
                             </form>
                         ) : (
-                            <form action="#" className="w-full" onSubmit={(e) => e.preventDefault()}>
+                            <form onSubmit={handleRegister} className="w-full">
                                 <h1 className="text-2xl font-bold font-urbanist mb-5">Registration</h1>
                                 <div className="relative my-4">
                                     <input
                                         type="text"
-                                        placeholder="Username"
+                                        placeholder="Full Name"
                                         required
+                                        value={registerData.name}
+                                        onChange={(e) => setRegisterData({ ...registerData, name: e.target.value })}
                                         className="w-full py-3 pl-5 pr-12 bg-gray-100 rounded-lg border-0 outline-none text-base text-gray-800 font-medium placeholder:text-gray-500"
                                     />
                                     <User className="absolute right-4 top-1/2 -translate-y-1/2 size-5 text-gray-500" />
@@ -120,24 +199,50 @@ export default function AuthPage() {
                                         type="email"
                                         placeholder="Email"
                                         required
+                                        value={registerData.email}
+                                        onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
                                         className="w-full py-3 pl-5 pr-12 bg-gray-100 rounded-lg border-0 outline-none text-base text-gray-800 font-medium placeholder:text-gray-500"
                                     />
                                     <Mail className="absolute right-4 top-1/2 -translate-y-1/2 size-5 text-gray-500" />
                                 </div>
                                 <div className="relative my-4">
                                     <input
+                                        type="tel"
+                                        placeholder="Phone (Optional)"
+                                        value={registerData.phone}
+                                        onChange={(e) => setRegisterData({ ...registerData, phone: e.target.value })}
+                                        className="w-full py-3 pl-5 pr-12 bg-gray-100 rounded-lg border-0 outline-none text-base text-gray-800 font-medium placeholder:text-gray-500"
+                                    />
+                                    <Phone className="absolute right-4 top-1/2 -translate-y-1/2 size-5 text-gray-500" />
+                                </div>
+                                <div className="relative my-4">
+                                    <select
+                                        value={registerData.role}
+                                        onChange={(e) => setRegisterData({ ...registerData, role: e.target.value as Role })}
+                                        className="w-full py-3 pl-5 pr-12 bg-gray-100 rounded-lg border-0 outline-none text-base text-gray-800 font-medium"
+                                    >
+                                        <option value={Role.STUDENT}>Student</option>
+                                        <option value={Role.TEACHER}>Teacher</option>
+                                        <option value={Role.PARENT}>Parent</option>
+                                    </select>
+                                </div>
+                                <div className="relative my-4">
+                                    <input
                                         type="password"
                                         placeholder="Password"
                                         required
+                                        value={registerData.password}
+                                        onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
                                         className="w-full py-3 pl-5 pr-12 bg-gray-100 rounded-lg border-0 outline-none text-base text-gray-800 font-medium placeholder:text-gray-500"
                                     />
                                     <Lock className="absolute right-4 top-1/2 -translate-y-1/2 size-5 text-gray-500" />
                                 </div>
                                 <button
                                     type="submit"
-                                    className="w-full h-12 rounded-lg bg-orange-500 text-white font-semibold text-base shadow-md hover:bg-orange-600 transition-colors mt-1"
+                                    disabled={loading}
+                                    className="w-full h-12 rounded-lg bg-orange-500 text-white font-semibold text-base shadow-md hover:bg-orange-600 transition-colors mt-1 disabled:opacity-50"
                                 >
-                                    Register
+                                    {loading ? 'Creating account...' : 'Register'}
                                 </button>
                                 <p className="text-sm text-gray-500 mt-5 mb-3">or</p>
                                 <GoogleLoginButton />
@@ -151,28 +256,38 @@ export default function AuthPage() {
             <div
                 className={`auth-container relative w-full max-w-[850px] h-[550px] bg-white rounded-3xl shadow-xl overflow-hidden hidden md:block ${active ? "active" : ""}`}
             >
+                {error && (
+                    <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm max-w-md">
+                        {error}
+                    </div>
+                )}
+                
                 {/* Login form */}
                 <div
                     className={`form-box absolute right-0 top-0 w-1/2 h-full flex items-center text-gray-800 text-center p-8 md:p-10 z-[1] transition-[right] duration-[0.6s] ease-in-out delay-300 ${
                         active ? "right-1/2 invisible pointer-events-none" : "right-0"
                     }`}
                 >
-                    <form action="#" className="w-full" onSubmit={(e) => e.preventDefault()}>
+                    <form onSubmit={handleLogin} className="w-full">
                         <h1 className="text-3xl md:text-4xl font-bold font-urbanist mb-6">Login</h1>
                         <div className="relative my-6">
                             <input
-                                type="text"
-                                placeholder="Username"
+                                type="email"
+                                placeholder="Email"
                                 required
+                                value={loginData.email}
+                                onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
                                 className="w-full py-3 pl-5 pr-12 bg-gray-100 rounded-lg border-0 outline-none text-base text-gray-800 font-medium placeholder:text-gray-500"
                             />
-                            <User className="absolute right-4 top-1/2 -translate-y-1/2 size-5 text-gray-500" />
+                            <Mail className="absolute right-4 top-1/2 -translate-y-1/2 size-5 text-gray-500" />
                         </div>
                         <div className="relative my-6">
                             <input
                                 type="password"
                                 placeholder="Password"
                                 required
+                                value={loginData.password}
+                                onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
                                 className="w-full py-3 pl-5 pr-12 bg-gray-100 rounded-lg border-0 outline-none text-base text-gray-800 font-medium placeholder:text-gray-500"
                             />
                             <Lock className="absolute right-4 top-1/2 -translate-y-1/2 size-5 text-gray-500" />
@@ -184,9 +299,10 @@ export default function AuthPage() {
                         </div>
                         <button
                             type="submit"
-                            className="w-full h-12 rounded-lg bg-orange-500 text-white font-semibold text-base shadow-md hover:bg-orange-600 transition-colors"
+                            disabled={loading}
+                            className="w-full h-12 rounded-lg bg-orange-500 text-white font-semibold text-base shadow-md hover:bg-orange-600 transition-colors disabled:opacity-50"
                         >
-                            Login
+                            {loading ? 'Logging in...' : 'Login'}
                         </button>
                         <p className="text-sm text-gray-500 mt-6 mb-4">or</p>
                         <GoogleLoginButton />
@@ -195,46 +311,74 @@ export default function AuthPage() {
 
                 {/* Register form */}
                 <div
-                    className={`form-box absolute top-0 w-1/2 h-full flex items-center text-gray-800 text-center p-8 md:p-10 z-[2] transition-[right] duration-[0.6s] ease-in-out delay-300 ${
+                    className={`form-box absolute top-0 w-1/2 h-full flex items-center text-gray-800 text-center p-8 md:p-10 z-[2] transition-[right] duration-[0.6s] ease-in-out delay-300 overflow-y-auto ${
                         active ? "right-1/2 visible" : "right-0 invisible pointer-events-none"
                     }`}
                 >
-                    <form action="#" className="w-full" onSubmit={(e) => e.preventDefault()}>
+                    <form onSubmit={handleRegister} className="w-full">
                         <h1 className="text-3xl md:text-4xl font-bold font-urbanist mb-6">Registration</h1>
-                        <div className="relative my-6">
+                        <div className="relative my-4">
                             <input
                                 type="text"
-                                placeholder="Username"
+                                placeholder="Full Name"
                                 required
+                                value={registerData.name}
+                                onChange={(e) => setRegisterData({ ...registerData, name: e.target.value })}
                                 className="w-full py-3 pl-5 pr-12 bg-gray-100 rounded-lg border-0 outline-none text-base text-gray-800 font-medium placeholder:text-gray-500"
                             />
                             <User className="absolute right-4 top-1/2 -translate-y-1/2 size-5 text-gray-500" />
                         </div>
-                        <div className="relative my-6">
+                        <div className="relative my-4">
                             <input
                                 type="email"
                                 placeholder="Email"
                                 required
+                                value={registerData.email}
+                                onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
                                 className="w-full py-3 pl-5 pr-12 bg-gray-100 rounded-lg border-0 outline-none text-base text-gray-800 font-medium placeholder:text-gray-500"
                             />
                             <Mail className="absolute right-4 top-1/2 -translate-y-1/2 size-5 text-gray-500" />
                         </div>
-                        <div className="relative my-6">
+                        <div className="relative my-4">
+                            <input
+                                type="tel"
+                                placeholder="Phone (Optional)"
+                                value={registerData.phone}
+                                onChange={(e) => setRegisterData({ ...registerData, phone: e.target.value })}
+                                className="w-full py-3 pl-5 pr-12 bg-gray-100 rounded-lg border-0 outline-none text-base text-gray-800 font-medium placeholder:text-gray-500"
+                            />
+                            <Phone className="absolute right-4 top-1/2 -translate-y-1/2 size-5 text-gray-500" />
+                        </div>
+                        <div className="relative my-4">
+                            <select
+                                value={registerData.role}
+                                onChange={(e) => setRegisterData({ ...registerData, role: e.target.value as Role })}
+                                className="w-full py-3 pl-5 pr-12 bg-gray-100 rounded-lg border-0 outline-none text-base text-gray-800 font-medium"
+                            >
+                                <option value={Role.STUDENT}>Student</option>
+                                <option value={Role.TEACHER}>Teacher</option>
+                                <option value={Role.PARENT}>Parent</option>
+                            </select>
+                        </div>
+                        <div className="relative my-4">
                             <input
                                 type="password"
                                 placeholder="Password"
                                 required
+                                value={registerData.password}
+                                onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
                                 className="w-full py-3 pl-5 pr-12 bg-gray-100 rounded-lg border-0 outline-none text-base text-gray-800 font-medium placeholder:text-gray-500"
                             />
                             <Lock className="absolute right-4 top-1/2 -translate-y-1/2 size-5 text-gray-500" />
                         </div>
                         <button
                             type="submit"
-                            className="w-full h-12 rounded-lg bg-orange-500 text-white font-semibold text-base shadow-md hover:bg-orange-600 transition-colors mt-2"
+                            disabled={loading}
+                            className="w-full h-12 rounded-lg bg-orange-500 text-white font-semibold text-base shadow-md hover:bg-orange-600 transition-colors mt-2 disabled:opacity-50"
                         >
-                            Register
+                            {loading ? 'Creating account...' : 'Register'}
                         </button>
-                        <p className="text-sm text-gray-500 mt-6 mb-4">or</p>
+                        <p className="text-sm text-gray-500 mt-4 mb-3">or</p>
                         <GoogleLoginButton />
                     </form>
                 </div>
@@ -253,7 +397,7 @@ export default function AuthPage() {
                         <p className="text-sm md:text-base mb-5">Don&apos;t have an account?</p>
                         <button
                             type="button"
-                            onClick={() => setActive(true)}
+                            onClick={() => { setActive(true); setError(""); }}
                             className="w-40 h-12 rounded-lg bg-transparent border-2 border-white text-white font-semibold hover:bg-white/10 transition-colors"
                         >
                             Register
@@ -267,7 +411,7 @@ export default function AuthPage() {
                         <p className="text-sm md:text-base mb-5">Already have an account?</p>
                         <button
                             type="button"
-                            onClick={() => setActive(false)}
+                            onClick={() => { setActive(false); setError(""); }}
                             className="w-40 h-12 rounded-lg bg-transparent border-2 border-white text-white font-semibold hover:bg-white/10 transition-colors"
                         >
                             Login
