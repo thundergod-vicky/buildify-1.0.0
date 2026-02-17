@@ -17,7 +17,7 @@ class ApiClient {
   ): Promise<T> {
     const { token, ...fetchOptions } = options;
 
-    const headers: HeadersInit = {
+    const headers: any = {
       'Content-Type': 'application/json',
       ...fetchOptions.headers,
     };
@@ -56,6 +56,14 @@ class ApiClient {
   async put<T>(endpoint: string, data?: any, token?: string): Promise<T> {
     return this.request<T>(endpoint, {
       method: 'PUT',
+      body: JSON.stringify(data),
+      token,
+    });
+  }
+
+  async patch<T>(endpoint: string, data?: any, token?: string): Promise<T> {
+    return this.request<T>(endpoint, {
+      method: 'PATCH',
       body: JSON.stringify(data),
       token,
     });

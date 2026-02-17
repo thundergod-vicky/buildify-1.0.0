@@ -6,6 +6,8 @@ import LenisScroll from "@/components/lenis";
 import Footer from "@/components/footer";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
+import { ToastContainer, Bounce } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const inter = Inter({
     variable: "--font-sans",
@@ -63,6 +65,19 @@ export default function RootLayout({
     return (
         <html lang="en">
             <body className={`${inter.variable} ${urbanist.variable}`}>
+                <ToastContainer
+                    position="top-center"
+                    autoClose={5000}
+                    hideProgressBar={false}
+                    newestOnTop
+                    closeOnClick
+                    rtl={false}
+                    pauseOnFocusLoss
+                    draggable
+                    pauseOnHover
+                    theme="light"
+                    transition={Bounce}
+                />
                 <AuthProvider>
                     <NotificationProvider>
                         <LenisScroll />

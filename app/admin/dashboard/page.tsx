@@ -57,7 +57,7 @@ export default function AdminDashboardPage() {
                         title="System Health" 
                         value="99.9%" 
                         trend="Stable" 
-                        trendType="neutral"
+                        trendType="positive"
                         icon={ActivityIcon}
                         colorClass="bg-orange-50 text-orange-600"
                     />

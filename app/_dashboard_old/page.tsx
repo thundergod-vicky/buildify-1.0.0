@@ -23,10 +23,10 @@ export default function DashboardPage() {
                     <div className="relative z-10 max-w-2xl">
                         <h1 className="text-3xl font-bold font-urbanist">Welcome back, Souvik! 👋</h1>
                         <p className="mt-2 text-orange-50/80 text-lg">
-                            You&apos;ve completed 85% of your weekly goal. Keep it up and you&apos;ll reach your target by tomorrow!
+                            Welcome to the dashboard! Here you can track your progress and manage your courses.
                         </p>
                         <div className="mt-6 flex items-center gap-4">
-                            <Link href="/dashboard/courses" className="px-6 py-2.5 bg-white text-orange-600 rounded-xl font-semibold hover:bg-orange-50 transition-colors">
+                            <Link href="/dashboard?view=courses" className="px-6 py-2.5 bg-white text-orange-600 rounded-xl font-semibold hover:bg-orange-50 transition-colors">
                                 Resume Learning
                             </Link>
                             <div className="flex -space-x-2">

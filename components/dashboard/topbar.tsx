@@ -1,8 +1,14 @@
 "use client";
 
 import { SearchIcon, BellIcon, UserIcon, ChevronDownIcon } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Topbar() {
+    const { user } = useAuth();
+    
+    // Capitalize first letter of role for display
+    const displayRole = user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1).toLowerCase() : "";
+
     return (
         <header className="h-20 bg-white border-b border-gray-100 flex items-center justify-between px-8 sticky top-0 z-10">
             <div className="flex-1 max-w-xl">
@@ -29,8 +35,8 @@ export default function Topbar() {
                         <UserIcon className="size-5" />
                     </div>
                     <div className="text-left hidden md:block">
-                        <p className="text-sm font-semibold text-gray-900 leading-none">Souvik Basu</p>
-                        <p className="text-xs text-gray-500 mt-1">Student</p>
+                        <p className="text-sm font-semibold text-gray-900 leading-none">{user?.name || "User"}</p>
+                        <p className="text-xs text-gray-500 mt-1">{displayRole || "Student"}</p>
                     </div>
                     <ChevronDownIcon className="size-4 text-gray-400 group-hover:text-gray-900 transition-colors" />
                 </button>

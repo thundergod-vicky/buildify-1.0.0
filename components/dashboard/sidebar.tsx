@@ -11,6 +11,11 @@ import {
   SettingsIcon,
   LogOutIcon,
   GraduationCapIcon,
+  ShieldCheckIcon,
+  UsersIcon,
+  BarChart2Icon,
+  BellIcon,
+  UserPlusIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Role } from "@/types";
@@ -23,24 +28,45 @@ export default function Sidebar() {
   const router = useRouter();
   const { logout, user } = useAuth();
 
-  // Unified base path
-  const basePath = "/dashboard";
   const currentView = searchParams.get("view");
 
   const menuItems = [
-    { name: "Home", icon: HomeIcon, href: basePath }, // No param = Home
-    { name: "My Courses", icon: BookOpenIcon, href: `${basePath}?view=courses` },
-    { name: "Practice Tests", icon: FileTextIcon, href: `${basePath}?view=tests` },
-    { name: "Performance", icon: BarChart3Icon, href: `${basePath}?view=performance` },
-    { name: "Schedule", icon: CalendarIcon, href: `${basePath}?view=schedule` },
-    { name: "Settings", icon: SettingsIcon, href: `${basePath}?view=settings` },
+    { name: "Home", icon: HomeIcon, view: "home" },
+    { name: "My Courses", icon: BookOpenIcon, view: "courses" },
+    { name: "Practice Tests", icon: FileTextIcon, view: "tests" },
+    { name: "Performance", icon: BarChart2Icon, view: "performance" },
+    { name: "Notifications", icon: BellIcon, view: "notifications" }, // New item
+    { name: "Requests", icon: UserPlusIcon, view: "requests" }, // New for Admin
+    { name: "Student Management", icon: GraduationCapIcon, view: "students" },
+    { name: "User Management", icon: UsersIcon, view: "users" },
+    { name: "Course Control", icon: ShieldCheckIcon, view: "manage-courses" },
+    { name: "Revenue", icon: BarChart3Icon, view: "revenue" },
+    { name: "Practice Test Control", icon: FileTextIcon, view: "practice-tests" },
+    { name: "Schedule", icon: CalendarIcon, view: "schedule" },
+    { name: "Settings", icon: SettingsIcon, view: "settings" },
   ];
 
   const filteredItems = menuItems.filter((item) => {
-    // Student gets everything
-    if (user?.role === Role.STUDENT) return true;
+    // Student
+    if (user?.role === Role.STUDENT) {
+        return ["Home", "My Courses", "Practice Tests", "Performance", "Schedule", "Settings", "Notifications"].includes(item.name);
+    }
     
-    // Others only get Home and Settings
+    // Teacher
+    if (user?.role === Role.TEACHER) {
+        return ["Home", "My Courses", "Practice Tests", "Student Management", "Settings", "Notifications"].includes(item.name);
+    }
+
+    // Admin
+    if (user?.role === Role.ADMIN) {
+        return ["Home", "User Management", "Course Control", "Practice Test Control", "Revenue", "Requests", "Settings", "Notifications"].includes(item.name);
+    }
+
+    // Parent
+    if (user?.role === Role.PARENT) {
+        return ["Home", "Performance", "Notifications", "Settings"].includes(item.name);
+    }
+
     return item.name === "Home" || item.name === "Settings";
   });
 
@@ -69,17 +95,13 @@ export default function Sidebar() {
 
        <nav className="flex-1 px-4 py-4 space-y-1">
         {filteredItems.map((item) => {
-          let isActive = false;
-          if (item.name === "Home") {
-             isActive = !currentView;
-          } else {
-             const viewParam = item.href.split("view=")[1];
-             isActive = currentView === viewParam;
-          }
+          const isActive = item.view === "home" ? !currentView : currentView === item.view;
+          const href = item.view === "home" ? "/dashboard" : `/dashboard?view=${item.view}`;
+          
           return (
             <Link
-              key={item.href}
-              href={item.href}
+              key={item.view}
+              href={href}
               className={cn(
                 "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group",
                 isActive

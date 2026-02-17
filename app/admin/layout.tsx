@@ -6,23 +6,25 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
+import { Role } from "@/types";
+
 export default function AdminLayout({
     children,
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    const { user, loading } = useAuth();
+    const { user, isLoading } = useAuth();
     const router = useRouter();
 
     useEffect(() => {
-        if (!loading) {
-             if (user?.role !== 'admin' && user?.role !== 'ADMIN') {
+        if (!isLoading) {
+             if (user?.role !== Role.ADMIN) {
                 router.push('/auth');
              }
         }
-    }, [user, loading, router]);
+    }, [user, isLoading, router]);
 
-    if (loading) return <div className="flex h-screen items-center justify-center">Loading...</div>;
+    if (isLoading) return <div className="flex h-screen items-center justify-center">Loading...</div>;
     if (!user) return null;
 
     return (

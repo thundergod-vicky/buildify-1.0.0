@@ -6,23 +6,25 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
+import { Role } from "@/types";
+
 export default function ParentLayout({
     children,
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    const { user, loading } = useAuth();
+    const { user, isLoading } = useAuth();
     const router = useRouter();
 
     useEffect(() => {
-        if (!loading) {
-             if (user?.role !== 'parent' && user?.role !== 'PARENT') {
+        if (!isLoading) {
+             if (user?.role !== Role.PARENT) {
                 router.push('/auth');
              }
         }
-    }, [user, loading, router]);
+    }, [user, isLoading, router]);
 
-    if (loading) return <div className="flex h-screen items-center justify-center">Loading...</div>;
+    if (isLoading) return <div className="flex h-screen items-center justify-center">Loading...</div>;
     if (!user) return null;
 
     return (

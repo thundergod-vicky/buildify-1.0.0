@@ -74,26 +74,88 @@ export enum PaymentStatus {
     FAILED = 'FAILED'
 }
 
+export interface ParentRequest {
+    id: string;
+    parentId: string;
+    studentEmail: string;
+    status: 'PENDING' | 'APPROVED' | 'REJECTED';
+    createdAt: string;
+}
+
+export interface ParentStudent {
+    id: string;
+    parentId: string;
+    studentId: string;
+    student: User;
+    parent: User;
+}
+
+export interface Notification {
+    id: string;
+    userId: string;
+    title: string;
+    message: string;
+    type: 'INFO' | 'WARNING' | 'ALERT';
+    isRead: boolean;
+    createdAt: string;
+}
+
 export interface User {
     id: string;
     email: string;
     name: string;
     phone?: string;
     role: Role;
+    grade?: string;
+    medal?: string;
     createdAt: Date;
     updatedAt: Date;
+    parentOf?: ParentStudent[];
+    studentOf?: ParentStudent[];
+    parentRequests?: ParentRequest[];
+    notifications?: Notification[];
+}
+
+export enum CourseType {
+  PUBLIC = 'PUBLIC',
+  PREMIUM = 'PREMIUM'
+}
+
+export interface CourseAssignment {
+  id: string;
+  courseId: string;
+  studentId: string;
+  assignedBy: string;
+  deadline: string | null;
+  assignedAt: string;
+  student?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  teacher?: {
+    name: string;
+  };
 }
 
 export interface Course {
-    id: string;
-    title: string;
-    description: string;
-    teacherId: string;
-    teacher?: User;
-    thumbnail?: string;
-    price: number;
-    createdAt: Date;
-    updatedAt: Date;
+  id: string;
+  title: string;
+  description: string | null;
+  thumbnail: string | null;
+  courseType: CourseType;
+  teacherId: string;
+  createdAt: string;
+  updatedAt: string;
+  chapters?: Chapter[];
+  teacher?: {
+    name: string;
+  };
+  _count?: {
+    chapters: number;
+    lessons?: number;
+    enrollments?: number;
+  };
 }
 
 export interface Chapter {
@@ -109,11 +171,15 @@ export interface Lesson {
     chapterId: string;
     title: string;
     type: LessonType;
+    driveFileId?: string;
+    mimeType?: string;
     videoUrl?: string;
     pdfUrl?: string;
     duration?: number;
+    pages?: number;
     order: number;
     mandatoryQuestionSetId?: string;
+    completed?: boolean;
 }
 
 export interface QuestionSet {
@@ -209,4 +275,42 @@ export interface RegisterDto {
     name: string;
     phone?: string;
     role: Role;
+}
+
+export interface PracticeQuestion {
+    id: number;
+    category: string;
+    difficulty: string;
+    question: string;
+    options: string[];
+    correctAnswer: number;
+    explanation?: string;
+}
+
+export interface PracticeTest {
+    id: string;
+    title: string;
+    totalQuestions: number;
+    questions: PracticeQuestion[];
+    timeLimit?: number; // In minutes
+    teacherId: string;
+    teacher?: {
+        name: string;
+    };
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface PracticeTestResult {
+    id: string;
+    studentId: string;
+    testId: string;
+    score: number;
+    total: number;
+    timeTaken?: number;
+    rating?: number;
+    status: 'COMPLETED' | 'CHEATED';
+    answers?: any;
+    test?: PracticeTest;
+    createdAt: string;
 }

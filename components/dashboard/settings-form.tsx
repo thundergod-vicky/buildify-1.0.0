@@ -1,8 +1,7 @@
 "use client";
 
 import { useAuth } from "@/contexts/AuthContext";
-import { useState } from "react";
-import { User, Role } from "@/types"; // Ensure Role is imported if needed, though strictly not used here
+import { useState, useEffect } from "react";
 import { CheckCircleIcon, Loader2Icon, UserIcon, MailIcon, PhoneIcon, LockIcon } from "lucide-react";
 
 export function SettingsForm() {
@@ -14,10 +13,22 @@ export function SettingsForm() {
     const [formData, setFormData] = useState({
         name: user?.name || "",
         email: user?.email || "",
-        phone: user?.phone || "", // Assuming user has phone property? Check type.
+        phone: user?.phone || "", 
         password: "",
         confirmPassword: ""
     });
+
+    // Sync form data when user profile is loaded or updated
+    useEffect(() => {
+        if (user) {
+            setFormData(prev => ({
+                ...prev,
+                name: user.name || "",
+                email: user.email || "",
+                phone: user.phone || ""
+            }));
+        }
+    }, [user]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });

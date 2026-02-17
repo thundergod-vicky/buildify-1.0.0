@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import StatCard from "@/components/dashboard/stat-card";
 import { 
     BookOpenIcon, 
@@ -7,14 +8,50 @@ import {
     ClockIcon, 
     TrophyIcon,
     PlayCircleIcon,
-    ArrowRightIcon,
-    CheckCircle2Icon
+    ArrowRightIcon
 } from "lucide-react";
 import Link from "next/link";
 import AnimatedContent from "@/components/animated-content";
-import { cn } from "@/lib/utils";
+import { api } from "@/lib/api";
+import { auth } from "@/lib/auth";
+import enrollmentsApi, { Enrollment } from "@/lib/enrollments";
 
 export function StudentHome() {
+    const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
+    const [testResults, setTestResults] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchDashboardData = async () => {
+            try {
+                const token = auth.getToken();
+                if (!token) return;
+
+                const [enrollData, resultsData]: [Enrollment[], any] = await Promise.all([
+                    enrollmentsApi.getMyCourses(),
+                    api.get<any[]>('/practice-tests/results/student', token)
+                ]);
+                
+                setEnrollments(enrollData);
+                setTestResults(resultsData);
+            } catch (error) {
+                console.error('Failed to fetch dashboard data:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchDashboardData();
+    }, []);
+
+    const averageScore = testResults.length > 0 
+        ? Math.round(testResults.reduce((acc, curr) => acc + (curr.score / curr.total * 100), 0) / testResults.length)
+        : 0;
+    
+    const averageRating = testResults.length > 0
+        ? (testResults.reduce((acc, curr) => acc + (curr.rating || 0), 0) / testResults.length).toFixed(1)
+        : "0.0";
+
     return (
         <div className="p-8 space-y-8">
             {/* Welcome Banner */}
@@ -23,10 +60,10 @@ export function StudentHome() {
                     <div className="relative z-10 max-w-2xl">
                         <h1 className="text-3xl font-bold font-urbanist">Welcome back, Student! 👋</h1>
                         <p className="mt-2 text-orange-50/80 text-lg">
-                            You&apos;ve completed 85% of your weekly goal. Keep it up and you&apos;ll reach your target by tomorrow!
+                            Welcome to the dashboard! Here you can track your progress and manage your courses.
                         </p>
                         <div className="mt-6 flex items-center gap-4">
-                            <Link href="/dashboard/courses" className="px-6 py-2.5 bg-white text-orange-600 rounded-xl font-semibold hover:bg-orange-50 transition-colors">
+                            <Link href="/dashboard?view=courses" className="px-6 py-2.5 bg-white text-orange-600 rounded-xl font-semibold hover:bg-orange-50 transition-colors">
                                 Resume Learning
                             </Link>
                             <div className="flex -space-x-2">
@@ -39,7 +76,7 @@ export function StudentHome() {
                                     +12
                                 </div>
                             </div>
-                            <span className="text-sm text-orange-100">Joining you in the live session</span>
+                            {/* <span className="text-sm text-orange-100">Joining you in the live session</span> */}
                         </div>
                     </div>
                     {/* Decorative abstract shapes */}
@@ -53,41 +90,37 @@ export function StudentHome() {
                 <AnimatedContent delay={0.1} distance={20}>
                     <StatCard 
                         title="Enrolled Courses" 
-                        value="12" 
-                        trend="2" 
-                        trendType="positive"
+                        value={enrollments.length.toString()} 
                         icon={BookOpenIcon}
                         colorClass="bg-blue-50 text-blue-600"
+                        loading={loading}
                     />
                 </AnimatedContent>
                 <AnimatedContent delay={0.2} distance={20}>
                     <StatCard 
                         title="Completed Tests" 
-                        value="48" 
-                        trend="12" 
-                        trendType="positive"
+                        value={testResults.length.toString()} 
                         icon={FileTextIcon}
                         colorClass="bg-purple-50 text-purple-600"
+                        loading={loading}
                     />
                 </AnimatedContent>
                 <AnimatedContent delay={0.3} distance={20}>
                     <StatCard 
                         title="Study Hours" 
-                        value="124h" 
-                        trend="8" 
-                        trendType="positive"
+                        value="0h" 
                         icon={ClockIcon}
                         colorClass="bg-orange-50 text-orange-600"
+                        loading={true}
                     />
                 </AnimatedContent>
                 <AnimatedContent delay={0.4} distance={20}>
                     <StatCard 
                         title="Average Score" 
-                        value="92%" 
-                        trend="3" 
-                        trendType="positive"
+                        value={`${averageScore}%`} 
                         icon={TrophyIcon}
                         colorClass="bg-emerald-50 text-emerald-600"
+                        loading={loading}
                     />
                 </AnimatedContent>
             </div>
@@ -131,30 +164,39 @@ export function StudentHome() {
                         <div className="bg-white rounded-3xl border border-gray-100 p-6">
                             <h2 className="text-xl font-bold text-gray-900 mb-6">Learning Path</h2>
                             <div className="space-y-4">
-                                {[
-                                    { name: "Thermodynamics - Laws of Motion", status: "completed", date: "Yesterday" },
-                                    { name: "Organic Chemistry - Benzene Ring", status: "in-progress", date: "Today, 4:00 PM" },
-                                    { name: "Calculus - Integrations", status: "upcoming", date: "Tomorrow, 10:00 AM" }
-                                ].map((item, i) => (
-                                    <div key={i} className="flex items-center justify-between p-4 rounded-2xl hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-100 group">
-                                        <div className="flex items-center gap-4">
-                                            <div className={cn(
-                                                "size-10 rounded-full flex items-center justify-center",
-                                                item.status === "completed" ? "bg-emerald-50 text-emerald-600" : 
-                                                item.status === "in-progress" ? "bg-orange-50 text-orange-600" : "bg-gray-50 text-gray-400"
-                                            )}>
-                                                {item.status === "completed" ? <CheckCircle2Icon className="size-5" /> : <div className="size-2 bg-current rounded-full" />}
-                                            </div>
-                                            <div>
-                                                <h4 className="font-semibold text-gray-900 group-hover:text-orange-600 transition-colors">{item.name}</h4>
-                                                <p className="text-xs text-gray-500 mt-1">{item.date}</p>
-                                            </div>
-                                        </div>
-                                        <button className="p-2 text-gray-400 hover:text-gray-900 hover:bg-white rounded-lg transition-all">
-                                            <ArrowRightIcon className="size-5" />
-                                        </button>
+                                {loading ? (
+                                    <div className="flex items-center justify-center py-12">
+                                        <div className="size-12 border-4 border-gray-200 border-t-orange-600 rounded-full animate-spin"></div>
                                     </div>
-                                ))}
+                                ) : enrollments.length === 0 ? (
+                                    <div className="text-center py-12">
+                                        <p className="text-gray-500">No enrolled courses yet</p>
+                                        <Link href="/dashboard/courses" className="text-orange-600 hover:text-orange-700 font-semibold mt-2 inline-block">
+                                            Browse Courses
+                                        </Link>
+                                    </div>
+                                ) : (
+                                    enrollments.map((enrollment, i) => (
+                                        <Link 
+                                            key={enrollment.id} 
+                                            href={`/player/${enrollment.courseId}`}
+                                            className="flex items-center justify-between p-4 rounded-2xl hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-100 group"
+                                        >
+                                            <div className="flex items-center gap-4">
+                                                <div className="size-10 rounded-full flex items-center justify-center bg-blue-50 text-blue-600">
+                                                    <BookOpenIcon className="size-5" />
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-semibold text-gray-900 group-hover:text-orange-600 transition-colors">{enrollment.course.title}</h4>
+                                                    <p className="text-xs text-gray-500 mt-1">{enrollment.course._count.chapters} chapters</p>
+                                                </div>
+                                            </div>
+                                            <button className="p-2 text-gray-400 hover:text-gray-900 hover:bg-white rounded-lg transition-all">
+                                                <ArrowRightIcon className="size-5" />
+                                            </button>
+                                        </Link>
+                                    ))
+                                )}
                             </div>
                         </div>
                     </AnimatedContent>
@@ -165,33 +207,8 @@ export function StudentHome() {
                     <AnimatedContent delay={0.7} distance={20}>
                         <div className="bg-white rounded-3xl border border-gray-100 p-6 h-full">
                             <h2 className="text-xl font-bold text-gray-900 mb-6">Performance Trend</h2>
-                            <div className="space-y-6">
-                                {[
-                                    { subject: "Mathematics", progress: 85, color: "bg-blue-500" },
-                                    { subject: "Physics", progress: 72, color: "bg-orange-500" },
-                                    { subject: "Chemistry", progress: 94, color: "bg-emerald-500" },
-                                    { subject: "Biology", progress: 68, color: "bg-purple-500" }
-                                ].map((subject, i) => (
-                                    <div key={i} className="space-y-2">
-                                        <div className="flex items-center justify-between text-sm">
-                                            <span className="font-medium text-gray-700">{subject.subject}</span>
-                                            <span className="text-gray-500">{subject.progress}%</span>
-                                        </div>
-                                        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                                            <div 
-                                                className={cn("h-full rounded-full transition-all duration-1000 delay-500", subject.color)} 
-                                                style={{ width: `${subject.progress}%` }}
-                                            ></div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                            
-                            <div className="mt-10 p-4 bg-orange-50 rounded-2xl">
-                                <h3 className="font-bold text-orange-900">Pro Tip! 💡</h3>
-                                <p className="text-sm text-orange-700 mt-1">
-                                    Solving 5 more chemistry problems today will put you in the top 5% of students.
-                                </p>
+                            <div className="flex items-center justify-center py-12">
+                                <div className="size-12 border-4 border-gray-200 border-t-orange-600 rounded-full animate-spin"></div>
                             </div>
                         </div>
                     </AnimatedContent>
@@ -199,16 +216,8 @@ export function StudentHome() {
                     <AnimatedContent delay={0.8} distance={20}>
                         <div className="bg-white rounded-3xl border border-gray-100 p-6">
                             <h2 className="text-xl font-bold text-gray-900 mb-6">Upcoming Tests</h2>
-                            <div className="space-y-4">
-                                {[
-                                    { name: "JEE Mock #14", color: "bg-orange-100" },
-                                    { name: "Weekly Quiz", color: "bg-blue-100" }
-                                ].map((test, i) => (
-                                    <div key={i} className="flex items-center gap-4 p-4 bg-gray-50/50 rounded-2xl hover:bg-gray-50 transition-colors">
-                                        <div className={cn("size-3 rounded-full", test.color.replace('100', '500'))}></div>
-                                        <span className="font-semibold text-gray-800">{test.name}</span>
-                                    </div>
-                                ))}
+                            <div className="flex items-center justify-center py-12">
+                                <div className="size-12 border-4 border-gray-200 border-t-orange-600 rounded-full animate-spin"></div>
                             </div>
                         </div>
                     </AnimatedContent>

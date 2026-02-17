@@ -39,7 +39,7 @@ export default function StudentDashboardPage() {
                                     +12
                                 </div>
                             </div>
-                            <span className="text-sm text-orange-100">Joining you in the live session</span>
+                            {/* <span className="text-sm text-orange-100">Joining you in the live session</span> */}
                         </div>
                     </div>
                     {/* Decorative abstract shapes */}

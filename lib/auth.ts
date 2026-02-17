@@ -54,9 +54,10 @@ export const auth = {
   },
 
   async getProfile(): Promise<User | null> {
-    if (!this.getToken()) return null;
+    const token = this.getToken();
+    if (!token) return null;
     try {
-      const user = await api.get<User>('/users/profile');
+      const user = await api.get<User>('/users/profile', token);
       this.setUser(user);
       return user;
     } catch (error) {

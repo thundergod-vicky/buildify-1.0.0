@@ -5,31 +5,26 @@ import Topbar from "@/components/dashboard/topbar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { Role } from "@/types"; // Assuming types.ts has Role enum
+import { Role } from "@/types";
 
 export default function StudentLayout({
     children,
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    const { user, loading } = useAuth();
+    const { user, isLoading } = useAuth();
     const router = useRouter();
 
     useEffect(() => {
-        if (!loading) {
-            if (!user || user.role !== 'student') { 
-                // Note: user.role might be uppercase STUDENT in DB/types, check AuthContext
-                // But typically string comparison safe if normalized.
-                // Assuming 'student' or Role.STUDENT
-                 if (user?.role !== 'student' && user?.role !== 'STUDENT') {
-                    router.push('/auth');
-                 }
-            }
+        if (!isLoading) {
+             if (user?.role !== Role.STUDENT) {
+                router.push('/auth');
+             }
         }
-    }, [user, loading, router]);
+    }, [user, isLoading, router]);
 
-    if (loading) return <div className="flex h-screen items-center justify-center">Loading...</div>;
-    if (!user) return null; // Will redirect
+    if (isLoading) return <div className="flex h-screen items-center justify-center">Loading...</div>;
+    if (!user) return null;
 
     return (
         <div className="flex min-h-screen bg-gray-50/50">

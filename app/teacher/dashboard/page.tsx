@@ -37,7 +37,7 @@ export default function TeacherDashboardPage() {
                         title="Active Courses" 
                         value="4" 
                         trend="0" 
-                        trendType="neutral"
+                        trendType={undefined}
                         icon={BookOpenIcon}
                         colorClass="bg-blue-50 text-blue-600"
                     />
