@@ -18,9 +18,13 @@ export function ParentPerformance() {
     useState<PracticeTestResult | null>(null);
 
   const linkedStudents = user?.parentOf?.map((p) => p.student) || [];
-  const [selectedStudentId, setSelectedStudentId] = useState<string>(
-    linkedStudents[0]?.id || "",
-  );
+  const [selectedStudentId, setSelectedStudentId] = useState<string>("");
+
+  useEffect(() => {
+    if (linkedStudents.length > 0 && !selectedStudentId) {
+      setSelectedStudentId(linkedStudents[0].id);
+    }
+  }, [linkedStudents, selectedStudentId]);
 
   useEffect(() => {
     if (selectedStudentId) {

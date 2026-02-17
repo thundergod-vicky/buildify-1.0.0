@@ -34,7 +34,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Fetch fresh profile in background
         try {
           const freshUser = await authService.getProfile();
-          if (freshUser) setUser(freshUser);
+          if (freshUser) {
+            setUser(freshUser);
+            authService.setUser(freshUser); // Persist full profile
+          }
         } catch (error) {
           console.error("Error refreshing profile:", error);
           if (!storedUser) authService.logout(); // Invalid token?
