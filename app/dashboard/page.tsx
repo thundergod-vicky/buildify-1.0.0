@@ -11,6 +11,7 @@ import { StudentTests } from "@/components/dashboard/views/student/Tests";
 import { StudentPerformance } from "@/components/dashboard/views/student/Performance";
 import { StudentSchedule } from "@/components/dashboard/views/student/Schedule";
 import { StudentSettings } from "@/components/dashboard/views/student/Settings";
+import { StudentBatches } from "@/components/dashboard/views/student/Batches";
 
 // Teacher Views
 import { TeacherHome } from "@/components/dashboard/views/teacher/Home";
@@ -18,6 +19,7 @@ import { TeacherCourses } from "@/components/dashboard/views/teacher/Courses";
 import { TeacherTests } from "@/components/dashboard/views/teacher/PracticeTests";
 import { TeacherStudentManagement } from "@/components/dashboard/views/teacher/StudentManagement";
 import { TeacherSettings } from "@/components/dashboard/views/teacher/Settings";
+import { TeacherBatches } from "@/components/dashboard/views/teacher/Batches";
 
 // Parent Views
 import { ParentHome } from "@/components/dashboard/views/parent/Home";
@@ -31,6 +33,7 @@ import { AdminUserManagement } from "@/components/dashboard/views/admin/UserMana
 import { AdminCourseManagement } from "@/components/dashboard/views/admin/CourseManagement";
 import { AdminPracticeTestManagement } from "@/components/dashboard/views/admin/PracticeTestManagement";
 import { AdminRequests } from "@/components/dashboard/views/admin/Requests";
+import { AdminBatchManagement } from "@/components/dashboard/views/admin/BatchManagement";
 
 // Shared Views
 import { NotificationsView } from "@/components/dashboard/views/shared/Notifications";
@@ -53,6 +56,7 @@ export default function DashboardPage() {
             case 'settings': return <StudentSettings />;
             case 'notifications': return <NotificationsView />;
             case 'messages': return <MessagesView />;
+            case 'batches': return <StudentBatches />;
             default: return <StudentHome />;
         }
     }
@@ -65,6 +69,7 @@ export default function DashboardPage() {
             case 'settings': return <TeacherSettings />;
             case 'notifications': return <NotificationsView />;
             case 'messages': return <MessagesView />;
+            case 'batches': return <TeacherBatches />;
             default: return <TeacherHome />;
         }
     }
@@ -89,6 +94,7 @@ export default function DashboardPage() {
             case 'settings': return <AdminSettings />;
             case 'notifications': return <NotificationsView />;
             case 'messages': return <MessagesView />;
+            case 'manage-batches': return <AdminBatchManagement />;
             default: return <AdminHome />;
         }
     }

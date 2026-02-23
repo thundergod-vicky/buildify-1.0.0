@@ -17,6 +17,7 @@ import {
   BellIcon,
   UserPlusIcon,
   MessageSquareIcon,
+  LayersIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Role } from "@/types";
@@ -45,6 +46,8 @@ export default function Sidebar() {
     { name: "Revenue", icon: BarChart3Icon, view: "revenue" },
     { name: "Practice Test Control", icon: FileTextIcon, view: "practice-tests" },
     { name: "Schedule", icon: CalendarIcon, view: "schedule" },
+    { name: "Batch Management", icon: LayersIcon, view: "manage-batches" },
+    { name: "My Batches", icon: LayersIcon, view: "batches" },
     { name: "Settings", icon: SettingsIcon, view: "settings" },
   ];
 
@@ -53,17 +56,17 @@ export default function Sidebar() {
 
     // Student
     if (userRole === Role.STUDENT) {
-        return ["Home", "My Courses", "Practice Tests", "Performance", "Schedule", "Messages", "Settings", "Notifications"].includes(item.name);
+        return ["Home", "My Courses", "Practice Tests", "Performance", "Schedule", "Messages", "Settings", "Notifications", "My Batches"].includes(item.name);
     }
     
     // Teacher
     if (userRole === Role.TEACHER) {
-        return ["Home", "My Courses", "Practice Tests", "Student Management", "Messages", "Settings", "Notifications"].includes(item.name);
+        return ["Home", "My Courses", "Practice Tests", "Student Management", "Messages", "Settings", "Notifications", "My Batches"].includes(item.name);
     }
 
     // Admin
     if (userRole === Role.ADMIN) {
-        return ["Home", "User Management", "Course Control", "Practice Test Control", "Revenue", "Requests", "Messages", "Settings", "Notifications"].includes(item.name);
+        return ["Home", "User Management", "Course Control", "Practice Test Control", "Revenue", "Requests", "Messages", "Settings", "Notifications", "Batch Management"].includes(item.name);
     }
 
     // Parent

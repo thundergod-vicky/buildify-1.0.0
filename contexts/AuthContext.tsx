@@ -87,8 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
           const updatedUser = await response.json();
           setUser(updatedUser);
-          // Update local storage if needed, or authService.setUser
-          // authService.setUser(updatedUser); // If setUser exists or manual
+          authService.setUser(updatedUser); 
       } catch (error) {
           throw error;
       }

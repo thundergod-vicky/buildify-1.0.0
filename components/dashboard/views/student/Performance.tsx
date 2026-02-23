@@ -3,36 +3,20 @@
 import { useState, useEffect } from "react";
 import { 
   TrophyIcon, 
-  BarChart3Icon, 
-  CheckCircle2Icon, 
-  BookOpenIcon, 
   TrendingUpIcon,
   MedalIcon,
   AwardIcon,
-  FileTextIcon
+  FileTextIcon,
+  Share2Icon,
+  CheckCircle2Icon,
+  BookOpenIcon
 } from "lucide-react";
 import AnimatedContent from "@/components/animated-content";
 import StatCard from "@/components/dashboard/stat-card";
 import enrollmentsApi from "@/lib/enrollments";
 import { api } from "@/lib/api";
 import { auth } from "@/lib/auth";
-
-interface TestResult {
-  id: string;
-  score: number;
-  total: number;
-  timeTaken?: number;
-}
-
-interface UserProfile {
-  id: string;
-  name: string;
-  medal?: string;
-  grade?: string;
-  assignedByTeacher?: {
-    name: string;
-  };
-}
+import { toast } from "react-toastify";
 
 const MEDAL_COLORS: Record<string, string> = {
   WOOD: "text-[#8B4513] bg-[#8B4513]/10",
@@ -91,7 +75,7 @@ export function StudentPerformance() {
         setStats({
           totalTests: results.length,
           averageScore: avgScore,
-          accuracy: avgScore, // Using avgScore as accuracy for now
+          accuracy: avgScore,
           courseCompletions: enrollData.filter((e: any) => e.progress?.every((p: any) => p.completed)).length || 0,
           enrolledCourses: enrollData.length,
         });
@@ -107,13 +91,11 @@ export function StudentPerformance() {
 
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-8">
-      {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900 font-urbanist">Performance Analytics</h1>
         <p className="text-gray-500 mt-1">Detailed breakdown of your academic progress and achievements</p>
       </div>
 
-      {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <AnimatedContent delay={0.1}>
           <StatCard
@@ -154,7 +136,6 @@ export function StudentPerformance() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Scholar Status Card */}
         <AnimatedContent delay={0.5} className="lg:col-span-1">
           <div className="bg-white rounded-3xl border border-gray-100 p-8 h-full flex flex-col justify-between shadow-sm relative overflow-hidden">
             <div className="relative z-10">
@@ -212,17 +193,15 @@ export function StudentPerformance() {
               </div>
             )}
 
-            {/* Background design */}
             <div className="absolute -bottom-8 -right-8 size-40 bg-orange-50 rounded-full blur-3xl opacity-50"></div>
           </div>
         </AnimatedContent>
 
-        {/* Performance Trend Chart */}
         <AnimatedContent delay={0.6} className="lg:col-span-2">
           <div className="bg-white rounded-3xl border border-gray-100 p-8 h-full shadow-sm">
             <div className="flex items-center justify-between mb-8">
               <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                <BarChart3Icon className="size-5 text-orange-600" />
+                <TrendingUpIcon className="size-5 text-orange-600" />
                 Accuracy Trend
               </h2>
               <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase">
@@ -235,7 +214,7 @@ export function StudentPerformance() {
               <div className="h-64 flex items-end gap-3 px-4">
                 {testResults.slice(0, 10).reverse().map((res, i) => {
                   const percentage = res.total > 0 ? (res.score / res.total) * 100 : 0;
-                  const height = `${Math.max(percentage, 5)}%`; // Minimum 5% height for visibility
+                  const height = `${Math.max(percentage, 5)}%`;
                   return (
                     <div key={res.id} className="flex-1 flex flex-col items-center group gap-2 h-full">
                       <div className="relative w-full flex-1 flex items-end pb-1">
@@ -246,7 +225,6 @@ export function StudentPerformance() {
                           className="w-full bg-orange-200 rounded-t-lg group-hover:bg-orange-500 transition-all cursor-pointer relative min-h-[4px]"
                           style={{ height }}
                          >
-                           {/* Decorative bar effect */}
                            <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                          </div>
                       </div>
@@ -283,4 +261,3 @@ export function StudentPerformance() {
     </div>
   );
 }
-

@@ -100,6 +100,15 @@ export interface Notification {
     createdAt: string;
 }
 
+export interface ProfileSettings {
+    showMedals: boolean;
+    showGrades: boolean;
+    showCourses: boolean;
+    showTestResults: boolean;
+    hiddenCourseIds?: string[];
+    hiddenTestResultIds?: string[];
+}
+
 export interface User {
     id: string;
     email: string;
@@ -110,6 +119,9 @@ export interface User {
     medal?: string;
     createdAt: Date;
     updatedAt: Date;
+    profileSlug?: string;
+    profileSettings?: ProfileSettings;
+    // Relations
     parentOf?: ParentStudent[];
     studentOf?: ParentStudent[];
     parentRequests?: ParentRequest[];
@@ -310,7 +322,7 @@ export interface PracticeTestResult {
     timeTaken?: number;
     rating?: number;
     status: 'COMPLETED' | 'CHEATED';
-    answers?: any;
+    answers?: Record<string, any>;
     test?: PracticeTest;
     createdAt: string;
 }
