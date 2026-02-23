@@ -34,6 +34,7 @@ import { AdminRequests } from "@/components/dashboard/views/admin/Requests";
 
 // Shared Views
 import { NotificationsView } from "@/components/dashboard/views/shared/Notifications";
+import { MessagesView } from "@/components/dashboard/views/shared/Messages";
 
 export default function DashboardPage() {
     const { user, isLoading } = useAuth();
@@ -51,6 +52,7 @@ export default function DashboardPage() {
             case 'schedule': return <StudentSchedule />;
             case 'settings': return <StudentSettings />;
             case 'notifications': return <NotificationsView />;
+            case 'messages': return <MessagesView />;
             default: return <StudentHome />;
         }
     }
@@ -62,6 +64,7 @@ export default function DashboardPage() {
             case 'students': return <TeacherStudentManagement />;
             case 'settings': return <TeacherSettings />;
             case 'notifications': return <NotificationsView />;
+            case 'messages': return <MessagesView />;
             default: return <TeacherHome />;
         }
     }
@@ -71,6 +74,7 @@ export default function DashboardPage() {
             case 'performance': return <ParentPerformance />;
             case 'settings': return <ParentSettings />;
             case 'notifications': return <NotificationsView />;
+            case 'messages': return <MessagesView />;
             default: return <ParentHome />;
         }
     }
@@ -84,6 +88,7 @@ export default function DashboardPage() {
             case 'requests': return <AdminRequests />;
             case 'settings': return <AdminSettings />;
             case 'notifications': return <NotificationsView />;
+            case 'messages': return <MessagesView />;
             default: return <AdminHome />;
         }
     }

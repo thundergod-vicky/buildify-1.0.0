@@ -16,6 +16,7 @@ import {
   BarChart2Icon,
   BellIcon,
   UserPlusIcon,
+  MessageSquareIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Role } from "@/types";
@@ -37,6 +38,7 @@ export default function Sidebar() {
     { name: "Performance", icon: BarChart2Icon, view: "performance" },
     { name: "Notifications", icon: BellIcon, view: "notifications" }, // New item
     { name: "Requests", icon: UserPlusIcon, view: "requests" }, // New for Admin
+    { name: "Messages", icon: MessageSquareIcon, view: "messages" },
     { name: "Student Management", icon: GraduationCapIcon, view: "students" },
     { name: "User Management", icon: UsersIcon, view: "users" },
     { name: "Course Control", icon: ShieldCheckIcon, view: "manage-courses" },
@@ -47,24 +49,26 @@ export default function Sidebar() {
   ];
 
   const filteredItems = menuItems.filter((item) => {
+    const userRole = user?.role?.toUpperCase();
+
     // Student
-    if (user?.role === Role.STUDENT) {
-        return ["Home", "My Courses", "Practice Tests", "Performance", "Schedule", "Settings", "Notifications"].includes(item.name);
+    if (userRole === Role.STUDENT) {
+        return ["Home", "My Courses", "Practice Tests", "Performance", "Schedule", "Messages", "Settings", "Notifications"].includes(item.name);
     }
     
     // Teacher
-    if (user?.role === Role.TEACHER) {
-        return ["Home", "My Courses", "Practice Tests", "Student Management", "Settings", "Notifications"].includes(item.name);
+    if (userRole === Role.TEACHER) {
+        return ["Home", "My Courses", "Practice Tests", "Student Management", "Messages", "Settings", "Notifications"].includes(item.name);
     }
 
     // Admin
-    if (user?.role === Role.ADMIN) {
-        return ["Home", "User Management", "Course Control", "Practice Test Control", "Revenue", "Requests", "Settings", "Notifications"].includes(item.name);
+    if (userRole === Role.ADMIN) {
+        return ["Home", "User Management", "Course Control", "Practice Test Control", "Revenue", "Requests", "Messages", "Settings", "Notifications"].includes(item.name);
     }
 
     // Parent
-    if (user?.role === Role.PARENT) {
-        return ["Home", "Performance", "Notifications", "Settings"].includes(item.name);
+    if (userRole === Role.PARENT) {
+        return ["Home", "Performance", "Messages", "Notifications", "Settings"].includes(item.name);
     }
 
     return item.name === "Home" || item.name === "Settings";
@@ -124,6 +128,9 @@ export default function Sidebar() {
       </nav>
 
       <div className="p-4 border-t border-gray-50">
+        <div className="px-4 py-2 mb-2 bg-gray-50 rounded-lg text-[10px] font-mono text-gray-400">
+          Role: <span className="text-orange-600 font-bold">{user?.role || 'null'}</span>
+        </div>
         <button 
             onClick={handleLogoutClick}
             className="flex items-center gap-3 px-4 py-3 w-full text-left text-gray-500 hover:bg-red-50 hover:text-red-600 rounded-xl transition-colors group"

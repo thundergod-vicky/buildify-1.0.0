@@ -1,11 +1,10 @@
 import { Inter, Urbanist } from "next/font/google";
 import "./globals.css";
 import { Metadata } from "next";
-import Navbar from "@/components/navbar";
-import LenisScroll from "@/components/lenis";
-import Footer from "@/components/footer";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
+import LenisScroll from "@/components/lenis";
+import LayoutWrapper from "@/components/layout-wrapper";
 import { ToastContainer, Bounce } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -81,9 +80,9 @@ export default function RootLayout({
                 <AuthProvider>
                     <NotificationProvider>
                         <LenisScroll />
-                        <Navbar />
-                        {children}
-                        <Footer />
+                        <LayoutWrapper>
+                            {children}
+                        </LayoutWrapper>
                     </NotificationProvider>
                 </AuthProvider>
             </body>
