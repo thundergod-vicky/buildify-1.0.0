@@ -4,7 +4,9 @@ import React, { useRef, useEffect } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
-gsap.registerPlugin(ScrollTrigger);
+if (typeof window !== 'undefined') {
+    gsap.registerPlugin(ScrollTrigger);
+}
 
 interface AnimatedContentProps extends React.HTMLAttributes<HTMLDivElement> {
     children: React.ReactNode;
@@ -53,62 +55,64 @@ const AnimatedContent: React.FC<AnimatedContentProps> = ({
         const el = ref.current;
         if (!el) return;
 
-        let scrollerTarget: Element | string | null = container || document.getElementById('snap-main-container') || null;
-
-        if (typeof scrollerTarget === 'string') {
-            scrollerTarget = document.querySelector(scrollerTarget);
-        }
-
-        const axis = direction === 'horizontal' ? 'x' : 'y';
-        const offset = reverse ? -distance : distance;
-        const startPct = (1 - threshold) * 100;
-
-        gsap.set(el, {
-            [axis]: offset,
-            scale,
-            opacity: animateOpacity ? initialOpacity : 1,
-            visibility: 'visible'
-        });
-
-        const tl = gsap.timeline({
-            paused: true,
-            delay,
-            onComplete: () => {
-                if (onComplete) onComplete();
-                if (disappearAfter > 0) {
-                    gsap.to(el, {
-                        [axis]: reverse ? distance : -distance,
-                        scale: 0.8,
-                        opacity: animateOpacity ? initialOpacity : 0,
-                        delay: disappearAfter,
-                        duration: disappearDuration,
-                        ease: disappearEase,
-                        onComplete: () => onDisappearanceComplete?.()
-                    });
-                }
+        const ctx = gsap.context(() => {
+            let scrollerTarget: Element | null = null;
+            if (container) {
+                scrollerTarget = typeof container === 'string' ? document.querySelector(container) : container as Element;
+            } else {
+                scrollerTarget = document.getElementById('snap-main-container');
             }
-        });
 
-        tl.to(el, {
-            [axis]: 0,
-            scale: 1,
-            opacity: 1,
-            duration,
-            ease
-        });
+            const axis = direction === 'horizontal' ? 'x' : 'y';
+            const offset = reverse ? -distance : distance;
+            const startPct = (1 - threshold) * 100;
 
-        const st = ScrollTrigger.create({
-            trigger: el,
-            scroller: scrollerTarget || window,
-            start: `top ${startPct}%`,
-            once: true,
-            onEnter: () => tl.play()
-        });
+            // Set initial state
+            gsap.set(el, {
+                [axis]: offset,
+                scale,
+                autoAlpha: animateOpacity ? initialOpacity : 1,
+            });
 
-        return () => {
-            st.kill();
-            tl.kill();
-        };
+            const tl = gsap.timeline({
+                paused: true,
+                delay,
+                onComplete: () => {
+                    onComplete?.();
+                    if (disappearAfter > 0) {
+                        ctx.add(() => {
+                            gsap.to(el, {
+                                [axis]: reverse ? distance : -distance,
+                                scale: 0.8,
+                                autoAlpha: animateOpacity ? initialOpacity : 0,
+                                delay: disappearAfter,
+                                duration: disappearDuration,
+                                ease: disappearEase,
+                                onComplete: () => onDisappearanceComplete?.()
+                            });
+                        });
+                    }
+                }
+            });
+
+            tl.to(el, {
+                [axis]: 0,
+                scale: 1,
+                autoAlpha: 1,
+                duration,
+                ease
+            });
+
+            ScrollTrigger.create({
+                trigger: el,
+                scroller: scrollerTarget || window,
+                start: `top ${startPct}%`,
+                once: true,
+                onEnter: () => tl.play()
+            });
+        }, ref);
+
+        return () => ctx.revert();
     }, [
         container,
         distance,

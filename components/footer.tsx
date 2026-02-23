@@ -41,6 +41,9 @@ export default function Footer() {
                                 <InstagramIcon size={20} />
                                 <p>Instagram</p>
                             </a>
+                            <a href={`${process.env.NEXT_PUBLIC_API_URL}/api`} target="_blank" rel="noopener noreferrer" className="mt-4 text-sm font-medium text-orange-600 hover:text-orange-700 underline underline-offset-4">
+                                API Documentation
+                            </a>
                         </AnimatedContent>
                     </div>
                 </div>
