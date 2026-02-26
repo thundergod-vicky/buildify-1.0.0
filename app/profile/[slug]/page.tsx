@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import AnimatedContent from "@/components/animated-content";
 import { toast } from "react-toastify";
+import { resolveImageUrl } from "@/lib/utils";
 
 const MEDAL_COLORS: Record<string, string> = {
   WOOD: "text-[#8B4513] bg-[#8B4513]/10",
@@ -50,7 +51,7 @@ export default function PublicProfilePage() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
         const res = await fetch(`${apiUrl}/public/profile/${slug}`);
         if (!res.ok) throw new Error("Profile not found");
         const data = await res.json();
@@ -83,7 +84,7 @@ export default function PublicProfilePage() {
           <UserIcon className="size-10" />
         </div>
         <h1 className="text-3xl font-black text-gray-900 tracking-tight">Profile Private or Not Found</h1>
-        <p className="text-gray-500 mt-2 max-w-md font-medium">The student profile you're looking for doesn't exist or has been made private by the student.</p>
+        <p className="text-gray-500 mt-2 max-w-md font-medium">The student profile you&apos;re looking for doesn&apos;t exist or has been made private by the student.</p>
         <Link href="/" className="mt-8 px-8 py-3 bg-gray-900 text-white rounded-2xl font-bold hover:bg-gray-800 transition-all shadow-lg hover:shadow-gray-200">
           Back to Home
         </Link>
@@ -105,7 +106,15 @@ export default function PublicProfilePage() {
           <AnimatedContent>
             <div className="flex flex-col items-center text-center">
               <div className="size-32 bg-orange-100 rounded-3xl border-4 border-white shadow-2xl flex items-center justify-center text-4xl font-black text-orange-600 mb-6 relative overflow-hidden group rotate-3">
-                {profile.name?.[0] || "?"}
+                {profile.profileImage ? (
+                  <img 
+                    src={resolveImageUrl(profile.profileImage)} 
+                    alt="Profile" 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  profile.name?.[0] || "?"
+                )}
                 <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-[10px] font-black text-white tracking-widest uppercase -rotate-3">
                     ADHYAYAN
                 </div>

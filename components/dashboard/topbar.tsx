@@ -19,7 +19,11 @@ import {
     SaveIcon,
     GraduationCapIcon,
     BookOpenIcon,
-    ClipboardCheckIcon
+    ClipboardCheckIcon,
+    CheckCircleIcon,
+    InfoIcon,
+    AlertTriangleIcon,
+    Loader2Icon
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Role, ProfileSettings } from "@/types";
@@ -27,6 +31,7 @@ import Link from "next/link";
 import { toast } from "react-toastify";
 import { api } from "@/lib/api";
 import { auth as authService } from "@/lib/auth";
+import { resolveImageUrl, cn } from "@/lib/utils";
 
 const MEDAL_COLORS: Record<string, string> = {
     WOOD: "text-[#8B4513] bg-[#8B4513]/10",
@@ -53,7 +58,12 @@ export default function Topbar() {
     });
     
     const menuRef = useRef<HTMLDivElement>(null);
+    const notificationsRef = useRef<HTMLDivElement>(null);
     const modalRef = useRef<HTMLDivElement>(null);
+
+    const [notifications, setNotifications] = useState<any[]>([]);
+    const [isNotiOpen, setIsNotiOpen] = useState(false);
+    const [isLoadingNotis, setIsLoadingNotis] = useState(false);
     
     const displayRole = user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1).toLowerCase() : "";
 
@@ -68,9 +78,10 @@ export default function Topbar() {
             if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
                 setIsMenuOpen(false);
             }
+            if (notificationsRef.current && !notificationsRef.current.contains(event.target as Node)) {
+                setIsNotiOpen(false);
+            }
             if (modalRef.current && !modalRef.current.contains(event.target as Node) && isCustomizing) {
-                // Ignore clicks outside if they are part of a click that started inside or something
-                // But for simplicity:
                 setIsCustomizing(false);
             }
         }
@@ -120,6 +131,37 @@ export default function Topbar() {
 
     const publicProfileUrl = user?.profileSlug ? `${window.location.origin}/profile/${user.profileSlug}` : '';
 
+    const fetchNotifications = async () => {
+        setIsLoadingNotis(true);
+        try {
+            const token = authService.getToken();
+            if (!token) return;
+            const res: any = await api.get("/notifications", token);
+            setNotifications(res || []);
+        } catch (error) {
+            // Error logged elsewhere or handled silently
+        } finally {
+            setIsLoadingNotis(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchNotifications();
+    }, []);
+
+    const markAsRead = async (id: string) => {
+        try {
+            const token = authService.getToken();
+            if (!token) return;
+            await api.patch(`/notifications/${id}/read`, {}, token);
+            setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+        } catch {
+            toast.error("Failed to update status");
+        }
+    };
+
+    const unreadCount = notifications.filter(n => !n.isRead).length;
+
     return (
         <header className="h-20 bg-white border-b border-gray-100 flex items-center justify-between px-8 sticky top-0 z-50">
             <div className="flex-1 max-w-xl">
@@ -134,10 +176,109 @@ export default function Topbar() {
             </div>
 
             <div className="flex items-center gap-4">
-                <button className="relative p-2.5 text-gray-500 hover:bg-gray-50 rounded-xl transition-colors group">
-                    <BellIcon className="size-5 group-hover:text-orange-600" />
-                    <span className="absolute top-2.5 right-2.5 size-2 bg-red-500 border-2 border-white rounded-full"></span>
-                </button>
+                <div className="relative" ref={notificationsRef}>
+                    <button 
+                        onClick={() => setIsNotiOpen(!isNotiOpen)}
+                        className={cn(
+                            "relative p-2.5 text-gray-500 hover:bg-gray-50 rounded-xl transition-colors group",
+                            isNotiOpen && "bg-orange-50 text-orange-600 ring-2 ring-orange-100"
+                        )}
+                    >
+                        <BellIcon className={cn("size-5 group-hover:text-orange-600", isNotiOpen && "text-orange-600")} />
+                        {unreadCount > 0 && (
+                            <span className="absolute top-2.5 right-2.5 size-2 bg-red-500 border-2 border-white rounded-full"></span>
+                        )}
+                    </button>
+
+                    {isNotiOpen && (
+                        <div className="absolute right-0 mt-3 w-96 bg-white border border-gray-100 rounded-[2.5rem] shadow-2xl shadow-gray-200/50 z-50 overflow-hidden flex flex-col h-[480px]">
+                            <div className="p-5 border-b border-gray-50 flex items-center justify-between bg-white shrink-0">
+                                <h3 className="font-bold text-gray-900">Notifications</h3>
+                                {unreadCount > 0 && (
+                                    <span className="px-2 py-0.5 bg-orange-100 text-orange-600 text-[10px] font-black rounded-full uppercase tracking-wider">
+                                        {unreadCount} New
+                                    </span>
+                                )}
+                            </div>
+
+                            <div className="p-2 space-y-1 flex-1 overflow-y-auto min-h-0 overscroll-behavior-contain">
+                                {isLoadingNotis ? (
+                                    <div className="flex flex-col items-center justify-center p-12 space-y-3">
+                                        <Loader2Icon className="size-8 text-orange-600 animate-spin" />
+                                        <p className="text-xs text-gray-400 font-medium">Loading notifications...</p>
+                                    </div>
+                                ) : notifications.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center p-12 space-y-3 text-center">
+                                        <div className="size-12 bg-gray-50 rounded-2xl flex items-center justify-center">
+                                            <BellIcon className="size-6 text-gray-300" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-bold text-gray-900">All caught up!</p>
+                                            <p className="text-xs text-gray-400 mt-1">No new notifications for you.</p>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    notifications.map((note) => (
+                                        <div 
+                                            key={note.id} 
+                                            className={cn(
+                                                "p-4 rounded-2xl transition-all border border-transparent",
+                                                !note.isRead ? "bg-orange-50/50 border-orange-100/50 hover:bg-orange-50" : "hover:bg-gray-50"
+                                            )}
+                                        >
+                                            <div className="flex gap-4">
+                                                <div className={cn(
+                                                    "p-2 rounded-xl h-fit shrink-0",
+                                                    note.type === 'ALERT' ? 'bg-red-100 text-red-600' :
+                                                    note.type === 'WARNING' ? 'bg-yellow-100 text-yellow-600' :
+                                                    'bg-blue-100 text-blue-600'
+                                                )}>
+                                                    {note.type === 'ALERT' ? <AlertTriangleIcon className="size-4" /> : <InfoIcon className="size-4" />}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex justify-between items-start gap-2">
+                                                        <h4 className={cn("text-sm font-bold truncate", !note.isRead ? "text-gray-900" : "text-gray-600")}>
+                                                            {note.title}
+                                                        </h4>
+                                                        <span className="text-[10px] font-medium text-gray-400 whitespace-nowrap pt-0.5">
+                                                            {new Date(note.createdAt).toLocaleDateString()}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-xs text-gray-500 mt-1 leading-relaxed line-clamp-2">
+                                                        {note.message}
+                                                    </p>
+                                                    
+                                                    {!note.isRead && (
+                                                        <button 
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                markAsRead(note.id);
+                                                            }}
+                                                            className="mt-2 flex items-center gap-1.5 text-[10px] font-black text-orange-600 uppercase tracking-widest hover:text-orange-700 transition-colors"
+                                                        >
+                                                            <CheckCircleIcon className="size-3" />
+                                                            Mark as read
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                            
+                            <div className="p-3 border-t border-gray-50 bg-white shrink-0">
+                                <Link 
+                                    href="/dashboard?view=notifications"
+                                    onClick={() => setIsNotiOpen(false)}
+                                    className="w-full py-3 bg-gray-50 border border-transparent text-gray-500 text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-orange-50 hover:text-orange-600 hover:border-orange-100 transition-all flex items-center justify-center"
+                                >
+                                    View Archive
+                                </Link>
+                            </div>
+                        </div>
+                    )}
+                </div>
                 
                 <div className="h-8 w-px bg-gray-100 mx-2"></div>
 
@@ -146,8 +287,16 @@ export default function Topbar() {
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
                         className={`flex items-center gap-3 p-1.5 pr-3 rounded-xl transition-all group ${isMenuOpen ? 'bg-orange-50 ring-2 ring-orange-100' : 'hover:bg-gray-50'}`}
                     >
-                        <div className={`size-9 rounded-lg flex items-center justify-center transition-colors ${isMenuOpen ? 'bg-orange-600 text-white' : 'bg-orange-100 text-orange-600'}`}>
-                            <UserIcon className="size-5" />
+                        <div className={`size-9 rounded-lg flex items-center justify-center transition-colors overflow-hidden ${isMenuOpen ? 'bg-orange-600 text-white' : 'bg-orange-100 text-orange-600'}`}>
+                            {user?.profileImage ? (
+                                <img 
+                                    src={resolveImageUrl(user.profileImage)} 
+                                    alt="Avatar" 
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : (
+                                <UserIcon className="size-5" />
+                            )}
                         </div>
                         <div className="text-left hidden md:block">
                             <p className="text-sm font-semibold text-gray-900 leading-none">{user?.name || "User"}</p>
@@ -192,8 +341,16 @@ export default function Topbar() {
                                         <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm relative overflow-hidden group/card">
                                             <div className="flex items-start justify-between mb-3 relative z-10">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="size-10 bg-orange-100 rounded-xl flex items-center justify-center text-orange-600 font-bold text-lg">
-                                                        {user.name?.[0]}
+                                                    <div className="size-10 bg-orange-100 rounded-xl flex items-center justify-center text-orange-600 font-bold text-lg overflow-hidden">
+                                                        {user.profileImage ? (
+                                                            <img 
+                                                                src={resolveImageUrl(user.profileImage)} 
+                                                                alt="Avatar" 
+                                                                className="w-full h-full object-cover"
+                                                            />
+                                                        ) : (
+                                                            user.name?.[0]
+                                                        )}
                                                     </div>
                                                     <div>
                                                         <h4 className="font-bold text-gray-900 text-sm">{user.name}</h4>

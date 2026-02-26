@@ -14,7 +14,6 @@ import {
   ShieldCheckIcon,
   UsersIcon,
   BarChart2Icon,
-  BellIcon,
   UserPlusIcon,
   MessageSquareIcon,
   LayersIcon,
@@ -37,7 +36,6 @@ export default function Sidebar() {
     { name: "My Courses", icon: BookOpenIcon, view: "courses" },
     { name: "Practice Tests", icon: FileTextIcon, view: "tests" },
     { name: "Performance", icon: BarChart2Icon, view: "performance" },
-    { name: "Notifications", icon: BellIcon, view: "notifications" }, // New item
     { name: "Requests", icon: UserPlusIcon, view: "requests" }, // New for Admin
     { name: "Messages", icon: MessageSquareIcon, view: "messages" },
     { name: "Student Management", icon: GraduationCapIcon, view: "students" },
@@ -56,22 +54,22 @@ export default function Sidebar() {
 
     // Student
     if (userRole === Role.STUDENT) {
-        return ["Home", "My Courses", "Practice Tests", "Performance", "Schedule", "Messages", "Settings", "Notifications", "My Batches"].includes(item.name);
+        return ["Home", "My Courses", "Practice Tests", "Performance", "Schedule", "Messages", "Settings", "My Batches"].includes(item.name);
     }
     
     // Teacher
     if (userRole === Role.TEACHER) {
-        return ["Home", "My Courses", "Practice Tests", "Student Management", "Messages", "Settings", "Notifications", "My Batches"].includes(item.name);
+        return ["Home", "My Courses", "Practice Tests", "Student Management", "Messages", "Settings", "My Batches"].includes(item.name);
     }
 
     // Admin
     if (userRole === Role.ADMIN) {
-        return ["Home", "User Management", "Course Control", "Practice Test Control", "Revenue", "Requests", "Messages", "Settings", "Notifications", "Batch Management"].includes(item.name);
+        return ["Home", "User Management", "Course Control", "Practice Test Control", "Revenue", "Requests", "Messages", "Settings", "Batch Management"].includes(item.name);
     }
 
     // Parent
     if (userRole === Role.PARENT) {
-        return ["Home", "Performance", "Messages", "Notifications", "Settings"].includes(item.name);
+        return ["Home", "Performance", "Messages", "Settings"].includes(item.name);
     }
 
     return item.name === "Home" || item.name === "Settings";

@@ -26,7 +26,7 @@ import {
   Play,
   Pause
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, resolveImageUrl } from "@/lib/utils";
 import { toast } from "react-toastify";
 
 interface Message extends Omit<BaseChatMessage, 'createdAt' | 'message'> {
@@ -39,7 +39,7 @@ interface Message extends Omit<BaseChatMessage, 'createdAt' | 'message'> {
   timestamp: string;
 }
 
-type ChatContact = Pick<User, 'id' | 'name' | 'email' | 'role' | 'parentOf'>;
+type ChatContact = Pick<User, 'id' | 'name' | 'email' | 'role' | 'parentOf' | 'profileImage'>;
 
 interface ChatRequest {
   id: string;
@@ -545,8 +545,16 @@ export function MessagesView() {
                     selectedContact?.id === contact.id ? "bg-orange-50" : "hover:bg-gray-50"
                   )}
                 >
-                  <div className="size-12 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-bold shrink-0">
-                    {contact.name.charAt(0)}
+                  <div className="size-12 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-bold shrink-0 overflow-hidden">
+                      {contact.profileImage ? (
+                        <img 
+                          src={resolveImageUrl(contact.profileImage)} 
+                          alt="Avatar" 
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                      contact.name.charAt(0)
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start">
@@ -577,8 +585,16 @@ export function MessagesView() {
               {pendingRequests.map((req) => (
                 <div key={req.id} className="p-4 bg-white border border-gray-100 rounded-xl space-y-3 shadow-sm">
                   <div className="flex items-center gap-3">
-                    <div className="size-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold shrink-0">
-                      {req.sender?.name.charAt(0)}
+                    <div className="size-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold shrink-0 overflow-hidden">
+                      {req.sender?.profileImage ? (
+                        <img 
+                          src={resolveImageUrl(req.sender.profileImage)} 
+                          alt="Avatar" 
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        req.sender?.name.charAt(0)
+                      )}
                     </div>
                     <div className="min-w-0">
                       <h4 className="font-semibold text-sm truncate">{req.sender?.name}</h4>
@@ -625,12 +641,20 @@ export function MessagesView() {
                 >
                   <div className="flex items-center gap-3">
                     <div className={cn(
-                        "size-10 rounded-full flex items-center justify-center font-bold shrink-0",
+                        "size-10 rounded-full flex items-center justify-center font-bold shrink-0 overflow-hidden",
                         target.role === 'TEACHER' ? "bg-green-100 text-green-600" :
                         target.role === 'PARENT' ? "bg-blue-100 text-blue-600" :
                         "bg-orange-100 text-orange-600"
                     )}>
-                      {target.name.charAt(0)}
+                      {target.profileImage ? (
+                        <img 
+                          src={resolveImageUrl(target.profileImage)} 
+                          alt="Avatar" 
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        target.name.charAt(0)
+                      )}
                     </div>
                     <div className="text-left min-w-0">
                       <h4 className="font-semibold text-sm text-gray-900 truncate">{target.name}</h4>
@@ -656,8 +680,16 @@ export function MessagesView() {
             {/* Header */}
             <div className="h-16 border-b border-gray-100 px-6 flex items-center justify-between shrink-0 bg-white/80 backdrop-blur-md z-10 sticky top-0">
               <div className="flex items-center gap-3">
-                <div className="size-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-bold">
-                   {selectedContact.name.charAt(0)}
+                <div className="size-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-bold overflow-hidden">
+                   {selectedContact.profileImage ? (
+                     <img 
+                       src={resolveImageUrl(selectedContact.profileImage)} 
+                       alt="Avatar" 
+                       className="w-full h-full object-cover"
+                     />
+                   ) : (
+                     selectedContact.name.charAt(0)
+                   )}
                 </div>
                 <div>
                   <h2 className="font-bold text-gray-900">{selectedContact.name}</h2>

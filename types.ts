@@ -120,6 +120,7 @@ export interface User {
     createdAt: Date;
     updatedAt: Date;
     profileSlug?: string;
+    profileImage?: string;
     profileSettings?: ProfileSettings;
     // Relations
     parentOf?: ParentStudent[];

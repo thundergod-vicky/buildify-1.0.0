@@ -71,3 +71,6 @@ export const auth = {
     return user?.role === role;
   },
 };
+
+export const isRandomAvatar = (url?: string) =>
+  !url || url.includes("api.dicebear.com");
