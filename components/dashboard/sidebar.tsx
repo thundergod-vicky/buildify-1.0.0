@@ -88,7 +88,7 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="w-64 bg-white border-r border-gray-100 flex flex-col h-screen sticky top-0">
+    <aside className="hidden lg:flex w-64 bg-white border-r border-gray-100 flex-col h-screen sticky top-0">
       <div className="p-6 flex items-center gap-3">
         <div className="size-10 bg-orange-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-orange-200">
           <GraduationCapIcon className="size-6" />

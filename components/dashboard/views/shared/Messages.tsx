@@ -24,7 +24,8 @@ import {
   Check,
   Loader2,
   Play,
-  Pause
+  Pause,
+  ArrowLeft
 } from "lucide-react";
 import { cn, resolveImageUrl } from "@/lib/utils";
 import { toast } from "react-toastify";
@@ -138,6 +139,7 @@ export function MessagesView() {
   
   const [isTyping, setIsTyping] = useState(false);
   const [remoteTyping, setRemoteTyping] = useState(false);
+  const [showListOnMobile, setShowListOnMobile] = useState(true);
 
   // Media states
   const [isUploading, setIsUploading] = useState(false);
@@ -288,6 +290,7 @@ export function MessagesView() {
     setSelectedContact(contact);
     setMessages([]); 
     fetchMessages(contact.id);
+    setShowListOnMobile(false);
   };
 
   const handleSendMessage = (e: React.FormEvent) => {
@@ -298,7 +301,7 @@ export function MessagesView() {
         socket.emit("sendRequest", {
             receiverId: selectedContact.id,
             firstMessage: newMessage
-        }, (res: any) => {
+        }, (res: { success: boolean; error?: string }) => {
             if (res.success) {
                 toast.success("Request sent!");
                 fetchSentRequests();
@@ -337,8 +340,8 @@ export function MessagesView() {
             type: 'IMAGE'
         });
         toast.success("Image sent");
-    } catch (err: any) {
-        toast.error("Upload failed: " + (err.message || 'Unknown error'));
+    } catch (err: unknown) {
+        toast.error("Upload failed: " + (err instanceof Error ? err.message : 'Unknown error'));
     } finally {
         setIsUploading(false);
         if (fileInputRef.current) fileInputRef.current.value = "";
@@ -371,7 +374,7 @@ export function MessagesView() {
         recordingIntervalRef.current = setInterval(() => {
             setRecordingTime((prev) => prev + 1);
         }, 1000);
-    } catch (err) {
+    } catch {
         toast.error("Error accessing microphone. Please check permissions.");
     }
   };
@@ -406,8 +409,8 @@ export function MessagesView() {
             mediaUrl: res.url,
             type: 'VOICE'
         });
-    } catch (err: any) {
-        toast.error("Failed to send voice note: " + err.message);
+    } catch (err: unknown) {
+        toast.error("Failed to send voice note: " + (err instanceof Error ? err.message : 'Unknown error'));
     } finally {
         setIsUploading(false);
     }
@@ -427,8 +430,8 @@ export function MessagesView() {
       fetchPendingRequests();
       fetchChatList();
       toast.success("Request accepted!");
-    } catch (err: any) {
-      toast.error(err.message || "Error handling request");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Error handling request");
     }
   };
 
@@ -439,8 +442,8 @@ export function MessagesView() {
       await api.post(`/chat/request/${requestId}/handle`, { status: 'REJECTED' }, token);
       fetchPendingRequests();
       toast.info("Request rejected");
-    } catch (err: any) {
-      toast.error(err.message || "Error handling request");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Error handling request");
     }
   };
 
@@ -469,7 +472,7 @@ export function MessagesView() {
   );
 
   return (
-    <div className="flex h-[calc(100vh-64px)] overflow-hidden bg-gray-50/50">
+    <div className="flex h-[calc(100vh-64px-72px)] lg:h-[calc(100vh-64px)] overflow-hidden bg-gray-50/50">
       <input 
         type="file" 
         ref={fileInputRef} 
@@ -479,7 +482,10 @@ export function MessagesView() {
       />
 
       {/* List Sidebar */}
-      <div className="w-80 bg-white border-r border-gray-100 flex flex-col shrink-0 overflow-hidden">
+      <div className={cn(
+        "w-full lg:w-80 bg-white border-r border-gray-100 flex flex-col shrink-0 overflow-hidden transition-all duration-300",
+        !showListOnMobile && "hidden lg:flex"
+      )}>
         {/* ... (Sidebar logic remains the same) ... */}
         <div className="p-4 space-y-4 shrink-0">
           <h1 className="text-2xl font-bold font-urbanist text-gray-900">Messages</h1>
@@ -674,13 +680,22 @@ export function MessagesView() {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col bg-white overflow-hidden relative">
+      <div className={cn(
+        "flex-1 flex flex-col bg-white overflow-hidden relative transition-all duration-300",
+        showListOnMobile && "hidden lg:flex"
+      )}>
         {selectedContact ? (
           <>
             {/* Header */}
-            <div className="h-16 border-b border-gray-100 px-6 flex items-center justify-between shrink-0 bg-white/80 backdrop-blur-md z-10 sticky top-0">
-              <div className="flex items-center gap-3">
-                <div className="size-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-bold overflow-hidden">
+            <div className="h-16 border-b border-gray-100 px-4 sm:px-6 flex items-center justify-between shrink-0 bg-white/80 backdrop-blur-md z-10 sticky top-0">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <button 
+                  onClick={() => setShowListOnMobile(true)}
+                  className="lg:hidden p-2 -ml-2 text-gray-400 hover:text-orange-600 transition-colors"
+                >
+                  <ArrowLeft className="size-5" />
+                </button>
+                <div className="size-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-bold overflow-hidden shrink-0">
                    {selectedContact.profileImage ? (
                      <img 
                        src={resolveImageUrl(selectedContact.profileImage)} 
@@ -755,9 +770,13 @@ export function MessagesView() {
                       )}>
                         {msg.message}
                         {msg.mediaUrl && (
-                          <div className="mt-2 rounded-lg overflow-hidden border border-black/5 bg-black/5 min-w-[200px]">
+                          <div className="mt-2 rounded-lg overflow-hidden border border-black/5 bg-black/5 min-w-[150px] sm:min-w-[200px] max-w-full">
                             {msg.type === 'IMAGE' && msg.mediaUrl && (
-                               <img src={getMediaUrl(msg.mediaUrl)} className="max-w-full block" alt="Shared attachment" />
+                               <img 
+                                 src={getMediaUrl(msg.mediaUrl)} 
+                                 className="w-full h-auto block object-contain max-h-[300px]" 
+                                 alt="Shared attachment" 
+                               />
                             )}
                             {msg.type === 'VOICE' && msg.mediaUrl && (
                                 <VoicePlayer url={getMediaUrl(msg.mediaUrl)} isSender={msg.senderId === user?.id} />

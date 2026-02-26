@@ -2,6 +2,7 @@
 
 import Sidebar from "@/components/dashboard/sidebar";
 import Topbar from "@/components/dashboard/topbar";
+import { BottomNav } from "@/components/dashboard/BottomNav";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -28,9 +29,10 @@ export default function DashboardLayout({
             <Sidebar />
             <div className="flex-1 flex flex-col">
                 <Topbar />
-                <main className="flex-1">
+                <main className="flex-1 pb-20 lg:pb-0">
                     {children}
                 </main>
+                <BottomNav />
             </div>
         </div>
     );
