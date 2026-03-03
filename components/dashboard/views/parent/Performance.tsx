@@ -71,7 +71,7 @@ export function ParentPerformance() {
             <select
               value={selectedStudentId}
               onChange={(e) => setSelectedStudentId(e.target.value)}
-              className="bg-transparent font-semibold text-orange-600 focus:outline-none cursor-pointer pr-4"
+              className="bg-transparent font-semibold text-blue-600 focus:outline-none cursor-pointer pr-4"
             >
               {linkedStudents.map((s) => (
                 <option key={s.id} value={s.id}>
@@ -85,7 +85,7 @@ export function ParentPerformance() {
 
       {isLoading ? (
         <div className="flex justify-center p-12">
-          <Loader2 className="animate-spin text-orange-600 size-10" />
+          <Loader2 className="animate-spin text-blue-600 size-10" />
         </div>
       ) : data ? (
         <>
@@ -160,14 +160,14 @@ export function ParentPerformance() {
                       return (
                         <div
                           key={res.id}
-                          className="group p-5 bg-gray-50 rounded-2xl border border-transparent hover:border-orange-100 hover:bg-orange-50/30 transition-all flex justify-between items-center"
+                          className="group p-5 bg-gray-50 rounded-2xl border border-transparent hover:border-blue-100 hover:bg-blue-50/30 transition-all flex justify-between items-center"
                         >
                           <div className="flex items-center gap-4">
-                            <div className="size-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-orange-600 font-bold border border-orange-50">
+                            <div className="size-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-blue-600 font-bold border border-blue-50">
                               {percentage}%
                             </div>
                             <div>
-                              <p className="font-bold text-gray-900 group-hover:text-orange-900 transition-colors">
+                              <p className="font-bold text-gray-900 group-hover:text-blue-900 transition-colors">
                                 {res.test?.title || "Unknown Test"}
                               </p>
                               <p className="text-xs text-gray-500 font-medium">
@@ -179,7 +179,7 @@ export function ParentPerformance() {
                           <div className="flex items-center gap-4">
                             <div className="text-right hidden sm:block">
                               <p
-                                className={`text-[10px] font-bold uppercase tracking-wider ${percentage >= 40 ? "text-green-600" : "text-orange-600"}`}
+                                className={`text-[10px] font-bold uppercase tracking-wider ${percentage >= 40 ? "text-green-600" : "text-blue-600"}`}
                               >
                                 {percentage >= 40 ? "Passed" : "Needs Review"}
                               </p>
@@ -192,7 +192,7 @@ export function ParentPerformance() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="text-orange-600 hover:text-orange-700 hover:bg-orange-100/50 font-bold"
+                              className="text-blue-600 hover:text-blue-700 hover:bg-blue-100/50 font-bold"
                               onClick={() => setSelectedResult(res)}
                             >
                               See More

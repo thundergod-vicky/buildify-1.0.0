@@ -74,13 +74,13 @@ export function TeacherBatches() {
                 }}
                 className={`w-full text-left p-4 rounded-2xl border transition-all ${
                   selectedBatch?.id === batch.id 
-                    ? "border-orange-500 bg-orange-50" 
+                    ? "border-blue-500 bg-blue-50" 
                     : "border-gray-100 bg-white hover:bg-gray-50"
                 }`}
               >
                 <div className="flex items-center gap-3">
                   <div className={`size-10 rounded-xl flex items-center justify-center ${
-                    selectedBatch?.id === batch.id ? "bg-orange-600 text-white" : "bg-orange-50 text-orange-600"
+                    selectedBatch?.id === batch.id ? "bg-blue-600 text-white" : "bg-yellow-50 text-yellow-600"
                   }`}>
                     <LayersIcon className="size-5" />
                   </div>

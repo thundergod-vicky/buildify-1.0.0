@@ -66,7 +66,7 @@ export function BottomNav() {
               href={href}
               className={cn(
                 "flex flex-col items-center gap-1 transition-all duration-200",
-                isActive ? "text-orange-600" : "text-gray-400"
+                isActive ? "text-blue-600" : "text-gray-400"
               )}
             >
               <item.icon className={cn("size-6", isActive && "animate-in zoom-in-75 duration-300")} />
@@ -78,7 +78,7 @@ export function BottomNav() {
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           className={cn(
             "flex flex-col items-center gap-1 transition-all duration-200",
-            isMenuOpen ? "text-orange-600" : "text-gray-400"
+            isMenuOpen ? "text-blue-600" : "text-gray-400"
           )}
         >
           <MoreHorizontalIcon className="size-6" />
@@ -117,7 +117,7 @@ export function BottomNav() {
                       className={cn(
                         "flex items-center gap-4 p-4 rounded-2xl transition-all border",
                         isActive 
-                          ? "bg-orange-50 border-orange-100 text-orange-600 shadow-sm shadow-orange-100" 
+                          ? "bg-yellow-50 border-blue-100 text-blue-600 shadow-sm shadow-blue-100" 
                           : "bg-gray-50/50 border-transparent text-gray-600"
                       )}
                     >

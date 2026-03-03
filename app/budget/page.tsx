@@ -16,8 +16,8 @@ export default function BudgetPage() {
                 </section>
 
                 <section className="grid gap-6 md:grid-cols-3 mb-12 text-sm text-zinc-600">
-                    <AnimatedContent className="bg-orange-50 border border-orange-100 rounded-xl p-5 flex items-start gap-3">
-                        <PiggyBankIcon className="text-orange-500 mt-1" />
+                    <AnimatedContent className="bg-blue-50 border border-blue-100 rounded-xl p-5 flex items-start gap-3">
+                        <PiggyBankIcon className="text-yellow-500 mt-1" />
                         <p>
                             Start free and upgrade only when you are ready. Our plans are designed to support long-term
                             preparation without surprise fees.
@@ -52,14 +52,14 @@ export default function BudgetPage() {
                                 delay={index * 0.08}
                                 className={`p-5 rounded-xl border ${
                                     plan.type === "enterprise"
-                                        ? "bg-orange-500 text-white border-orange-500"
+                                        ? "bg-blue-600 text-white border-blue-500"
                                         : plan.type === "popular"
-                                        ? "bg-linear-to-br from-orange-50 to-orange-100 border-orange-100"
+                                        ? "bg-linear-to-br from-blue-50 to-blue-100 border-blue-100"
                                         : "bg-white border-gray-200"
                                 }`}
                             >
                                 <div className="flex items-center gap-2 mb-3">
-                                    <plan.icon className={plan.type === "enterprise" ? "text-white" : "text-orange-500"} />
+                                    <plan.icon className={plan.type === "enterprise" ? "text-white" : "text-yellow-500"} />
                                     <h4 className="text-lg font-medium">{plan.name}</h4>
                                 </div>
                                 <p className={plan.type === "enterprise" ? "text-white/90 text-sm" : "text-zinc-500 text-sm"}>

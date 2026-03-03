@@ -44,7 +44,7 @@ export function TestResultModal({ isOpen, onClose, result }: Props) {
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
       <div className="bg-white rounded-[2rem] shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-300 border border-white/20">
         {/* Header */}
-        <div className="p-8 bg-gradient-to-br from-orange-600 to-orange-700 text-white relative shrink-0">
+        <div className="p-8 bg-gradient-to-br from-blue-600 to-blue-700 text-white relative shrink-0">
           <button 
             onClick={onClose}
             className="absolute top-6 right-6 p-2 bg-white/10 hover:bg-white/20 rounded-full transition-all text-white border border-white/10"
@@ -74,7 +74,7 @@ export function TestResultModal({ isOpen, onClose, result }: Props) {
             </div>
             <div className="text-right">
               <div className="text-6xl font-black leading-none mb-1 tracking-tighter">{percentage}%</div>
-              <div className="text-orange-200 text-xs font-black uppercase tracking-[0.2em]">{percentage >= 40 ? 'PASSED' : 'NEEDS REVIEW'}</div>
+              <div className="text-blue-200 text-xs font-black uppercase tracking-[0.2em]">{percentage >= 40 ? 'PASSED' : 'NEEDS REVIEW'}</div>
             </div>
           </div>
         </div>
@@ -107,7 +107,7 @@ export function TestResultModal({ isOpen, onClose, result }: Props) {
             {/* Question Breakdown */}
             <div className="flex items-center justify-between mb-8 px-2">
               <h3 className="text-2xl font-black text-gray-900 font-urbanist tracking-tight italic uppercase">
-                Question <span className="text-orange-600">Breakdown</span>
+                Question <span className="text-blue-600">Breakdown</span>
               </h3>
               <span className="px-4 py-1.5 bg-gray-200/50 text-gray-500 rounded-full text-xs font-black uppercase tracking-widest">
                 {total} Total

@@ -74,26 +74,26 @@ export function StudentTests() {
         <div className="flex bg-gray-100 p-1 rounded-xl w-full md:w-fit">
           <button
             onClick={() => setFilterStatus("all")}
-            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${filterStatus === "all" ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${filterStatus === "all" ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
           >
             All Tests
           </button>
           <button
             onClick={() => setFilterStatus("available")}
-            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${filterStatus === "available" ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${filterStatus === "available" ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
           >
             Available
           </button>
           <button
             onClick={() => setFilterStatus("completed")}
-            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${filterStatus === "completed" ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${filterStatus === "completed" ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
           >
             Completed
           </button>
         </div>
 
         <div className="relative w-full md:w-80 group">
-          <svg className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-gray-400 group-focus-within:text-orange-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-gray-400 group-focus-within:text-yellow-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
           <input
@@ -101,7 +101,7 @@ export function StudentTests() {
             placeholder="Search tests..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 bg-white border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all shadow-sm"
+            className="w-full pl-12 pr-4 py-3 bg-white border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm"
           />
         </div>
       </div>
@@ -119,13 +119,13 @@ export function StudentTests() {
             return (
               <div
                 key={test.id}
-                className="group bg-white p-6 rounded-2xl border border-gray-100 hover:border-orange-200 hover:shadow-xl hover:shadow-orange-500/5 transition-all flex flex-col"
+                className="group bg-white p-6 rounded-2xl border border-gray-100 hover:border-blue-200 hover:shadow-xl hover:shadow-blue-500/5 transition-all flex flex-col"
               >
-                <div className="size-12 bg-orange-50 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                  <FileTextIcon className="size-6 text-orange-600" />
+                <div className="size-12 bg-blue-50 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                  <FileTextIcon className="size-6 text-blue-600" />
                 </div>
 
-                <h3 className="text-xl font-bold text-gray-900 mb-2 font-urbanist group-hover:text-orange-600 transition-colors line-clamp-1">
+                <h3 className="text-xl font-bold text-gray-900 mb-2 font-urbanist group-hover:text-blue-600 transition-colors line-clamp-1">
                   {test.title}
                 </h3>
                 
@@ -145,7 +145,7 @@ export function StudentTests() {
                     <div className="p-3 bg-gray-50 rounded-xl space-y-2">
                        <div className="flex items-center justify-between text-sm">
                           <span className="text-gray-500 flex items-center gap-1.5">
-                             <TrophyIcon className="size-3.5 text-orange-500" />
+                             <TrophyIcon className="size-3.5 text-yellow-500" />
                              Score: <span className="font-bold text-gray-900">{result.score}/{result.total}</span>
                           </span>
                           <span className="text-gray-500 flex items-center gap-1.5">
@@ -163,7 +163,7 @@ export function StudentTests() {
                 {result ? (
                   <button 
                     onClick={() => setReviewTest({ test, result })}
-                    className="w-full flex items-center justify-center gap-2 py-3 text-sm font-semibold text-orange-600 bg-orange-50 hover:bg-orange-100 rounded-xl transition-colors"
+                    className="w-full flex items-center justify-center gap-2 py-3 text-sm font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors"
                   >
                     <EyeIcon className="size-4" />
                     Review Result
@@ -171,7 +171,7 @@ export function StudentTests() {
                 ) : (
                   <button 
                     onClick={() => setActiveTest(test)}
-                    className="w-full flex items-center justify-center gap-2 py-3 text-sm font-semibold text-white bg-orange-600 hover:bg-orange-700 rounded-xl transition-all shadow-lg shadow-orange-100"
+                    className="w-full flex items-center justify-center gap-2 py-3 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-all shadow-lg shadow-blue-100"
                   >
                     <PlayIcon className="size-4" />
                     Start Test

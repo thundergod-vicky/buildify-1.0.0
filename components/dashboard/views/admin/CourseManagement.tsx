@@ -136,8 +136,8 @@ export function AdminCourseManagement() {
                             <div className="text-sm font-black text-purple-600">{course._count?.chapters || 0}</div>
                             <div className="text-[9px] text-gray-400 uppercase font-bold tracking-tighter">Chapters</div>
                         </div>
-                        <div className="p-3 bg-orange-50/50 rounded-xl text-center">
-                            <div className="text-sm font-black text-orange-600">₹0</div>
+                        <div className="p-3 bg-blue-50/50 rounded-xl text-center">
+                            <div className="text-sm font-black text-blue-600">₹0</div>
                             <div className="text-[9px] text-gray-400 uppercase font-bold tracking-tighter">Revenue</div>
                         </div>
                     </div>

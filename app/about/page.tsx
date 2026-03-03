@@ -40,8 +40,8 @@ export default function AboutPage() {
                 </section>
 
                 <section className="grid gap-6 md:grid-cols-3 text-sm text-zinc-600">
-                    <AnimatedContent className="bg-orange-50 border border-orange-100 rounded-xl p-5 flex items-start gap-3">
-                        <TargetIcon className="text-orange-500 mt-1" />
+                    <AnimatedContent className="bg-blue-50 border border-blue-100 rounded-xl p-5 flex items-start gap-3">
+                        <TargetIcon className="text-yellow-500 mt-1" />
                         <p>Focused on competitive exam success with clear weekly and monthly study targets.</p>
                     </AnimatedContent>
                     <AnimatedContent className="bg-emerald-50 border border-emerald-100 rounded-xl p-5 flex items-start gap-3">

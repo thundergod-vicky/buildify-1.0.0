@@ -113,7 +113,7 @@ export function AdminBatchManagement() {
         </div>
         <button 
           onClick={() => setIsCreateModalOpen(true)}
-          className="flex items-center gap-2 px-6 py-3 bg-orange-600 text-white rounded-xl font-bold hover:bg-orange-700 transition-colors shadow-lg shadow-orange-200"
+          className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200"
         >
           <PlusIcon className="size-5" />
           Create New Batch
@@ -125,7 +125,7 @@ export function AdminBatchManagement() {
         <input
           type="text"
           placeholder="Search batches or teachers..."
-          className="w-full pl-12 pr-4 py-4 bg-white border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 shadow-sm transition-all"
+          className="w-full pl-12 pr-4 py-4 bg-white border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm transition-all"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
@@ -141,7 +141,7 @@ export function AdminBatchManagement() {
             <AnimatedContent key={batch.id}>
               <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm hover:shadow-md transition-all group">
                 <div className="flex items-start justify-between mb-4">
-                  <div className="size-12 bg-orange-50 rounded-2xl flex items-center justify-center text-orange-600">
+                  <div className="size-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
                     <LayersIcon className="size-6" />
                   </div>
                   <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -170,7 +170,7 @@ export function AdminBatchManagement() {
 
                 <div className="space-y-3">
                   <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-2xl">
-                    <div className="size-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 text-xs font-bold">
+                    <div className="size-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-xs font-bold">
                       {batch.teacher?.name?.[0] || "T"}
                     </div>
                     <div>
@@ -218,7 +218,7 @@ export function AdminBatchManagement() {
                   <input
                     type="text"
                     required
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="e.g. Morning Batch - Math 10"
                     value={newBatch.name}
                     onChange={(e) => setNewBatch({...newBatch, name: e.target.value})}
@@ -227,7 +227,7 @@ export function AdminBatchManagement() {
                 <div>
                   <label className="text-sm font-bold text-gray-700 mb-2 block">Description</label>
                   <textarea
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 min-h-[100px]"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[100px]"
                     placeholder="Brief details about the batch..."
                     value={newBatch.description}
                     onChange={(e) => setNewBatch({...newBatch, description: e.target.value})}
@@ -237,7 +237,7 @@ export function AdminBatchManagement() {
                   <label className="text-sm font-bold text-gray-700 mb-2 block">Assign Teacher</label>
                   <select
                     required
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
                     value={newBatch.teacherId}
                     onChange={(e) => setNewBatch({...newBatch, teacherId: e.target.value})}
                   >
@@ -258,7 +258,7 @@ export function AdminBatchManagement() {
                 </button>
                 <button 
                   type="submit"
-                  className="flex-1 px-6 py-3 bg-orange-600 text-white rounded-xl font-bold hover:bg-orange-700 transition-colors shadow-lg shadow-orange-200"
+                  className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200"
                 >
                   Create Batch
                 </button>
@@ -289,7 +289,7 @@ export function AdminBatchManagement() {
                   }}
                   className={`flex items-center justify-between p-4 rounded-2xl border cursor-pointer transition-all ${
                     assignStudentIds.includes(s.id) 
-                      ? "border-orange-500 bg-orange-50 ring-1 ring-orange-500" 
+                      ? "border-blue-500 bg-blue-50 ring-1 ring-blue-500" 
                       : "border-gray-100 hover:bg-gray-50"
                   }`}
                 >
@@ -303,7 +303,7 @@ export function AdminBatchManagement() {
                     </div>
                   </div>
                   {assignStudentIds.includes(s.id) && (
-                    <div className="size-6 bg-orange-600 rounded-full flex items-center justify-center text-white">
+                    <div className="size-6 bg-blue-600 rounded-full flex items-center justify-center text-white">
                       <PlusIcon className="size-4" />
                     </div>
                   )}
@@ -320,7 +320,7 @@ export function AdminBatchManagement() {
               <button 
                 onClick={handleAssignStudents}
                 disabled={assignStudentIds.length === 0}
-                className="flex-1 px-6 py-3 bg-orange-600 text-white rounded-xl font-bold hover:bg-orange-700 transition-colors shadow-lg shadow-orange-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Assign {assignStudentIds.length} Students
               </button>

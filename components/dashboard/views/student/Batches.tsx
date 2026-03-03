@@ -50,14 +50,14 @@ export function StudentBatches() {
           batches.map((batch) => (
             <AnimatedContent key={batch.id}>
               <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm hover:shadow-md transition-all">
-                <div className="size-12 bg-orange-50 rounded-2xl flex items-center justify-center text-orange-600 mb-4">
+                <div className="size-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 mb-4">
                   <LayersIcon className="size-6" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">{batch.name}</h3>
                 <p className="text-sm text-gray-500 mb-6 line-clamp-2">{batch.description || "No description provided."}</p>
 
                 <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-2xl">
-                  <div className="size-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 text-xs font-bold">
+                  <div className="size-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-xs font-bold">
                     {batch.teacher?.name?.[0] || "T"}
                   </div>
                   <div>

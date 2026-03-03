@@ -166,11 +166,11 @@ export default function Topbar() {
         <header className="h-20 bg-white border-b border-gray-100 flex items-center justify-between px-8 sticky top-0 z-50">
             <div className="flex-1 max-w-xl">
                 <div className="relative group">
-                    <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-5 text-gray-400 group-focus-within:text-orange-600 transition-colors" />
+                    <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-5 text-gray-400 group-focus-within:text-blue-600 transition-colors" />
                     <input 
                         type="text" 
                         placeholder="Search for courses, tests, or resources..." 
-                        className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-transparent rounded-xl focus:outline-none focus:bg-white focus:border-orange-200 focus:ring-4 focus:ring-orange-50 transition-all"
+                        className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-transparent rounded-xl focus:outline-none focus:bg-white focus:border-blue-200 focus:ring-4 focus:ring-blue-50 transition-all"
                     />
                 </div>
             </div>
@@ -181,10 +181,10 @@ export default function Topbar() {
                         onClick={() => setIsNotiOpen(!isNotiOpen)}
                         className={cn(
                             "relative p-2.5 text-gray-500 hover:bg-gray-50 rounded-xl transition-colors group",
-                            isNotiOpen && "bg-orange-50 text-orange-600 ring-2 ring-orange-100"
+                            isNotiOpen && "bg-yellow-50 text-yellow-600 ring-2 ring-blue-100"
                         )}
                     >
-                        <BellIcon className={cn("size-5 group-hover:text-orange-600", isNotiOpen && "text-orange-600")} />
+                        <BellIcon className={cn("size-5 group-hover:text-blue-600", isNotiOpen && "text-blue-600")} />
                         {unreadCount > 0 && (
                             <span className="absolute top-2.5 right-2.5 size-2 bg-red-500 border-2 border-white rounded-full"></span>
                         )}
@@ -195,7 +195,7 @@ export default function Topbar() {
                             <div className="p-5 border-b border-gray-50 flex items-center justify-between bg-white shrink-0">
                                 <h3 className="font-bold text-gray-900">Notifications</h3>
                                 {unreadCount > 0 && (
-                                    <span className="px-2 py-0.5 bg-orange-100 text-orange-600 text-[10px] font-black rounded-full uppercase tracking-wider">
+                                    <span className="px-2 py-0.5 bg-yellow-100 text-blue-600 text-[10px] font-black rounded-full uppercase tracking-wider">
                                         {unreadCount} New
                                     </span>
                                 )}
@@ -204,7 +204,7 @@ export default function Topbar() {
                             <div className="p-2 space-y-1 flex-1 overflow-y-auto min-h-0 overscroll-behavior-contain">
                                 {isLoadingNotis ? (
                                     <div className="flex flex-col items-center justify-center p-12 space-y-3">
-                                        <Loader2Icon className="size-8 text-orange-600 animate-spin" />
+                                        <Loader2Icon className="size-8 text-blue-600 animate-spin" />
                                         <p className="text-xs text-gray-400 font-medium">Loading notifications...</p>
                                     </div>
                                 ) : notifications.length === 0 ? (
@@ -223,7 +223,7 @@ export default function Topbar() {
                                             key={note.id} 
                                             className={cn(
                                                 "p-4 rounded-2xl transition-all border border-transparent",
-                                                !note.isRead ? "bg-orange-50/50 border-orange-100/50 hover:bg-orange-50" : "hover:bg-gray-50"
+                                                !note.isRead ? "bg-yellow-50/50 border-blue-100/50 hover:bg-blue-50" : "hover:bg-gray-50"
                                             )}
                                         >
                                             <div className="flex gap-4">
@@ -254,7 +254,7 @@ export default function Topbar() {
                                                                 e.stopPropagation();
                                                                 markAsRead(note.id);
                                                             }}
-                                                            className="mt-2 flex items-center gap-1.5 text-[10px] font-black text-orange-600 uppercase tracking-widest hover:text-orange-700 transition-colors"
+                                                            className="mt-2 flex items-center gap-1.5 text-[10px] font-black text-blue-600 uppercase tracking-widest hover:text-blue-700 transition-colors"
                                                         >
                                                             <CheckCircleIcon className="size-3" />
                                                             Mark as read
@@ -271,7 +271,7 @@ export default function Topbar() {
                                 <Link 
                                     href="/dashboard?view=notifications"
                                     onClick={() => setIsNotiOpen(false)}
-                                    className="w-full py-3 bg-gray-50 border border-transparent text-gray-500 text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-orange-50 hover:text-orange-600 hover:border-orange-100 transition-all flex items-center justify-center"
+                                    className="w-full py-3 bg-gray-50 border border-transparent text-gray-500 text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-blue-50 hover:text-blue-600 hover:border-blue-100 transition-all flex items-center justify-center"
                                 >
                                     View Archive
                                 </Link>
@@ -285,9 +285,9 @@ export default function Topbar() {
                 <div className="relative" ref={menuRef}>
                     <button 
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
-                        className={`flex items-center gap-3 p-1.5 pr-3 rounded-xl transition-all group ${isMenuOpen ? 'bg-orange-50 ring-2 ring-orange-100' : 'hover:bg-gray-50'}`}
+                        className={`flex items-center gap-3 p-1.5 pr-3 rounded-xl transition-all group ${isMenuOpen ? 'bg-yellow-50 ring-2 ring-blue-100' : 'hover:bg-gray-50'}`}
                     >
-                        <div className={`size-9 rounded-lg flex items-center justify-center transition-colors overflow-hidden ${isMenuOpen ? 'bg-orange-600 text-white' : 'bg-orange-100 text-orange-600'}`}>
+                        <div className={`size-9 rounded-lg flex items-center justify-center transition-colors overflow-hidden ${isMenuOpen ? 'bg-blue-600 text-white' : 'bg-yellow-100 text-blue-600'}`}>
                             {user?.profileImage ? (
                                 <img 
                                     src={resolveImageUrl(user.profileImage)} 
@@ -318,7 +318,7 @@ export default function Topbar() {
                                                     setIsCustomizing(true);
                                                     setIsMenuOpen(false);
                                                 }}
-                                                className="flex items-center gap-1 text-[10px] font-bold text-orange-600 hover:text-orange-700 transition-colors"
+                                                className="flex items-center gap-1 text-[10px] font-bold text-blue-600 hover:text-blue-700 transition-colors"
                                             >
                                                 <Settings2Icon className="size-3" />
                                                 Edit
@@ -332,7 +332,7 @@ export default function Topbar() {
                                             <button 
                                                 onClick={refreshProfile}
                                                 disabled={isRefreshing}
-                                                className="w-full py-2 bg-orange-600 text-white text-xs font-bold rounded-xl hover:bg-orange-700 transition-colors disabled:opacity-50"
+                                                className="w-full py-2 bg-blue-600 text-white text-xs font-bold rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50"
                                             >
                                                 {isRefreshing ? "Synchronizing..." : "Sync Now"}
                                             </button>
@@ -341,7 +341,7 @@ export default function Topbar() {
                                         <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm relative overflow-hidden group/card">
                                             <div className="flex items-start justify-between mb-3 relative z-10">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="size-10 bg-orange-100 rounded-xl flex items-center justify-center text-orange-600 font-bold text-lg overflow-hidden">
+                                                    <div className="size-10 bg-yellow-100 rounded-xl flex items-center justify-center text-blue-600 font-bold text-lg overflow-hidden">
                                                         {user.profileImage ? (
                                                             <img 
                                                                 src={resolveImageUrl(user.profileImage)} 
@@ -355,8 +355,8 @@ export default function Topbar() {
                                                     <div>
                                                         <h4 className="font-bold text-gray-900 text-sm">{user.name}</h4>
                                                         <div className="flex items-center gap-1 mt-0.5">
-                                                            <StarIcon className="size-3 text-orange-500 fill-current" />
-                                                            <span className="text-[10px] font-bold text-orange-600">Verified Scholar</span>
+                                                            <StarIcon className="size-3 text-yellow-500 fill-current" />
+                                                            <span className="text-[10px] font-bold text-blue-600">Verified Scholar</span>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -372,7 +372,7 @@ export default function Topbar() {
                                                     <span>Profile Link</span>
                                                     <button 
                                                         onClick={copyProfileLink}
-                                                        className="text-orange-600 hover:text-orange-700 flex items-center gap-1 transition-colors"
+                                                        className="text-blue-600 hover:text-blue-700 flex items-center gap-1 transition-colors"
                                                     >
                                                         <CopyIcon className="size-3" />
                                                         Copy
@@ -392,7 +392,7 @@ export default function Topbar() {
                                                 Visit Live Profile
                                             </Link>
 
-                                            <div className="absolute -bottom-6 -right-6 size-20 bg-orange-50 rounded-full blur-2xl group-hover/card:bg-orange-100/50 transition-colors"></div>
+                                            <div className="absolute -bottom-6 -right-6 size-20 bg-yellow-50 rounded-full blur-2xl group-hover/card:bg-yellow-100/50 transition-colors"></div>
                                         </div>
                                     )}
                                 </div>
@@ -535,7 +535,7 @@ export default function Topbar() {
                                                             }}
                                                             className={`w-full flex items-center justify-between p-3 rounded-2xl border text-left transition-all ${
                                                                 !isHidden 
-                                                                ? 'bg-white border-orange-100 text-gray-900 shadow-sm' 
+                                                                ? 'bg-white border-blue-100 text-gray-900 shadow-sm' 
                                                                 : 'bg-gray-50 border-transparent text-gray-400'
                                                             }`}
                                                         >
@@ -545,7 +545,7 @@ export default function Topbar() {
                                                                     <p className="text-[10px] font-medium opacity-60">Score: {subItem.score}/{subItem.total}</p>
                                                                 )}
                                                             </div>
-                                                            <div className={`size-5 rounded-lg flex items-center justify-center transition-all ${!isHidden ? 'bg-orange-600 text-white' : 'bg-gray-200 text-gray-400'}`}>
+                                                            <div className={`size-5 rounded-lg flex items-center justify-center transition-all ${!isHidden ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-400'}`}>
                                                                 {!isHidden && <EyeIcon className="size-3" />}
                                                                 {isHidden && <EyeOffIcon className="size-3" />}
                                                             </div>
@@ -569,7 +569,7 @@ export default function Topbar() {
                             <button 
                                 onClick={handleSaveSettings}
                                 disabled={isSaving}
-                                className="flex-1 py-4 bg-orange-600 text-white text-sm font-bold rounded-2xl hover:bg-orange-700 shadow-lg shadow-orange-100 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                                className="flex-1 py-4 bg-blue-600 text-white text-sm font-bold rounded-2xl hover:bg-blue-700 shadow-lg shadow-blue-100 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                             >
                                 {isSaving ? "Saving..." : (
                                     <>

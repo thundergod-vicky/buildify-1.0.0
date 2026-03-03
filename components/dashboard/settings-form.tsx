@@ -144,12 +144,12 @@ export function SettingsForm() {
   return (
     <div className="max-w-2xl mx-auto bg-white rounded-3xl p-8 border border-gray-100 shadow-sm">
       <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-        <UserIcon className="size-6 text-orange-600" />
+        <UserIcon className="size-6 text-blue-600" />
         Profile Settings
       </h2>
 
       {successMessage && (
-        <div className="bg-emerald-50 text-emerald-600 p-4 rounded-xl mb-6 flex items-center gap-3">
+        <div className="bg-gray-100 text-gray-600 p-4 rounded-xl mb-6 flex items-center gap-3">
           <CheckCircleIcon className="size-5" />
           {successMessage}
         </div>
@@ -164,11 +164,11 @@ export function SettingsForm() {
         <div className="flex flex-col items-center mb-10 pb-10 border-b border-gray-100">
           {/* Image Preview */}
           <div className="relative group mb-4">
-            <div className="size-32 rounded-[2rem] overflow-hidden border-4 border-white shadow-xl bg-orange-50 flex items-center justify-center">
+            <div className="size-32 rounded-[2rem] overflow-hidden border-4 border-white shadow-xl bg-blue-50 flex items-center justify-center">
               {isImageLoading ? (
-                <div className="flex flex-col items-center justify-center w-full h-full bg-orange-50">
-                  <Loader2Icon className="size-10 text-orange-400 animate-spin" />
-                  <span className="text-xs text-orange-400 mt-2 font-medium">Uploading...</span>
+                <div className="flex flex-col items-center justify-center w-full h-full bg-blue-50">
+                  <Loader2Icon className="size-10 text-blue-400 animate-spin" />
+                  <span className="text-xs text-blue-400 mt-2 font-medium">Uploading...</span>
                 </div>
               ) : profileImageSrc ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -178,7 +178,7 @@ export function SettingsForm() {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <UserIcon className="size-16 text-orange-200" />
+                <UserIcon className="size-16 text-blue-200" />
               )}
             </div>
           </div>
@@ -205,7 +205,7 @@ export function SettingsForm() {
                 type="button"
                 disabled={isImageLoading}
                 onClick={() => document.getElementById("profile-upload")?.click()}
-                className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-xl text-sm font-medium shadow-md shadow-orange-100 hover:bg-orange-700 hover:scale-105 transition-all disabled:opacity-50 disabled:scale-100"
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium shadow-md shadow-blue-100 hover:bg-blue-700 hover:scale-105 transition-all disabled:opacity-50 disabled:scale-100"
               >
                 <CameraIcon className="size-4" />
                 Update picture
@@ -225,7 +225,7 @@ export function SettingsForm() {
               type="button"
               disabled={isImageLoading}
               onClick={() => document.getElementById("profile-upload")?.click()}
-              className="mt-2 flex items-center gap-2 px-5 py-2.5 bg-orange-50 text-orange-600 border border-orange-200 rounded-xl text-sm font-medium hover:bg-orange-100 hover:scale-105 transition-all disabled:opacity-50"
+              className="mt-2 flex items-center gap-2 px-5 py-2.5 bg-yellow-50 text-yellow-600 border border-blue-200 rounded-xl text-sm font-medium hover:bg-blue-100 hover:scale-105 transition-all disabled:opacity-50"
             >
               <CameraIcon className="size-4" />
               Upload profile picture
@@ -246,7 +246,7 @@ export function SettingsForm() {
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all"
+                className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                 placeholder="Your Name"
               />
             </div>
@@ -263,7 +263,7 @@ export function SettingsForm() {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all"
+                className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                 placeholder="name@example.com"
               />
             </div>
@@ -280,7 +280,7 @@ export function SettingsForm() {
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all"
+                className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                 placeholder="+1 234 567 890"
               />
             </div>
@@ -302,7 +302,7 @@ export function SettingsForm() {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all"
+                className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                 placeholder="Leave blank to keep current"
               />
             </div>
@@ -319,7 +319,7 @@ export function SettingsForm() {
                   name="confirmPassword"
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all"
+                  className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                   placeholder="Confirm new password"
                 />
               </div>
@@ -331,7 +331,7 @@ export function SettingsForm() {
           <button
             type="submit"
             disabled={isLoading || isImageLoading}
-            className="px-8 py-3 bg-orange-600 text-white rounded-xl font-semibold shadow-lg shadow-orange-200 hover:bg-orange-700 hover:shadow-xl hover:scale-105 transition-all disabled:opacity-50 disabled:scale-100 flex items-center gap-2"
+            className="px-8 py-3 bg-blue-600 text-white rounded-xl font-semibold shadow-lg shadow-blue-200 hover:bg-blue-700 hover:shadow-xl hover:scale-105 transition-all disabled:opacity-50 disabled:scale-100 flex items-center gap-2"
           >
             {isLoading ? (
               <>

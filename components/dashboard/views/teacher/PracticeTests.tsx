@@ -84,7 +84,7 @@ export function TeacherTests() {
         </div>
         <button
           onClick={() => setIsCreating(true)}
-          className="flex items-center gap-2 bg-orange-600 text-white px-6 py-3 rounded-xl hover:bg-orange-700 transition-all shadow-lg shadow-orange-100 font-semibold w-fit"
+          className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 font-semibold w-fit"
         >
           <PlusIcon className="size-5" />
           Create New Test
@@ -94,13 +94,13 @@ export function TeacherTests() {
       {/* Stats/Filters Row */}
       <div className="flex flex-col md:flex-row gap-4">
         <div className="relative flex-1 group">
-          <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-gray-400 group-focus-within:text-orange-500 transition-colors" />
+          <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-gray-400 group-focus-within:text-yellow-500 transition-colors" />
           <input
             type="text"
             placeholder="Search tests..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 bg-white border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all shadow-sm"
+            className="w-full pl-12 pr-4 py-3 bg-white border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm"
           />
         </div>
       </div>
@@ -117,15 +117,15 @@ export function TeacherTests() {
           {filteredTests.map((test) => (
             <div
               key={test.id}
-              className="group bg-white p-6 rounded-2xl border border-gray-100 hover:border-orange-200 hover:shadow-xl hover:shadow-orange-500/5 transition-all relative overflow-hidden"
+              className="group bg-white p-6 rounded-2xl border border-gray-100 hover:border-blue-200 hover:shadow-xl hover:shadow-blue-500/5 transition-all relative overflow-hidden"
             >
               
               
-              <div className="size-12 bg-orange-50 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                <FileTextIcon className="size-6 text-orange-600" />
+              <div className="size-12 bg-blue-50 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                <FileTextIcon className="size-6 text-blue-600" />
               </div>
 
-              <h3 className="text-xl font-bold text-gray-900 mb-2 font-urbanist group-hover:text-orange-600 transition-colors line-clamp-1">
+              <h3 className="text-xl font-bold text-gray-900 mb-2 font-urbanist group-hover:text-blue-600 transition-colors line-clamp-1">
                 {test.title}
               </h3>
               
@@ -140,7 +140,7 @@ export function TeacherTests() {
               <div className="flex items-center gap-2 pt-4 border-t border-gray-50">
                 <button 
                   onClick={() => handleEdit(test)}
-                  className="flex-1 flex items-center justify-center gap-2 py-2 text-sm font-semibold text-gray-600 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
+                  className="flex-1 flex items-center justify-center gap-2 py-2 text-sm font-semibold text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                 >
                   <Edit2Icon className="size-4" />
                   Edit
@@ -165,7 +165,7 @@ export function TeacherTests() {
           <p className="text-gray-500 mt-2">Create your first practice test to get started</p>
           <button
              onClick={() => setIsCreating(true)}
-             className="mt-6 text-orange-600 font-semibold hover:underline"
+             className="mt-6 text-blue-600 font-semibold hover:underline"
           >
             Create Test Now
           </button>

@@ -39,7 +39,7 @@ export function NotificationsView() {
     }
   };
 
-  if (isLoading) return <div className="flex justify-center p-8"><Loader2 className="animate-spin text-orange-600" /></div>;
+  if (isLoading) return <div className="flex justify-center p-8"><Loader2 className="animate-spin text-blue-600" /></div>;
 
   return (
     <div className="p-8 space-y-6">
@@ -50,7 +50,7 @@ export function NotificationsView() {
               <div className="text-center p-8 text-gray-500">No notifications</div>
           ) : (
               notifications.map(note => (
-                  <Card key={note.id} className={`transition-all ${!note.isRead ? 'border-orange-200 bg-orange-50/30' : 'bg-white'}`}>
+                  <Card key={note.id} className={`transition-all ${!note.isRead ? 'border-blue-200 bg-blue-50/30' : 'bg-white'}`}>
                       <CardContent className="p-4 flex gap-4">
                           <div className={`p-2 rounded-full h-fit ${
                               note.type === 'ALERT' ? 'bg-red-100 text-red-600' :
@@ -71,7 +71,7 @@ export function NotificationsView() {
                               {!note.isRead && (
                                   <button 
                                     onClick={() => markAsRead(note.id)}
-                                    className="text-xs text-orange-600 font-medium mt-2 hover:underline flex items-center gap-1"
+                                    className="text-xs text-blue-600 font-medium mt-2 hover:underline flex items-center gap-1"
                                   >
                                     <CheckCircle className="size-3" /> Mark as read
                                   </button>

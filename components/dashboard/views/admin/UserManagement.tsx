@@ -124,7 +124,7 @@ export function AdminUserManagement() {
                         <div className={`size-10 rounded-full flex items-center justify-center font-bold text-sm ${
                             user.role === 'ADMIN' ? 'bg-indigo-100 text-indigo-700' :
                             user.role === 'TEACHER' ? 'bg-purple-100 text-purple-700' :
-                            user.role === 'PARENT' ? 'bg-orange-100 text-orange-700' :
+                            user.role === 'PARENT' ? 'bg-blue-100 text-blue-700' :
                             'bg-blue-100 text-blue-700'
                         }`}>
                            {user.name?.[0]?.toUpperCase() || 'U'}
@@ -153,7 +153,7 @@ export function AdminUserManagement() {
                         className={`px-3 py-1.5 rounded-lg text-xs font-bold border outline-none transition-all ${
                             user.role === 'ADMIN' ? 'bg-indigo-50 border-indigo-200 text-indigo-700' :
                             user.role === 'TEACHER' ? 'bg-purple-50 border-purple-200 text-purple-700' :
-                            user.role === 'PARENT' ? 'bg-orange-50 border-orange-200 text-orange-700' :
+                            user.role === 'PARENT' ? 'bg-blue-50 border-blue-200 text-blue-700' :
                             'bg-blue-50 border-blue-200 text-blue-700'
                         }`}
                       >

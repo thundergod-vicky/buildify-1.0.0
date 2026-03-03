@@ -34,11 +34,11 @@ const GRADE_COLORS: Record<string, string> = {
   A_PLUS: "text-emerald-500 bg-emerald-50",
   A: "text-emerald-500 bg-emerald-50",
   B_PLUS: "text-blue-600 bg-blue-50",
-  B: "text-blue-500 bg-blue-50",
+  B: "text-yellow-500 bg-blue-50",
   C_PLUS: "text-purple-600 bg-purple-50",
   C: "text-purple-500 bg-purple-50",
-  D_PLUS: "text-orange-600 bg-orange-50",
-  D: "text-orange-500 bg-orange-50",
+  D_PLUS: "text-blue-600 bg-blue-50",
+  D: "text-yellow-500 bg-blue-50",
   F: "text-red-600 bg-red-50",
 };
 
@@ -70,7 +70,7 @@ export default function PublicProfilePage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="flex flex-col items-center gap-4">
-          <div className="size-16 border-4 border-orange-600 border-t-transparent rounded-full animate-spin"></div>
+          <div className="size-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
           <p className="text-sm font-bold text-gray-400 animate-pulse tracking-widest uppercase">Loading Profile...</p>
         </div>
       </div>
@@ -105,7 +105,7 @@ export default function PublicProfilePage() {
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           <AnimatedContent>
             <div className="flex flex-col items-center text-center">
-              <div className="size-32 bg-orange-100 rounded-3xl border-4 border-white shadow-2xl flex items-center justify-center text-4xl font-black text-orange-600 mb-6 relative overflow-hidden group rotate-3">
+              <div className="size-32 bg-blue-100 rounded-3xl border-4 border-white shadow-2xl flex items-center justify-center text-4xl font-black text-blue-600 mb-6 relative overflow-hidden group rotate-3">
                 {profile.profileImage ? (
                   <img 
                     src={resolveImageUrl(profile.profileImage)} 
@@ -120,14 +120,14 @@ export default function PublicProfilePage() {
                 </div>
               </div>
               <h1 className="text-5xl font-black text-gray-900 tracking-tight italic">{profile.name}</h1>
-              <div className="flex items-center gap-2 mt-4 text-orange-600 font-bold bg-orange-50 px-6 py-1.5 rounded-full text-sm border border-orange-100">
+              <div className="flex items-center gap-2 mt-4 text-blue-600 font-bold bg-blue-50 px-6 py-1.5 rounded-full text-sm border border-blue-100">
                 <StarIcon className="size-4 fill-current" />
                 Verified Adhyayan Student
               </div>
             </div>
           </AnimatedContent>
         </div>
-        <div className="absolute top-0 right-0 w-1/3 h-full bg-orange-50/50 skew-x-12 translate-x-1/2"></div>
+        <div className="absolute top-0 right-0 w-1/3 h-full bg-blue-50/50 skew-x-12 translate-x-1/2"></div>
         <div className="absolute bottom-0 left-0 w-1/4 h-1/2 bg-blue-50/30 -skew-x-12 -translate-x-1/4"></div>
       </div>
 
@@ -138,12 +138,12 @@ export default function PublicProfilePage() {
               <AnimatedContent delay={0.1}>
                 <div className="bg-white rounded-[2.5rem] border border-gray-100 p-8 shadow-xl shadow-gray-200/20">
                   <h2 className="text-2xl font-black text-gray-900 mb-8 tracking-tight flex items-center gap-3">
-                    <MedalIcon className="size-6 text-orange-600" />
+                    <MedalIcon className="size-6 text-blue-600" />
                     Academic Achievements
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {settings.showMedals && (
-                      <div className="p-8 bg-gray-50/50 rounded-3xl border border-gray-100 hover:border-orange-200 hover:bg-white transition-all group">
+                      <div className="p-8 bg-gray-50/50 rounded-3xl border border-gray-100 hover:border-blue-200 hover:bg-white transition-all group">
                         <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-6">Honorary Medal</p>
                         {profile.medal ? (
                           <div className="flex items-center gap-5">
@@ -272,7 +272,7 @@ export default function PublicProfilePage() {
 
           <div className="lg:col-span-1 space-y-8">
             <AnimatedContent delay={0.4}>
-              <div className="bg-orange-600 rounded-[2.5rem] p-10 text-white shadow-2xl shadow-orange-200 relative overflow-hidden group/pulse">
+              <div className="bg-blue-600 rounded-[2.5rem] p-10 text-white shadow-2xl shadow-blue-200 relative overflow-hidden group/pulse">
                 <div className="relative z-10">
                   <h3 className="text-xl font-black mb-8 tracking-tight italic">Learning Pulse</h3>
                   <div className="space-y-8">
@@ -307,7 +307,7 @@ export default function PublicProfilePage() {
                       navigator.clipboard.writeText(window.location.href);
                       toast.success("Profile link copied!");
                     }}
-                    className="w-full mt-12 py-4 bg-white text-orange-600 rounded-2xl font-black text-sm flex items-center justify-center gap-2 hover:bg-orange-50 transition-all shadow-xl hover:-translate-y-1 active:scale-95"
+                    className="w-full mt-12 py-4 bg-white text-blue-600 rounded-2xl font-black text-sm flex items-center justify-center gap-2 hover:bg-blue-50 transition-all shadow-xl hover:-translate-y-1 active:scale-95"
                   >
                     <Share2Icon className="size-5" />
                     Share Profile
@@ -324,7 +324,7 @@ export default function PublicProfilePage() {
                   Adhyayan is a premier learning platform dedicated to providing students with high-quality education and tracking their academic growth through a personalized achievement system.
                 </p>
                 <div className="mt-8">
-                  <Link href="/auth" className="inline-flex items-center gap-2 text-orange-600 font-black text-sm hover:gap-3 transition-all">
+                  <Link href="/auth" className="inline-flex items-center gap-2 text-blue-600 font-black text-sm hover:gap-3 transition-all">
                     Start Your Learning Journey
                     <span className="text-xl">→</span>
                   </Link>

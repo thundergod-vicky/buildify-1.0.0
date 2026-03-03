@@ -34,11 +34,11 @@ const GRADE_COLORS: Record<string, string> = {
   A_PLUS: "text-emerald-500 bg-emerald-50",
   A: "text-emerald-500 bg-emerald-50",
   B_PLUS: "text-blue-600 bg-blue-50",
-  B: "text-blue-500 bg-blue-50",
+  B: "text-yellow-500 bg-blue-50",
   C_PLUS: "text-purple-600 bg-purple-50",
   C: "text-purple-500 bg-purple-50",
-  D_PLUS: "text-orange-600 bg-orange-50",
-  D: "text-orange-500 bg-orange-50",
+  D_PLUS: "text-blue-600 bg-blue-50",
+  D: "text-yellow-500 bg-blue-50",
   F: "text-red-600 bg-red-50",
 };
 
@@ -111,7 +111,7 @@ export function StudentPerformance() {
             title="Success Accuracy"
             value={`${stats.accuracy}%`}
             icon={TrendingUpIcon}
-            colorClass="bg-emerald-50 text-emerald-600"
+            colorClass="bg-gray-100 text-gray-600"
             loading={loading}
           />
         </AnimatedContent>
@@ -120,7 +120,7 @@ export function StudentPerformance() {
             title="Courses Completed"
             value={stats.courseCompletions.toString()}
             icon={CheckCircle2Icon}
-            colorClass="bg-purple-50 text-purple-600"
+            colorClass="bg-sky-50 text-sky-600"
             loading={loading}
           />
         </AnimatedContent>
@@ -129,7 +129,7 @@ export function StudentPerformance() {
             title="Enrolled Courses"
             value={stats.enrolledCourses.toString()}
             icon={BookOpenIcon}
-            colorClass="bg-orange-50 text-orange-600"
+            colorClass="bg-yellow-50 text-yellow-600"
             loading={loading}
           />
         </AnimatedContent>
@@ -140,7 +140,7 @@ export function StudentPerformance() {
           <div className="bg-white rounded-3xl border border-gray-100 p-8 h-full flex flex-col justify-between shadow-sm relative overflow-hidden">
             <div className="relative z-10">
               <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <MedalIcon className="size-5 text-orange-600" />
+                <MedalIcon className="size-5 text-blue-600" />
                 Scholar Status
               </h2>
 
@@ -183,7 +183,7 @@ export function StudentPerformance() {
 
             {profile?.assignedByTeacher && (
               <div className="mt-8 pt-6 border-t border-gray-50 flex items-center gap-3">
-                <div className="size-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold">
+                <div className="size-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
                   {profile.assignedByTeacher.name[0]}
                 </div>
                 <div>
@@ -193,7 +193,7 @@ export function StudentPerformance() {
               </div>
             )}
 
-            <div className="absolute -bottom-8 -right-8 size-40 bg-orange-50 rounded-full blur-3xl opacity-50"></div>
+            <div className="absolute -bottom-8 -right-8 size-40 bg-blue-50 rounded-full blur-3xl opacity-50"></div>
           </div>
         </AnimatedContent>
 
@@ -201,11 +201,11 @@ export function StudentPerformance() {
           <div className="bg-white rounded-3xl border border-gray-100 p-8 h-full shadow-sm">
             <div className="flex items-center justify-between mb-8">
               <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                <TrendingUpIcon className="size-5 text-orange-600" />
+                <TrendingUpIcon className="size-5 text-blue-600" />
                 Accuracy Trend
               </h2>
               <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase">
-                <span className="size-2 bg-orange-500 rounded-full"></span>
+                <span className="size-2 bg-yellow-500 rounded-full"></span>
                 Last {testResults.length} Tests
               </div>
             </div>
@@ -222,7 +222,7 @@ export function StudentPerformance() {
                            {Math.round(percentage)}%
                          </div>
                          <div 
-                          className="w-full bg-orange-200 rounded-t-lg group-hover:bg-orange-500 transition-all cursor-pointer relative min-h-[4px]"
+                          className="w-full bg-blue-200 rounded-t-lg group-hover:bg-blue-500 transition-all cursor-pointer relative min-h-[4px]"
                           style={{ height }}
                          >
                            <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -248,9 +248,9 @@ export function StudentPerformance() {
                     {testResults.length > 0 ? Math.max(...testResults.map(r => Math.round(r.score/r.total * 100))) : 0}%
                   </p>
                </div>
-               <div className="p-4 bg-orange-50/50 rounded-2xl">
-                  <p className="text-[10px] text-orange-600 font-bold uppercase mb-1">Average Time</p>
-                  <p className="text-xl font-black text-orange-900">
+               <div className="p-4 bg-blue-50/50 rounded-2xl">
+                  <p className="text-[10px] text-blue-600 font-bold uppercase mb-1">Average Time</p>
+                  <p className="text-xl font-black text-blue-900">
                     {testResults.length > 0 ? Math.round(testResults.reduce((acc, r) => acc + (r.timeTaken || 0), 0) / testResults.length / 60) : 0}m
                   </p>
                </div>

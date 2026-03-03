@@ -49,7 +49,7 @@ export function ParentHome() {
           <p className="text-gray-500">Manage and monitor your children&apos;s progress.</p>
         </div>
         {!showLinkForm && (
-          <Button onClick={() => setShowLinkForm(true)} className="bg-orange-600 hover:bg-orange-700">
+          <Button onClick={() => setShowLinkForm(true)} className="bg-blue-600 hover:bg-blue-700">
             <UserPlus className="mr-2 h-4 w-4" />
             Link Another Student
           </Button>
@@ -57,7 +57,7 @@ export function ParentHome() {
       </div>
 
       {showLinkForm && (
-        <Card className="border-orange-100 bg-orange-50/30">
+        <Card className="border-blue-100 bg-blue-50/30">
           <CardHeader>
             <CardTitle>Link New Student</CardTitle>
             <CardDescription>Enter your child&apos;s registered email address to send a link request.</CardDescription>
@@ -73,7 +73,7 @@ export function ParentHome() {
                 className="flex-1 bg-white"
               />
               <div className="flex gap-2">
-                <Button type="submit" className="bg-orange-600 hover:bg-orange-700" disabled={isSubmitting}>
+                <Button type="submit" className="bg-blue-600 hover:bg-blue-700" disabled={isSubmitting}>
                   {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UserPlus className="mr-2 h-4 w-4" />}
                   Send Request
                 </Button>
@@ -96,12 +96,12 @@ export function ParentHome() {
                 <div className="flex justify-between items-end">
                   <div>
                     <div className="text-sm text-gray-500 uppercase font-semibold">Current Grade</div>
-                    <div className="text-2xl font-bold text-orange-600">{student.grade || 'N/A'}</div>
+                    <div className="text-2xl font-bold text-blue-600">{student.grade || 'N/A'}</div>
                   </div>
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    className="border-orange-200 text-orange-700 hover:bg-orange-50"
+                    className="border-blue-200 text-blue-700 hover:bg-blue-50"
                     onClick={() => toast.info(`Navigate to Performance tab to see full data for ${student.name}`)}
                   >
                     View Performance
@@ -116,14 +116,14 @@ export function ParentHome() {
           <UserPlus className="mx-auto h-12 w-12 text-gray-400 mb-4" />
           <h3 className="text-lg font-semibold text-gray-900">No students linked</h3>
           <p className="text-gray-500 mb-6">Link your account to your child&apos;s profile to monitor their progress.</p>
-          <Button onClick={() => setShowLinkForm(true)} className="bg-orange-600">Link Student Now</Button>
+          <Button onClick={() => setShowLinkForm(true)} className="bg-blue-600">Link Student Now</Button>
         </div>
       )}
 
       {requests.length > 0 && (
         <div className="space-y-4">
           <h3 className="text-lg font-bold font-urbanist text-gray-900 flex items-center gap-2">
-            <AlertCircle className="size-5 text-orange-500" />
+            <AlertCircle className="size-5 text-yellow-500" />
             Pending Link Requests
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -14,8 +14,8 @@ export default function TeamsPage() {
                         subtitle="Learn from 21 experienced IIT educators who specialise in live problem solving, exam strategy and doubt clearing."
                     />
                     <AnimatedContent className="mt-8 grid gap-6 md:grid-cols-3 text-sm text-zinc-600">
-                        <div className="bg-orange-50 border border-orange-100 rounded-xl p-4 flex items-start gap-3">
-                            <GraduationCapIcon className="text-orange-500 mt-1" />
+                        <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex items-start gap-3">
+                            <GraduationCapIcon className="text-yellow-500 mt-1" />
                             <p>
                                 Every Adhyayan teacher has cleared top competitive exams and brings years of classroom
                                 and online teaching experience.

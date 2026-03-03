@@ -6,7 +6,7 @@ export default function Footer() {
     return (
         <footer className="px-4 md:px-16 lg:px-24 xl:px-32">
             <div className="border-x border-gray-200 px-4 md:px-12 max-w-7xl mx-auto pt-40">
-                <div className="flex flex-col md:flex-row items-start justify-between relative p-8 md:p-12 overflow-hidden pb-32 md:pb-42 bg-linear-to-t from-orange-50 to-orange-100 rounded-t-2xl">
+                <div className="flex flex-col md:flex-row items-start justify-between relative p-8 md:p-12 overflow-hidden pb-32 md:pb-42 bg-linear-to-t from-blue-50 to-blue-100 rounded-t-2xl">
                     <Image
                         src="/assets/logo-colored.svg"
                         alt="Logo"
@@ -27,21 +27,21 @@ export default function Footer() {
                         <p className="text-gray-500 py-0">Copyright 2026 © Adhyayan. All rights reserved.</p>
                     </AnimatedContent>
                     <div>
-                        <p className="uppercase font-semibold text-orange-600 text-base">Social</p>
+                        <p className="uppercase font-semibold text-blue-600 text-base">Social</p>
                         <AnimatedContent className="flex flex-col mt-6 gap-3">
-                            <a href="#!" className="flex items-center gap-2 text-orange-500">
+                            <a href="#!" className="flex items-center gap-2 text-yellow-500">
                                 <TwitterIcon size={20} />
                                 <p>Twitter</p>
                             </a>
-                            <a href="#!" className="flex items-center gap-2 text-orange-500">
+                            <a href="#!" className="flex items-center gap-2 text-yellow-500">
                                 <LinkedinIcon size={20} />
                                 <p>Linkedin</p>
                             </a>
-                            <a href="#!" className="flex items-center gap-2 text-orange-500">
+                            <a href="#!" className="flex items-center gap-2 text-yellow-500">
                                 <InstagramIcon size={20} />
                                 <p>Instagram</p>
                             </a>
-                            <a href={`${process.env.NEXT_PUBLIC_API_URL}/api`} target="_blank" rel="noopener noreferrer" className="mt-4 text-sm font-medium text-orange-600 hover:text-orange-700 underline underline-offset-4">
+                            <a href={`${process.env.NEXT_PUBLIC_API_URL}/api`} target="_blank" rel="noopener noreferrer" className="mt-4 text-sm font-medium text-blue-600 hover:text-blue-700 underline underline-offset-4">
                                 API Documentation
                             </a>
                         </AnimatedContent>

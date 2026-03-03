@@ -38,7 +38,7 @@ export default function ParentDashboardPage() {
                         trend="4" 
                         trendType="positive"
                         icon={CheckCircleIcon}
-                        colorClass="bg-emerald-50 text-emerald-600"
+                        colorClass="bg-gray-100 text-gray-600"
                     />
                 </AnimatedContent>
                  <AnimatedContent delay={0.3} distance={20}>
@@ -48,7 +48,7 @@ export default function ParentDashboardPage() {
                         trend="Improved" 
                         trendType="positive"
                         icon={TrendingUpIcon}
-                        colorClass="bg-orange-50 text-orange-600"
+                        colorClass="bg-yellow-50 text-yellow-600"
                     />
                 </AnimatedContent>
             </div>

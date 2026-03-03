@@ -7,8 +7,8 @@ export const features: IFeature[] = [
         description:
             "Join real-time classes led by 21 expert IIT educators. Interact, ask questions and learn in a structured live environment.",
         icon: VideoIcon,
-        cardBg: "bg-orange-100",
-        iconBg: "bg-orange-500"
+        cardBg: "bg-blue-100",
+        iconBg: "bg-blue-600"
     },
     {
         title: "1000s of Test Papers & Q&A",
@@ -48,6 +48,6 @@ export const features: IFeature[] = [
             "Clear progress reports and analytics so students and parents can track performance and improvement over time.",
         icon: BarChartIcon,
         cardBg: "bg-gray-50",
-        iconBg: "bg-orange-500",
+        iconBg: "bg-blue-600",
     },
 ];

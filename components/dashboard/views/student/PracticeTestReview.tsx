@@ -29,7 +29,7 @@ export function PracticeTestReview({ test, result, onBack }: Props) {
            <div>
               <h2 className="text-xl font-bold text-gray-900 font-urbanist">Review: {test.title}</h2>
               <div className="flex items-center gap-4 text-sm mt-0.5">
-                 <span className="text-gray-500">Score: <span className="text-orange-600 font-bold">{result.score}/{result.total}</span></span>
+                 <span className="text-gray-500">Score: <span className="text-blue-600 font-bold">{result.score}/{result.total}</span></span>
                  <span className="size-1 bg-gray-300 rounded-full" />
                  <span className="text-gray-500">Rating: <span className="text-yellow-600 font-bold">{result.rating}/5</span></span>
               </div>

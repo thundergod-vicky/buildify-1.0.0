@@ -157,7 +157,7 @@ export function PracticeTestInterface({ test, onBack }: Props) {
 
         <div className="flex items-center gap-6">
            {test.timeLimit && (
-             <div className={`flex items-center gap-2 px-4 py-2 rounded-xl border-2 ${timeLeft < 60 ? 'border-red-100 bg-red-50 text-red-600 animate-pulse' : 'border-orange-100 bg-orange-50 text-orange-600'}`}>
+             <div className={`flex items-center gap-2 px-4 py-2 rounded-xl border-2 ${timeLeft < 60 ? 'border-red-100 bg-red-50 text-red-600 animate-pulse' : 'border-blue-100 bg-yellow-50 text-yellow-600'}`}>
                 <ClockIcon className="size-5" />
                 <span className="text-lg font-bold tabular-nums">{formatTime(timeLeft)}</span>
              </div>
@@ -176,7 +176,7 @@ export function PracticeTestInterface({ test, onBack }: Props) {
          <div className="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm space-y-8 min-h-[400px] flex flex-col justify-between">
             <div className="space-y-6">
                <div className="flex items-start gap-4">
-                  <span className="size-8 bg-orange-600 text-white rounded-lg flex items-center justify-center font-bold flex-shrink-0 mt-1">
+                  <span className="size-8 bg-blue-600 text-white rounded-lg flex items-center justify-center font-bold flex-shrink-0 mt-1">
                      {currentQuestionIndex + 1}
                   </span>
                   <h3 className="text-2xl font-bold text-gray-900 leading-tight">
@@ -191,19 +191,19 @@ export function PracticeTestInterface({ test, onBack }: Props) {
                       onClick={() => setSelectedAnswers(prev => ({ ...prev, [currentQuestionIndex]: idx }))}
                       className={`group flex items-center gap-4 p-5 rounded-2xl border-2 transition-all text-left ${
                         selectedAnswers[currentQuestionIndex] === idx
-                          ? 'border-orange-500 bg-orange-50/50'
-                          : 'border-gray-100 hover:border-orange-200 hover:bg-orange-50/20'
+                          ? 'border-blue-500 bg-blue-50/50'
+                          : 'border-gray-100 hover:border-blue-200 hover:bg-blue-50/20'
                       }`}
                     >
                       <span className={`size-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
                         selectedAnswers[currentQuestionIndex] === idx
-                          ? 'border-orange-500 bg-orange-500 text-white'
-                          : 'border-gray-300 group-hover:border-orange-400'
+                          ? 'border-blue-500 bg-yellow-500 text-white'
+                          : 'border-gray-300 group-hover:border-blue-400'
                       }`}>
                         {String.fromCharCode(65 + idx)}
                       </span>
                       <span className={`text-lg font-medium ${
-                        selectedAnswers[currentQuestionIndex] === idx ? 'text-orange-900' : 'text-gray-700'
+                        selectedAnswers[currentQuestionIndex] === idx ? 'text-blue-900' : 'text-gray-700'
                       }`}>
                          {option}
                       </span>
@@ -227,7 +227,7 @@ export function PracticeTestInterface({ test, onBack }: Props) {
                  <button
                    onClick={() => setConfirmModal({ isOpen: true, type: 'SUBMIT' })}
                    disabled={isSubmitting}
-                   className="flex items-center gap-2 px-8 py-3 rounded-xl bg-orange-600 text-white font-bold hover:bg-orange-700 transition-all shadow-lg shadow-orange-200"
+                   className="flex items-center gap-2 px-8 py-3 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200"
                  >
                    <SendIcon className="size-5" />
                    Submit Test

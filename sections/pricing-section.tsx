@@ -17,15 +17,15 @@ export default function PricingSection() {
                     title="Simple, transparent pricing"
                     subtitle="Choose a plan that fits your goals - from free trial to full access to live sessions, tests and progress reports."
                 />
-                <AnimatedContent className="p-1 mt-10 border border-orange-200 bg-orange-50 rounded-full">
+                <AnimatedContent className="p-1 mt-10 border border-blue-200 bg-blue-50 rounded-full">
                     <button
-                        className={`px-6 py-2 rounded-full cursor-pointer ${planType === 'monthly' ? 'bg-orange-500 text-white' : 'text-orange-500'}`}
+                        className={`px-6 py-2 rounded-full cursor-pointer ${planType === 'monthly' ? 'bg-blue-600 text-white' : 'text-yellow-500'}`}
                         onClick={() => setPlanType('monthly')}
                     >
                         Monthly
                     </button>
                     <button
-                        className={`relative px-6 py-2 rounded-full cursor-pointer ${planType === 'yearly' ? 'bg-orange-500 text-white' : 'text-orange-500'}`}
+                        className={`relative px-6 py-2 rounded-full cursor-pointer ${planType === 'yearly' ? 'bg-blue-600 text-white' : 'text-yellow-500'}`}
                         onClick={() => setPlanType('yearly')}
                     >
                         Yearly
@@ -36,8 +36,8 @@ export default function PricingSection() {
                 </AnimatedContent>
                 <div className="flex flex-wrap items-start justify-center gap-10 md:gap-4 px-4 mt-12">
                     {pricing.map((plan, index) => (
-                        <AnimatedContent delay={index * 0.10} key={index} className={`p-5 pb-8 w-full sm:max-w-64 rounded-xl border border-gray-200 ${plan.type === 'enterprise' ? 'bg-orange-500 text-white' : plan.type === 'popular' ? 'bg-linear-to-br from-orange-50 to-orange-100' : 'bg-white'}`}>
-                            <div className={`w-max border border-gray-200 p-2 aspect-square rounded-lg ${plan.type === 'enterprise' ? 'text-white' : 'text-orange-500 bg-white'}`}>
+                        <AnimatedContent delay={index * 0.10} key={index} className={`p-5 pb-8 w-full sm:max-w-64 rounded-xl border border-gray-200 ${plan.type === 'enterprise' ? 'bg-blue-600 text-white' : plan.type === 'popular' ? 'bg-linear-to-br from-blue-50 to-blue-100' : 'bg-white'}`}>
+                            <div className={`w-max border border-gray-200 p-2 aspect-square rounded-lg ${plan.type === 'enterprise' ? 'text-white' : 'text-yellow-500 bg-white'}`}>
                                 <plan.icon size={24} />
                             </div>
                             <h3 className="text-lg font-medium mt-6">{plan.name}</h3>
@@ -56,7 +56,7 @@ export default function PricingSection() {
                             <div className="space-y-2 mt-6">
                                 {plan.features.map((feature, index) => (
                                     <div key={index} className="flex items-center gap-2">
-                                        <CheckIcon className={`size-4 ${plan.type === 'enterprise' ? 'text-white' : 'text-orange-500'}`} />
+                                        <CheckIcon className={`size-4 ${plan.type === 'enterprise' ? 'text-white' : 'text-yellow-500'}`} />
                                         <p className={plan.type === 'enterprise' ? 'text-white' : 'text-zinc-500'}>
                                             {feature}
                                         </p>

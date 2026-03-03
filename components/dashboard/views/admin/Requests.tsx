@@ -46,7 +46,7 @@ export function AdminRequests() {
   };
 
   if (isLoading) {
-    return <div className="flex justify-center p-8"><Loader2 className="animate-spin text-orange-600" /></div>;
+    return <div className="flex justify-center p-8"><Loader2 className="animate-spin text-blue-600" /></div>;
   }
 
   return (

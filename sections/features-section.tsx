@@ -15,7 +15,7 @@ export default function FeaturesSection() {
                             title="What you get"
                             subtitle="Live sessions with IIT teachers, thousands of tests, recordings, proctored exams, progress reports and parental controls - all in one place."
                         />
-                        <AnimatedContent className="p-4 md:p-6 bg-orange-500 w-full rounded-xl mt-12">
+                        <AnimatedContent className="p-4 md:p-6 bg-blue-600 w-full rounded-xl mt-12">
                             <p className="text-lg text-white">
                                 Trusted by students and parents for exam prep and structured learning.
                             </p>

@@ -29,7 +29,7 @@ export default function TeacherDashboardPage() {
                         trend="5" 
                         trendType="positive"
                         icon={UsersIcon}
-                        colorClass="bg-orange-50 text-orange-600"
+                        colorClass="bg-yellow-50 text-yellow-600"
                     />
                 </AnimatedContent>
                 <AnimatedContent delay={0.2} distance={20}>
@@ -49,7 +49,7 @@ export default function TeacherDashboardPage() {
                         trend="1" 
                         trendType="positive"
                         icon={CalendarIcon}
-                        colorClass="bg-purple-50 text-purple-600"
+                        colorClass="bg-sky-50 text-sky-600"
                     />
                 </AnimatedContent>
                  <AnimatedContent delay={0.4} distance={20}>
@@ -59,7 +59,7 @@ export default function TeacherDashboardPage() {
                         trend="4" 
                         trendType="positive"
                         icon={MessageSquareIcon}
-                        colorClass="bg-emerald-50 text-emerald-600"
+                        colorClass="bg-gray-100 text-gray-600"
                     />
                 </AnimatedContent>
             </div>

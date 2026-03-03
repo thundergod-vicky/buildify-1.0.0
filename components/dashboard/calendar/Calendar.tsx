@@ -51,14 +51,14 @@ export function Calendar() {
         return (
             <div className="flex flex-col sm:flex-row items-center justify-between p-4 sm:p-6 bg-white border-b border-gray-100 rounded-t-[2.5rem] gap-4">
                 <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto">
-                    <div className="size-10 sm:size-12 bg-orange-50 rounded-2xl flex items-center justify-center shrink-0">
-                        <CalendarIcon className="size-5 sm:size-6 text-orange-600" />
+                    <div className="size-10 sm:size-12 bg-blue-50 rounded-2xl flex items-center justify-center shrink-0">
+                        <CalendarIcon className="size-5 sm:size-6 text-blue-600" />
                     </div>
                     <div>
                         <div className="flex items-center gap-1">
                             <button 
                                 onClick={() => setView('year')}
-                                className="text-xl sm:text-2xl font-black text-gray-900 hover:text-orange-600 transition-colors"
+                                className="text-xl sm:text-2xl font-black text-gray-900 hover:text-blue-600 transition-colors"
                             >
                                 {monthName}
                             </button>
@@ -67,7 +67,7 @@ export function Calendar() {
                                     setDecadeStart(currentDate.getFullYear() - 4);
                                     setView('decade');
                                 }}
-                                className="text-xl sm:text-2xl font-black text-gray-400 hover:text-orange-600 transition-colors"
+                                className="text-xl sm:text-2xl font-black text-gray-400 hover:text-blue-600 transition-colors"
                             >
                                 {year}
                             </button>
@@ -82,7 +82,7 @@ export function Calendar() {
                             onClick={() => setView('month')}
                             className={cn(
                                 "p-2 rounded-xl transition-all",
-                                view === 'month' ? "bg-white shadow-sm text-orange-600" : "text-gray-400 hover:text-gray-600"
+                                view === 'month' ? "bg-white shadow-sm text-blue-600" : "text-gray-400 hover:text-gray-600"
                             )}
                         >
                             <LayoutGridIcon className="size-4" />
@@ -91,7 +91,7 @@ export function Calendar() {
                             onClick={() => setView('day')}
                             className={cn(
                                 "p-2 rounded-xl transition-all",
-                                view === 'day' ? "bg-white shadow-sm text-orange-600" : "text-gray-400 hover:text-gray-600"
+                                view === 'day' ? "bg-white shadow-sm text-blue-600" : "text-gray-400 hover:text-gray-600"
                             )}
                         >
                             <ListIcon className="size-4" />
@@ -113,7 +113,7 @@ export function Calendar() {
                                 setCurrentDate(new Date());
                                 if (view === 'decade') setDecadeStart(new Date().getFullYear() - 4);
                             }}
-                            className="px-4 py-2 text-xs font-black uppercase tracking-widest text-gray-500 hover:text-orange-600 hover:bg-orange-50 rounded-xl transition-all"
+                            className="px-4 py-2 text-xs font-black uppercase tracking-widest text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
                         >
                             Today
                         </button>
@@ -181,20 +181,20 @@ export function Calendar() {
                     }}
                     className={cn(
                         "p-2 sm:p-4 h-24 sm:h-32 border-r border-b border-gray-100 relative cursor-pointer group transition-all",
-                        isSelected ? "bg-orange-50/20" : "hover:bg-gray-50/50",
-                        isToday && "bg-orange-50/10"
+                        isSelected ? "bg-blue-50/20" : "hover:bg-gray-50/50",
+                        isToday && "bg-blue-50/10"
                     )}
                 >
                     <div className="flex justify-between items-start">
                         <span className={cn(
                             "size-6 sm:size-8 flex items-center justify-center text-xs sm:text-sm font-urbanist transition-all rounded-full",
-                            isToday ? "bg-orange-600 text-white font-black shadow-lg shadow-orange-200" : 
-                            isSelected ? "text-orange-600 font-black" : "text-gray-500 font-medium group-hover:text-gray-900"
+                            isToday ? "bg-blue-600 text-white font-black shadow-lg shadow-blue-200" : 
+                            isSelected ? "text-blue-600 font-black" : "text-gray-500 font-medium group-hover:text-gray-900"
                         )}>
                             {day}
                         </span>
                         {dayEvents.length > 0 && (
-                            <span className="size-1.5 sm:size-2 bg-orange-400 rounded-full animate-pulse"></span>
+                            <span className="size-1.5 sm:size-2 bg-blue-400 rounded-full animate-pulse"></span>
                         )}
                     </div>
 
@@ -335,7 +335,7 @@ export function Calendar() {
                                     }}
                                     className={cn(
                                         "p-10 rounded-[2rem] border transition-all flex flex-col items-center justify-center gap-2",
-                                        isCurrent ? "bg-orange-600 text-white border-transparent shadow-xl shadow-orange-200" : "bg-gray-50/50 border-transparent hover:bg-white hover:border-orange-100 hover:shadow-lg"
+                                        isCurrent ? "bg-blue-600 text-white border-transparent shadow-xl shadow-blue-200" : "bg-gray-50/50 border-transparent hover:bg-white hover:border-blue-100 hover:shadow-lg"
                                     )}
                                 >
                                     <span className="text-sm font-black uppercase tracking-widest">
@@ -343,7 +343,7 @@ export function Calendar() {
                                     </span>
                                     <span className={cn(
                                         "text-xs font-medium",
-                                        isCurrent ? "text-orange-100" : "text-gray-400"
+                                        isCurrent ? "text-blue-100" : "text-gray-400"
                                     )}>
                                         {MOCK_EVENTS.filter(e => e.date.getMonth() === i && e.date.getFullYear() === currentDate.getFullYear()).length} Events
                                     </span>
@@ -366,9 +366,9 @@ export function Calendar() {
                                     }}
                                     className={cn(
                                         "p-10 rounded-[2rem] border transition-all flex flex-col items-center justify-center gap-2",
-                                        isSelected ? "bg-orange-600 text-white border-transparent shadow-xl shadow-orange-200" : 
-                                        isCurrent ? "bg-orange-50 text-orange-600 border-orange-100" :
-                                        "bg-gray-50/50 border-transparent hover:bg-white hover:border-orange-100 hover:shadow-lg"
+                                        isSelected ? "bg-blue-600 text-white border-transparent shadow-xl shadow-blue-200" : 
+                                        isCurrent ? "bg-yellow-50 text-yellow-600 border-blue-100" :
+                                        "bg-gray-50/50 border-transparent hover:bg-white hover:border-blue-100 hover:shadow-lg"
                                     )}
                                 >
                                     <span className="text-sm font-black uppercase tracking-widest">
@@ -381,14 +381,14 @@ export function Calendar() {
                 ) : (
                     <div className="flex-1 flex items-center justify-center p-20 text-center">
                         <div className="max-w-md">
-                            <div className="size-20 bg-orange-50 rounded-[2.5rem] flex items-center justify-center mx-auto mb-6">
-                                <LayoutGridIcon className="size-10 text-orange-600" />
+                            <div className="size-20 bg-blue-50 rounded-[2.5rem] flex items-center justify-center mx-auto mb-6">
+                                <LayoutGridIcon className="size-10 text-blue-600" />
                             </div>
                             <h2 className="text-2xl font-black text-gray-900 mb-2">Detailed View</h2>
                             <p className="text-gray-400 font-medium">Select a date from the calendar to see detailed schedule and join classes.</p>
                             <button 
                                 onClick={() => setView('month')}
-                                className="mt-8 px-8 py-3 bg-gray-900 text-white text-xs font-black uppercase tracking-widest rounded-2xl hover:bg-orange-600 transition-all shadow-xl shadow-gray-200"
+                                className="mt-8 px-8 py-3 bg-gray-900 text-white text-xs font-black uppercase tracking-widest rounded-2xl hover:bg-blue-600 transition-all shadow-xl shadow-gray-200"
                             >
                                 Back to Calendar
                             </button>

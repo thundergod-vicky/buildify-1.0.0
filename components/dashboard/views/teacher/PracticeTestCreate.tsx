@@ -182,7 +182,7 @@ export function TeacherPracticeTestCreate({ onBack, initialData }: Props) {
                 placeholder="e.g. Aptitude Practice Test"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all text-lg font-semibold"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-lg font-semibold"
               />
             </div>
             <div className="space-y-2">
@@ -192,7 +192,7 @@ export function TeacherPracticeTestCreate({ onBack, initialData }: Props) {
                 placeholder="0 for no limit"
                 value={timeLimit}
                 onChange={(e) => setTimeLimit(parseInt(e.target.value) || 0)}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all text-lg font-semibold"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-lg font-semibold"
               />
             </div>
           </div>
@@ -201,14 +201,14 @@ export function TeacherPracticeTestCreate({ onBack, initialData }: Props) {
           <div className="flex bg-gray-50 p-1 rounded-xl">
             <button
               onClick={() => setActiveTab('manual')}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-semibold transition-all ${activeTab === 'manual' ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-semibold transition-all ${activeTab === 'manual' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
               <PlusIcon className="size-4" />
               Manual Entry
             </button>
             <button
               onClick={() => setActiveTab('upload')}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-semibold transition-all ${activeTab === 'upload' ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-semibold transition-all ${activeTab === 'upload' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
             >
               <UploadIcon className="size-4" />
               Upload Files
@@ -219,10 +219,10 @@ export function TeacherPracticeTestCreate({ onBack, initialData }: Props) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-8">
               <div 
                 onClick={() => fileInputRef.current?.click()}
-                className="group cursor-pointer p-8 border-2 border-dashed border-gray-100 rounded-2xl hover:border-orange-600 hover:bg-orange-50/50 transition-all text-center space-y-4"
+                className="group cursor-pointer p-8 border-2 border-dashed border-gray-100 rounded-2xl hover:border-blue-600 hover:bg-blue-50/50 transition-all text-center space-y-4"
               >
-                <div className="size-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto group-hover:bg-orange-100 transition-colors">
-                  <FileJsonIcon className="size-8 text-gray-400 group-hover:text-orange-600" />
+                <div className="size-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto group-hover:bg-blue-100 transition-colors">
+                  <FileJsonIcon className="size-8 text-gray-400 group-hover:text-blue-600" />
                 </div>
                 <div>
                     <h4 className="font-bold text-gray-900">JSON Upload</h4>
@@ -257,7 +257,7 @@ export function TeacherPracticeTestCreate({ onBack, initialData }: Props) {
                   </button>
 
                   <div className="flex items-center gap-4">
-                    <span className="size-8 bg-orange-600 text-white rounded-lg flex items-center justify-center font-bold text-sm">
+                    <span className="size-8 bg-blue-600 text-white rounded-lg flex items-center justify-center font-bold text-sm">
                         {qIndex + 1}
                     </span>
                     <div className="flex-1 grid grid-cols-2 gap-4">
@@ -284,7 +284,7 @@ export function TeacherPracticeTestCreate({ onBack, initialData }: Props) {
                     placeholder="Enter your question here..."
                     value={q.question}
                     onChange={(e) => updateQuestion(qIndex, 'question', e.target.value)}
-                    className="w-full p-4 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 transition-all h-24"
+                    className="w-full p-4 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 transition-all h-24"
                   />
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -311,14 +311,14 @@ export function TeacherPracticeTestCreate({ onBack, initialData }: Props) {
                     placeholder="Explanation (Optional)"
                     value={q.explanation}
                     onChange={(e) => updateQuestion(qIndex, 'explanation', e.target.value)}
-                    className="w-full p-4 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 transition-all h-20 text-sm"
+                    className="w-full p-4 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 transition-all h-20 text-sm"
                   />
                 </div>
               ))}
 
               <button
                 onClick={addQuestion}
-                className="w-full py-6 border-2 border-dashed border-gray-200 rounded-2xl flex items-center justify-center gap-2 text-gray-500 hover:border-orange-500 hover:text-orange-600 hover:bg-orange-50/50 transition-all font-semibold"
+                className="w-full py-6 border-2 border-dashed border-gray-200 rounded-2xl flex items-center justify-center gap-2 text-gray-500 hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50/50 transition-all font-semibold"
               >
                 <PlusIcon className="size-5" />
                 Add Question Manually

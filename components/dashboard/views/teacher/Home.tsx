@@ -75,7 +75,7 @@ export function TeacherHome() {
                         title="Total Students" 
                         value={stats.students.toString()} 
                         icon={UsersIcon}
-                        colorClass="bg-orange-50 text-orange-600"
+                        colorClass="bg-yellow-50 text-yellow-600"
                         loading={loading}
                     />
                 </AnimatedContent>
@@ -93,7 +93,7 @@ export function TeacherHome() {
                         title="Upcoming Classes" 
                         value={stats.classes.toString()} 
                         icon={CalendarIcon}
-                        colorClass="bg-purple-50 text-purple-600"
+                        colorClass="bg-sky-50 text-sky-600"
                         loading={loading}
                     />
                 </AnimatedContent>
@@ -102,7 +102,7 @@ export function TeacherHome() {
                         title="Practice Tests" 
                         value={stats.tests.toString()} 
                         icon={FileTextIcon}
-                        colorClass="bg-emerald-50 text-emerald-600"
+                        colorClass="bg-gray-100 text-gray-600"
                         loading={loading}
                     />
                 </AnimatedContent>

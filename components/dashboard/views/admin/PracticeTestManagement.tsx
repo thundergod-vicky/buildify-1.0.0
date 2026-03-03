@@ -292,9 +292,9 @@ export function AdminPracticeTestManagement() {
                   <div className="text-2xl font-bold text-purple-600">{selectedTest.analytics.averagePercentage}%</div>
                   <div className="text-sm text-purple-700">Avg Score</div>
                 </div>
-                <div className="bg-orange-50 rounded-xl p-4">
-                  <div className="text-2xl font-bold text-orange-600">{selectedTest.analytics.passRate}%</div>
-                  <div className="text-sm text-orange-700">Pass Rate</div>
+                <div className="bg-blue-50 rounded-xl p-4">
+                  <div className="text-2xl font-bold text-blue-600">{selectedTest.analytics.passRate}%</div>
+                  <div className="text-sm text-blue-700">Pass Rate</div>
                 </div>
               </div>
 
@@ -353,7 +353,7 @@ export function AdminPracticeTestManagement() {
                           </td>
                           <td className="px-6 py-4 text-gray-600">{result.timeTaken ? formatTime(result.timeTaken) : 'N/A'}</td>
                           <td className="px-6 py-4">
-                            <span className="text-orange-600 font-semibold">{result.rating?.toFixed(1) || 'N/A'}</span>
+                            <span className="text-blue-600 font-semibold">{result.rating?.toFixed(1) || 'N/A'}</span>
                           </td>
                           <td className="px-6 py-4">
                             <span className={`px-2 py-1 rounded-lg text-xs font-bold ${

@@ -64,13 +64,13 @@ export function TeacherStudentManagement() {
       </div>
 
       <div className="relative max-w-md group">
-        <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-gray-400 group-focus-within:text-orange-500 transition-colors" />
+        <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-gray-400 group-focus-within:text-yellow-500 transition-colors" />
         <input
           type="text"
           placeholder="Search students..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full pl-12 pr-4 py-3 bg-white border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all shadow-sm"
+          className="w-full pl-12 pr-4 py-3 bg-white border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm"
         />
       </div>
 
@@ -120,7 +120,7 @@ export function TeacherStudentManagement() {
                       <select
                         defaultValue={student.medal || ""}
                         onChange={(e) => updateStatus(student.id, e.target.value, student.grade)}
-                        className="bg-white border border-gray-200 rounded-lg text-sm p-2 focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none"
+                        className="bg-white border border-gray-200 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
                       >
                         <option value="">No Medal</option>
                         {MEDALS.map((m) => (
@@ -132,7 +132,7 @@ export function TeacherStudentManagement() {
                       <select
                         defaultValue={student.grade || ""}
                         onChange={(e) => updateStatus(student.id, student.medal, e.target.value)}
-                        className="bg-white border border-gray-200 rounded-lg text-sm p-2 focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none"
+                        className="bg-white border border-gray-200 rounded-lg text-sm p-2 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
                       >
                         <option value="">No Grade</option>
                         {GRADES.map((g) => (
@@ -142,7 +142,7 @@ export function TeacherStudentManagement() {
                     </td>
                     <td className="px-6 py-4 text-right">
                        {updatingId === student.id ? (
-                         <div className="size-5 border-2 border-orange-600 border-t-transparent rounded-full animate-spin ml-auto"></div>
+                         <div className="size-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin ml-auto"></div>
                        ) : (
                          <CheckCircle2Icon className="size-5 text-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity" />
                        )}

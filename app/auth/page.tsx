@@ -103,7 +103,7 @@ export default function AuthPage() {
     };
 
     return (
-        <main className="min-h-screen flex justify-center items-center px-4 py-8 bg-gradient-to-r from-gray-200 to-orange-100/50">
+        <main className="min-h-screen flex justify-center items-center px-4 py-8 bg-gradient-to-r from-gray-200 to-blue-100/50">
             {/* Mobile: stacked layout with tab */}
             <div className="auth-mobile w-full max-w-md md:hidden">
                 <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
@@ -114,7 +114,7 @@ export default function AuthPage() {
                             onClick={() => { setActive(false); setError(""); }}
                             className={`flex-1 py-4 text-sm font-semibold transition-colors ${
                                 !active
-                                    ? "bg-orange-500 text-white"
+                                    ? "bg-blue-600 text-white"
                                     : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                             }`}
                         >
@@ -125,7 +125,7 @@ export default function AuthPage() {
                             onClick={() => { setActive(true); setError(""); }}
                             className={`flex-1 py-4 text-sm font-semibold transition-colors ${
                                 active
-                                    ? "bg-orange-500 text-white"
+                                    ? "bg-blue-600 text-white"
                                     : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                             }`}
                         >
@@ -166,14 +166,14 @@ export default function AuthPage() {
                                     <Lock className="absolute right-4 top-1/2 -translate-y-1/2 size-5 text-gray-500" />
                                 </div>
                                 <div className="-mt-1 mb-3 text-left">
-                                    <Link href="#" className="text-sm text-gray-600 hover:text-orange-500">
+                                    <Link href="#" className="text-sm text-gray-600 hover:text-yellow-500">
                                         Forgot Password?
                                     </Link>
                                 </div>
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="w-full h-12 rounded-lg bg-orange-500 text-white font-semibold text-base shadow-md hover:bg-orange-600 transition-colors disabled:opacity-50"
+                                    className="w-full h-12 rounded-lg bg-blue-600 text-white font-semibold text-base shadow-md hover:bg-blue-600 transition-colors disabled:opacity-50"
                                 >
                                     {loading ? 'Logging in...' : 'Login'}
                                 </button>
@@ -240,7 +240,7 @@ export default function AuthPage() {
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="w-full h-12 rounded-lg bg-orange-500 text-white font-semibold text-base shadow-md hover:bg-orange-600 transition-colors mt-1 disabled:opacity-50"
+                                    className="w-full h-12 rounded-lg bg-blue-600 text-white font-semibold text-base shadow-md hover:bg-blue-600 transition-colors mt-1 disabled:opacity-50"
                                 >
                                     {loading ? 'Creating account...' : 'Register'}
                                 </button>
@@ -293,14 +293,14 @@ export default function AuthPage() {
                             <Lock className="absolute right-4 top-1/2 -translate-y-1/2 size-5 text-gray-500" />
                         </div>
                         <div className="-mt-2 mb-4 text-left">
-                            <Link href="#" className="text-sm text-gray-600 hover:text-orange-500">
+                            <Link href="#" className="text-sm text-gray-600 hover:text-yellow-500">
                                 Forgot Password?
                             </Link>
                         </div>
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full h-12 rounded-lg bg-orange-500 text-white font-semibold text-base shadow-md hover:bg-orange-600 transition-colors disabled:opacity-50"
+                            className="w-full h-12 rounded-lg bg-blue-600 text-white font-semibold text-base shadow-md hover:bg-blue-600 transition-colors disabled:opacity-50"
                         >
                             {loading ? 'Logging in...' : 'Login'}
                         </button>
@@ -374,7 +374,7 @@ export default function AuthPage() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full h-12 rounded-lg bg-orange-500 text-white font-semibold text-base shadow-md hover:bg-orange-600 transition-colors mt-2 disabled:opacity-50"
+                            className="w-full h-12 rounded-lg bg-blue-600 text-white font-semibold text-base shadow-md hover:bg-blue-600 transition-colors mt-2 disabled:opacity-50"
                         >
                             {loading ? 'Creating account...' : 'Register'}
                         </button>
@@ -386,7 +386,7 @@ export default function AuthPage() {
                 {/* Toggle overlay and panels */}
                 <div className="toggle-box absolute inset-0 pointer-events-none">
                     <div
-                        className="absolute h-full w-[300%] bg-orange-500 rounded-[150px] z-[2] transition-[left] duration-[1.8s] ease-in-out"
+                        className="absolute h-full w-[300%] bg-blue-600 rounded-[150px] z-[2] transition-[left] duration-[1.8s] ease-in-out"
                         style={{ left: active ? "50%" : "-250%" }}
                     />
                     <div

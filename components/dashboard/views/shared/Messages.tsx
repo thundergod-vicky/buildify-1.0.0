@@ -91,7 +91,7 @@ const VoicePlayer = ({ url, isSender }: { url: string; isSender: boolean }) => {
         onClick={togglePlay}
         className={cn(
           "size-9 rounded-xl flex items-center justify-center transition-all active:scale-95",
-          isSender ? "bg-white text-orange-600 hover:bg-gray-100" : "bg-orange-600 text-white hover:bg-orange-700 shadow-md shadow-orange-100"
+          isSender ? "bg-white text-blue-600 hover:bg-gray-100" : "bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-100"
         )}
       >
         {isPlaying ? <Pause className="size-4 fill-current" /> : <Play className="size-4 fill-current ml-0.5" />}
@@ -100,7 +100,7 @@ const VoicePlayer = ({ url, isSender }: { url: string; isSender: boolean }) => {
       <div className="flex-1 space-y-1.5">
         <div className="h-1.5 bg-black/5 rounded-full overflow-hidden relative group cursor-pointer">
           <div 
-            className={cn("h-full transition-all duration-150 rounded-full", isSender ? "bg-white" : "bg-orange-600")}
+            className={cn("h-full transition-all duration-150 rounded-full", isSender ? "bg-white" : "bg-blue-600")}
             style={{ width: `${(currentTime / duration) * 100}%` }}
           />
         </div>
@@ -495,7 +495,7 @@ export function MessagesView() {
               onClick={() => setActiveTab('messages')}
               className={cn(
                 "flex-1 py-1.5 text-sm font-medium rounded-md transition-all",
-                activeTab === 'messages' ? "bg-white text-orange-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                activeTab === 'messages' ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
               )}
             >
               Chats
@@ -505,12 +505,12 @@ export function MessagesView() {
                 onClick={() => setActiveTab('requests')}
                 className={cn(
                   "flex-1 py-1.5 text-sm font-medium rounded-md transition-all relative",
-                  activeTab === 'requests' ? "bg-white text-orange-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                  activeTab === 'requests' ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
                 )}
               >
                 Requests
                 {pendingRequests.length > 0 && (
-                  <span className="absolute -top-1 -right-1 size-4 bg-orange-600 text-white text-[10px] rounded-full flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 size-4 bg-blue-600 text-white text-[10px] rounded-full flex items-center justify-center">
                     {pendingRequests.length}
                   </span>
                 )}
@@ -520,7 +520,7 @@ export function MessagesView() {
               onClick={() => setActiveTab('directory')}
               className={cn(
                 "flex-1 py-1.5 text-sm font-medium rounded-md transition-all",
-                activeTab === 'directory' ? "bg-white text-orange-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                activeTab === 'directory' ? "bg-white text-blue-600 shadow-sm" : "text-gray-500 hover:text-gray-700"
               )}
             >
               Directory
@@ -534,7 +534,7 @@ export function MessagesView() {
               placeholder="Search..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-gray-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-orange-500"
+              className="w-full pl-9 pr-4 py-2 bg-gray-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>
@@ -548,10 +548,10 @@ export function MessagesView() {
                   onClick={() => handleSelectContact(contact)}
                   className={cn(
                     "w-full flex items-center gap-3 p-3 rounded-xl transition-all group text-left",
-                    selectedContact?.id === contact.id ? "bg-orange-50" : "hover:bg-gray-50"
+                    selectedContact?.id === contact.id ? "bg-blue-50" : "hover:bg-gray-50"
                   )}
                 >
-                  <div className="size-12 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-bold shrink-0 overflow-hidden">
+                  <div className="size-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold shrink-0 overflow-hidden">
                       {contact.profileImage ? (
                         <img 
                           src={resolveImageUrl(contact.profileImage)} 
@@ -613,7 +613,7 @@ export function MessagesView() {
                   <div className="flex gap-2">
                     <button 
                       onClick={() => handleAcceptRequest(req.id)}
-                      className="flex-1 py-1.5 bg-orange-600 text-white text-xs font-semibold rounded-lg hover:bg-orange-700 transition-colors shadow-sm"
+                      className="flex-1 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
                     >
                       Accept
                     </button>
@@ -642,7 +642,7 @@ export function MessagesView() {
                   onClick={() => handleSelectContact(target)}
                   className={cn(
                     "w-full flex items-center justify-between p-3 rounded-xl transition-all group",
-                    selectedContact?.id === target.id ? "bg-orange-50" : "hover:bg-gray-50"
+                    selectedContact?.id === target.id ? "bg-blue-50" : "hover:bg-gray-50"
                   )}
                 >
                   <div className="flex items-center gap-3">
@@ -650,7 +650,7 @@ export function MessagesView() {
                         "size-10 rounded-full flex items-center justify-center font-bold shrink-0 overflow-hidden",
                         target.role === 'TEACHER' ? "bg-green-100 text-green-600" :
                         target.role === 'PARENT' ? "bg-blue-100 text-blue-600" :
-                        "bg-orange-100 text-orange-600"
+                        "bg-blue-100 text-blue-600"
                     )}>
                       {target.profileImage ? (
                         <img 
@@ -691,11 +691,11 @@ export function MessagesView() {
               <div className="flex items-center gap-2 sm:gap-3">
                 <button 
                   onClick={() => setShowListOnMobile(true)}
-                  className="lg:hidden p-2 -ml-2 text-gray-400 hover:text-orange-600 transition-colors"
+                  className="lg:hidden p-2 -ml-2 text-gray-400 hover:text-blue-600 transition-colors"
                 >
                   <ArrowLeft className="size-5" />
                 </button>
-                <div className="size-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-bold overflow-hidden shrink-0">
+                <div className="size-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold overflow-hidden shrink-0">
                    {selectedContact.profileImage ? (
                      <img 
                        src={resolveImageUrl(selectedContact.profileImage)} 
@@ -710,15 +710,15 @@ export function MessagesView() {
                   <h2 className="font-bold text-gray-900">{selectedContact.name}</h2>
                   <p className={cn(
                     "text-[10px] font-medium transition-colors",
-                    (remoteTyping || isUploading) ? "text-orange-500" : "text-green-500"
+                    (remoteTyping || isUploading) ? "text-yellow-500" : "text-green-500"
                   )}>
                     {isUploading ? "Sending..." : remoteTyping ? "Typing..." : "Online"}
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-4 text-gray-400">
-                <LinkIcon className="size-5 cursor-pointer hover:text-orange-600 transition-colors" />
-                <Search className="size-5 cursor-pointer hover:text-orange-600 transition-colors" />
+                <LinkIcon className="size-5 cursor-pointer hover:text-blue-600 transition-colors" />
+                <Search className="size-5 cursor-pointer hover:text-blue-600 transition-colors" />
               </div>
             </div>
 
@@ -729,7 +729,7 @@ export function MessagesView() {
             >
               {selectionStatus === 'PENDING_SENT' ? (
                 <div className="flex flex-col items-center justify-center h-full text-center p-8 space-y-4">
-                    <div className="size-16 bg-orange-50 rounded-full flex items-center justify-center text-orange-500">
+                    <div className="size-16 bg-blue-50 rounded-full flex items-center justify-center text-yellow-500">
                         <Clock className="size-8" />
                     </div>
                     <div>
@@ -765,7 +765,7 @@ export function MessagesView() {
                       <div className={cn(
                         "p-3.5 rounded-2xl text-sm shadow-sm leading-relaxed",
                         msg.senderId === user?.id 
-                          ? "bg-orange-600 text-white rounded-tr-none" 
+                          ? "bg-blue-600 text-white rounded-tr-none" 
                           : "bg-gray-100 text-gray-900 rounded-tl-none"
                       )}>
                         {msg.message}
@@ -803,11 +803,11 @@ export function MessagesView() {
                     </p>
                 </div>
               ) : isRecording ? (
-                <div className="flex items-center gap-4 bg-orange-50 p-2 rounded-2xl border border-orange-100 animate-in slide-in-from-bottom-2 duration-300">
+                <div className="flex items-center gap-4 bg-blue-50 p-2 rounded-2xl border border-blue-100 animate-in slide-in-from-bottom-2 duration-300">
                     <div className="flex items-center gap-2 px-4 flex-1">
                         <div className="size-2 bg-red-600 rounded-full animate-pulse" />
                         <span className="text-sm font-bold text-gray-900 font-urbanist">{formatTime(recordingTime)}</span>
-                        <span className="text-xs text-orange-600 italic ml-2">Recording voice note...</span>
+                        <span className="text-xs text-blue-600 italic ml-2">Recording voice note...</span>
                     </div>
                     <div className="flex gap-2 pr-2">
                         <button 
@@ -818,7 +818,7 @@ export function MessagesView() {
                         </button>
                         <button 
                             onClick={stopRecording}
-                            className="bg-orange-600 text-white p-2.5 rounded-xl hover:bg-orange-700 transition-all shadow-md shadow-orange-100"
+                            className="bg-blue-600 text-white p-2.5 rounded-xl hover:bg-blue-700 transition-all shadow-md shadow-blue-100"
                         >
                             <Check className="size-5" />
                         </button>
@@ -827,14 +827,14 @@ export function MessagesView() {
               ) : (
                 <form 
                   onSubmit={handleSendMessage}
-                  className="flex items-center gap-2 bg-gray-50 border border-gray-100 p-2 rounded-2xl transition-all focus-within:bg-white focus-within:ring-2 focus-within:ring-orange-100 focus-within:border-orange-200"
+                  className="flex items-center gap-2 bg-gray-50 border border-gray-100 p-2 rounded-2xl transition-all focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-100 focus-within:border-blue-200"
                 >
                   <div className="flex items-center gap-1 px-1 shrink-0">
                     <button 
                         type="button" 
                         onClick={handleImageClick}
                         disabled={isUploading}
-                        className="p-2 text-gray-400 hover:text-orange-600 transition-colors disabled:opacity-50"
+                        className="p-2 text-gray-400 hover:text-blue-600 transition-colors disabled:opacity-50"
                     >
                         {isUploading ? <Loader2 className="size-5 animate-spin" /> : <ImageIcon className="size-5" />}
                     </button>
@@ -842,7 +842,7 @@ export function MessagesView() {
                         type="button" 
                         onClick={startRecording}
                         disabled={isUploading}
-                        className="p-2 text-gray-400 hover:text-orange-600 transition-colors disabled:opacity-50"
+                        className="p-2 text-gray-400 hover:text-blue-600 transition-colors disabled:opacity-50"
                     >
                         <Mic className="size-5" />
                     </button>
@@ -860,7 +860,7 @@ export function MessagesView() {
                   <button 
                     type="submit"
                     disabled={!newMessage.trim() || isUploading}
-                    className="bg-orange-600 text-white p-2.5 rounded-xl hover:bg-orange-700 disabled:opacity-50 disabled:bg-gray-400 transition-all shadow-md shadow-orange-100 shrink-0"
+                    className="bg-blue-600 text-white p-2.5 rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:bg-gray-400 transition-all shadow-md shadow-blue-100 shrink-0"
                   >
                     <Send className="size-5" />
                   </button>
@@ -870,7 +870,7 @@ export function MessagesView() {
           </>
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center bg-white text-center p-10 animate-in fade-in zoom-in duration-500">
-            <div className="size-24 bg-orange-50 rounded-3xl flex items-center justify-center text-orange-600 mb-8 shadow-xl shadow-orange-50/50 group rotate-3">
+            <div className="size-24 bg-blue-50 rounded-3xl flex items-center justify-center text-blue-600 mb-8 shadow-xl shadow-blue-50/50 group rotate-3">
               <Send className="size-10 group-hover:scale-110 group-hover:-rotate-12 transition-all duration-300" />
             </div>
             <h2 className="text-4xl font-bold font-urbanist text-gray-900 mb-3 tracking-tight">Your Messages</h2>

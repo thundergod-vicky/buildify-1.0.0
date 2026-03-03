@@ -22,7 +22,7 @@ export default function HeroSection() {
                     <span>Students learning with us</span>
                     <div className="h-5 w-px mx-1 bg-white rounded-full" />
                     <div className="flex items-center gap-1 pr-3">
-                        <StarIcon className="size-4.5 fill-orange-500 stroke-orange-500" />
+                        <StarIcon className="size-4.5 fill-blue-500 stroke-yellow-500" />
                         <span>4.9</span>
                     </div>
                 </AnimatedContent>
@@ -40,7 +40,7 @@ export default function HeroSection() {
                     </p>
                 </AnimatedContent>
                 <AnimatedContent className="flex flex-col md:flex-row items-center gap-4 mt-6 w-full md:w-auto">
-                    <Link href="/auth" className="py-3 md:py-2.5 w-full md:w-auto px-8 border border-orange-200 bg-linear-to-tl from-orange-600 to-orange-500 text-white text-center rounded-full">
+                    <Link href="/auth" className="py-3 md:py-2.5 w-full md:w-auto px-8 border border-blue-200 bg-linear-to-tl from-blue-600 to-blue-500 text-white text-center rounded-full">
                         Get Started
                     </Link>
                     <Link href="/" className="relative py-3 md:py-2.5 w-full md:w-auto px-8 bg-white/50 text-gray-600 font-medium text-center border border-white rounded-full">

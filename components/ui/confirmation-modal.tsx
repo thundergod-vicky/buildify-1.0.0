@@ -49,7 +49,7 @@ export function ConfirmationModal({
                     <div className="flex items-center gap-4 mb-4">
                         <div className={`size-12 rounded-full flex items-center justify-center shrink-0 ${
                             variant === 'danger' ? 'bg-red-100 text-red-600' : 
-                            variant === 'warning' ? 'bg-orange-100 text-orange-600' : 'bg-blue-100 text-blue-600'
+                            variant === 'warning' ? 'bg-blue-100 text-blue-600' : 'bg-blue-100 text-blue-600'
                         }`}>
                             <AlertTriangleIcon className="size-6" />
                         </div>
@@ -74,7 +74,7 @@ export function ConfirmationModal({
                             onClick={onConfirm}
                             className={`px-5 py-2.5 rounded-xl text-white font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all ${
                                 variant === 'danger' ? 'bg-red-600 hover:bg-red-700 shadow-red-200' : 
-                                variant === 'warning' ? 'bg-orange-600 hover:bg-orange-700 shadow-orange-200' : 'bg-blue-600 hover:bg-blue-700 shadow-blue-200'
+                                variant === 'warning' ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-200' : 'bg-blue-600 hover:bg-blue-700 shadow-blue-200'
                             }`}
                         >
                             {confirmText}

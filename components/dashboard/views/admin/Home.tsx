@@ -68,7 +68,7 @@ export function AdminHome() {
                         trend="Platform Earnings" 
                         trendType="positive"
                         icon={DollarSignIcon}
-                        colorClass="bg-emerald-50 text-emerald-600"
+                        colorClass="bg-gray-100 text-gray-600"
                         loading={loading}
                     />
                 </AnimatedContent>
@@ -79,7 +79,7 @@ export function AdminHome() {
                         trend="Across all teachers" 
                         trendType={undefined}
                         icon={BookOpenIcon}
-                        colorClass="bg-purple-50 text-purple-600"
+                        colorClass="bg-sky-50 text-sky-600"
                         loading={loading}
                     />
                 </AnimatedContent>
@@ -90,7 +90,7 @@ export function AdminHome() {
                         trend={stats?.systemStatus || "Stable"} 
                         trendType="positive"
                         icon={ActivityIcon}
-                        colorClass="bg-orange-50 text-orange-600"
+                        colorClass="bg-yellow-50 text-yellow-600"
                         loading={loading}
                     />
                 </AnimatedContent>
@@ -152,7 +152,7 @@ export function AdminHome() {
                                     </div>
                                     <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                                         <div 
-                                            className="h-full bg-purple-500 transition-all duration-1000" 
+                                            className="h-full bg-gray-500 transition-all duration-1000" 
                                             style={{ width: `${stats ? (stats.users.teachers / stats.users.total) * 100 : 0}%` }}
                                         ></div>
                                     </div>
