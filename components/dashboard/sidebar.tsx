@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   HomeIcon,
@@ -89,13 +90,17 @@ export default function Sidebar() {
 
   return (
     <aside className="hidden lg:flex w-64 bg-white border-r border-gray-100 flex-col h-screen sticky top-0">
-      <div className="p-6 flex items-center gap-3">
-        <div className="size-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-200">
-          <GraduationCapIcon className="size-6" />
-        </div>
-        <span className="text-xl font-bold font-urbanist text-gray-900 tracking-tight">
-          Adhyayan
-        </span>
+      <div className="flex justify-center items-center overflow-hidden h-24">
+        <Link href="/dashboard" className="block">
+          <Image 
+            src="/assets/images/brandlogo.png" 
+            alt="Adhyayan Logo" 
+            width={450} 
+            height={150} 
+            className="w-full px-4 h-44 object-cover -my-8"
+            priority
+          />
+        </Link>
       </div>
 
        <nav className="flex-1 px-4 py-4 space-y-1">
