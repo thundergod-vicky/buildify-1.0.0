@@ -53,7 +53,7 @@ export function CourseDetail({ course, onBack }: CourseDetailProps) {
     };
 
     return (
-        <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
+        <div className="p-8 max-w-7xl mx-auto space-y-6 animate-in slide-in-from-right-4 duration-300">
             {/* Header */}
             <div className="flex items-center gap-4">
                 <button 

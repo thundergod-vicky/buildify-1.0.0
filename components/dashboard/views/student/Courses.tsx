@@ -88,7 +88,7 @@ export const StudentCourses = () => {
   const isEnrolled = (courseId: string) => myEnrollments.some(e => e.courseId === courseId);
 
   return (
-    <div className="p-6">
+    <div className="p-8 max-w-7xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Courses</h1>
       </div>
