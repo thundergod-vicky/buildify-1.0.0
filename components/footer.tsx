@@ -39,7 +39,7 @@ export default function Footer() {
     ];
 
     return (
-        <footer className="bg-white pt-24 pb-12 border-t border-gray-100 px-6">
+        <footer className="bg-white pt-24 pb-12 border-t border-gray-100 px-6 relative z-[100]">
             <div className="max-w-7xl mx-auto">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
                     {/* Brand Section */}

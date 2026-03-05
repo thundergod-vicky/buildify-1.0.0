@@ -56,6 +56,8 @@ export const metadata: Metadata = {
             "Live classes, 1000s of tests, recordings and proctored exams. Learn with IIT teachers and track progress.",
     },
 };
+import PageLoader from "@/components/page-loader";
+
 export default function RootLayout({
     children,
 }: Readonly<{
@@ -64,6 +66,7 @@ export default function RootLayout({
     return (
         <html lang="en">
             <body className={`${inter.variable} ${urbanist.variable}`}>
+                <PageLoader />
                 <ToastContainer
                     position="top-center"
                     autoClose={5000}

@@ -44,20 +44,24 @@ export default function Navbar() {
             scrolled ? "bg-white/90 backdrop-blur-md shadow-md border-b border-gray-100" : "bg-transparent"
         }`}>
             <AnimatedContent reverse>
-                <div className="px-4 md:px-8 lg:px-16 xl:px-24 py-4">
-                    <div className="max-w-7xl mx-auto flex items-center justify-between">
-                        <Link href="/" className="flex-shrink-0">
-                            <Image 
-                                src="/assets/images/brandlogo.png" 
-                                alt="Adhyayan Logo" 
-                                width={180} 
-                                height={50} 
-                                className={`h-12 w-auto transition-all duration-300 ${useWhiteText ? 'brightness-0 invert' : ''}`} 
-                            />
-                        </Link>
+                <div className="px-6 md:px-12 lg:px-16 py-4 md:py-6 h-20 md:h-24 flex items-center">
+                    <div className="max-w-7xl mx-auto flex items-center justify-between w-full relative">
+                        {/* Logo Container */}
+                        <div className="flex-shrink-0 relative z-20">
+                            <Link href="/">
+                                <Image 
+                                    src="/assets/images/brandlogo.png" 
+                                    alt="Adhyayan Logo" 
+                                    width={450} 
+                                    height={120} 
+                                    className={`h-16 md:h-24 lg:h-32 w-auto transition-all duration-300 drop-shadow-sm ${useWhiteText ? 'brightness-0 invert' : ''}`} 
+                                    priority
+                                />
+                            </Link>
+                        </div>
 
-                        {/* Desktop Menu */}
-                        <div className="hidden lg:flex items-center gap-1 xl:gap-2">
+                        {/* Desktop Menu - Mobile Hidden, Centered Absolutely */}
+                        <div className="hidden lg:flex items-center gap-1 xl:gap-2 absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 z-10 w-fit">
                             {links.map((link: ILink) => (
                                 <div 
                                     key={link.name} 
@@ -134,7 +138,7 @@ export default function Navbar() {
                 {/* Content */}
                 <div className={`absolute top-0 right-0 h-full w-[85%] max-w-sm bg-white shadow-2xl transition-transform duration-500 ease-out ${isMenuOpen ? "translate-x-0" : "translate-x-full"}`}>
                     <div className="flex items-center justify-between p-6 border-b border-gray-100">
-                        <Image src="/assets/images/brandlogo.png" alt="Adhyayan Logo" width={150} height={40} className="h-10 w-auto" />
+                        <Image src="/assets/images/brandlogo.png" alt="Adhyayan Logo" width={220} height={60} className="h-14 w-auto" />
                         <button onClick={() => setIsMenuOpen(false)} className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
                             <XIcon className="w-6 h-6 text-slate-500" />
                         </button>
