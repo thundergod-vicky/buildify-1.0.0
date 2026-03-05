@@ -3,7 +3,7 @@
 import AnimatedContent from "@/components/animated-content";
 import Image from "next/image";
 import { useState, useRef } from "react";
-import { ChevronLeftIcon, ChevronRightIcon, DownloadIcon, HelpCircleIcon } from "lucide-react";
+import { ChevronLeftIcon, ChevronRightIcon, DownloadIcon, HelpCircleIcon, Video } from "lucide-react";
 
 export default function ResultPage() {
     const [activeTab, setActiveTab] = useState<'neet' | 'jee' | 'foundation'>('neet');
@@ -50,7 +50,7 @@ export default function ResultPage() {
                         {['neet', 'jee', 'foundation'].map((tab) => (
                             <button
                                 key={tab}
-                                onClick={() => setActiveTab(tab as any)}
+                                onClick={() => setActiveTab(tab as 'neet' | 'jee' | 'foundation')}
                                 className={`px-8 py-3 rounded-full font-bold text-sm transition-all duration-300 shadow-sm border ${
                                     activeTab === tab
                                         ? 'bg-gradient-to-r from-blue-700 to-blue-500 text-white border-transparent shadow-blue-500/30'
@@ -219,7 +219,7 @@ export default function ResultPage() {
                         {['neet', 'jee', 'foundation'].map((tab) => (
                             <button
                                 key={tab}
-                                onClick={() => setActiveVideoTab(tab as any)}
+                                onClick={() => setActiveVideoTab(tab as 'neet' | 'jee' | 'foundation')}
                                 className={`px-8 py-3 rounded-2xl font-bold text-sm transition-all duration-300 border ${
                                     activeVideoTab === tab
                                         ? 'bg-blue-700 text-white shadow-lg shadow-blue-500/30 border-blue-700'
@@ -268,7 +268,7 @@ export default function ResultPage() {
                             <div className="py-24 text-center w-full">
                                 <div className="inline-block p-6 bg-slate-50 rounded-3xl border border-slate-100">
                                     <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
-                                        <VideoIcon className="w-8 h-8" />
+                                        <Video className="w-8 h-8" />
                                     </div>
                                     <p className="text-slate-500 font-medium text-lg">
                                         {activeVideoTab === 'jee' ? 'JEE Testimonials coming soon...' : 'Foundation Videos coming soon...'}
