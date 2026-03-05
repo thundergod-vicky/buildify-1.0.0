@@ -3,6 +3,7 @@ import { LucideIcon } from "lucide-react";
 export interface ILink {
     name: string;
     href: string;
+    subLinks?: { name: string; href: string }[];
 };
 
 export interface ICustomIcon {
@@ -34,6 +35,8 @@ export interface ITeamMember {
     name: string;
     image: string;
     role: string;
+    qualification?: string;
+    subject?: string;
 };
 
 export interface IPricingPlan {
@@ -323,7 +326,7 @@ export interface PracticeTestResult {
     timeTaken?: number;
     rating?: number;
     status: 'COMPLETED' | 'CHEATED';
-    answers?: Record<string, any>;
+    answers?: Record<string, unknown>;
     test?: PracticeTest;
     createdAt: string;
 }
