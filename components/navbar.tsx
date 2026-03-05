@@ -48,11 +48,11 @@ export default function Navbar() {
                     <div className="max-w-7xl mx-auto flex items-center justify-between">
                         <Link href="/" className="flex-shrink-0">
                             <Image 
-                                src="/assets/logo.svg" 
+                                src="/assets/images/brandlogo.png" 
                                 alt="Adhyayan Logo" 
-                                width={140} 
-                                height={40} 
-                                className={`h-10 w-auto transition-all duration-300 ${useWhiteText ? 'brightness-0 invert' : ''}`} 
+                                width={180} 
+                                height={50} 
+                                className={`h-12 w-auto transition-all duration-300 ${useWhiteText ? 'brightness-0 invert' : ''}`} 
                             />
                         </Link>
 
@@ -134,7 +134,7 @@ export default function Navbar() {
                 {/* Content */}
                 <div className={`absolute top-0 right-0 h-full w-[85%] max-w-sm bg-white shadow-2xl transition-transform duration-500 ease-out ${isMenuOpen ? "translate-x-0" : "translate-x-full"}`}>
                     <div className="flex items-center justify-between p-6 border-b border-gray-100">
-                        <Image src="/assets/logo.svg" alt="Adhyayan Logo" width={130} height={35} />
+                        <Image src="/assets/images/brandlogo.png" alt="Adhyayan Logo" width={150} height={40} className="h-10 w-auto" />
                         <button onClick={() => setIsMenuOpen(false)} className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
                             <XIcon className="w-6 h-6 text-slate-500" />
                         </button>

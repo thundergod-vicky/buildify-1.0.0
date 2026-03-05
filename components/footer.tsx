@@ -46,10 +46,11 @@ export default function Footer() {
                     <div className="space-y-6">
                         <Link href="/">
                             <Image
-                                src="/assets/logo.svg"
+                                src="/assets/images/brandlogo.png"
                                 alt="Adhyayan Logo"
-                                width={160}
-                                height={45}
+                                width={200}
+                                height={60}
+                                className="h-14 w-auto"
                             />
                         </Link>
                         <p className="text-gray-500 text-lg leading-relaxed">

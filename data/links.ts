@@ -24,15 +24,15 @@ export const links: ILink[] = [
         name: "Learning",
         href: "/learning-experience",
     },
-    {
-        name: "Admission",
-        href: "/admission-counselling",
-        subLinks: [
-            { name: "Apply Online", href: "/admission-form" },
-            { name: "Fee Deposition Modes", href: "/fee-deposition-modes" },
-            { name: "Refund Rules", href: "/refund-rules" },
-        ]
-    },
+    // {
+    //     name: "Admission",
+    //     href: "/admission-counselling",
+    //     subLinks: [
+    //         { name: "Apply Online", href: "/admission-form" },
+    //         { name: "Fee Deposition Modes", href: "/fee-deposition-modes" },
+    //         { name: "Refund Rules", href: "/refund-rules" },
+    //     ]
+    // },
     {
         name: "Adhyayan SAT",
         href: "/adsat",
