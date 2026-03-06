@@ -45,7 +45,14 @@ export function ParentHome() {
     <div className="p-8 space-y-8 max-w-5xl mx-auto">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold font-urbanist text-gray-900">Parent Dashboard</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-bold font-urbanist text-gray-900">Parent Dashboard</h1>
+            {user?.enrollmentId && (
+              <span className="bg-blue-100 text-blue-700 border border-blue-200 px-3 py-1 rounded-full text-xs font-bold tracking-wider">
+                ID: {user.enrollmentId}
+              </span>
+            )}
+          </div>
           <p className="text-gray-500">Manage and monitor your children&apos;s progress.</p>
         </div>
         {!showLinkForm && (
@@ -90,7 +97,12 @@ export function ParentHome() {
             <Card key={student.id} className="hover:shadow-md transition-shadow">
               <CardHeader className="pb-2">
                 <CardTitle className="text-xl">{student.name}</CardTitle>
-                <CardDescription>{student.email}</CardDescription>
+                <div className="flex flex-col gap-1 mt-1">
+                  <CardDescription className="flex items-center gap-1.5 font-mono text-[10px] uppercase font-bold text-blue-600 bg-blue-50 w-fit px-2 py-0.5 rounded">
+                    ID: {student.enrollmentId || 'N/A'}
+                  </CardDescription>
+                  <CardDescription>{student.email}</CardDescription>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="flex justify-between items-end">

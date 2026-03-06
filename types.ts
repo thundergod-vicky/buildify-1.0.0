@@ -118,6 +118,7 @@ export interface User {
     name: string;
     phone?: string;
     role: Role;
+    enrollmentId?: string;
     grade?: string;
     medal?: string;
     createdAt: Date;

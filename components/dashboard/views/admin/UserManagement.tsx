@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { SearchIcon, UserCogIcon, ShieldCheckIcon, Trash2Icon, MailIcon, CalendarIcon, UsersIcon } from "lucide-react";
+import { SearchIcon, UserCogIcon, ShieldCheckIcon, Trash2Icon, MailIcon, CalendarIcon, UsersIcon, SaveIcon, XIcon } from "lucide-react";
 import { showToast } from "@/lib/toast";
 import { ConfirmationModal } from "@/components/ui/confirmation-modal";
+import { User } from "@/types";
 import { api } from "@/lib/api";
 import { auth } from "@/lib/auth";
 
@@ -19,6 +20,8 @@ export function AdminUserManagement() {
     userId: string;
     newRole: string;
   }>({ isOpen: false, userId: "", newRole: "" });
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editIdValue, setEditIdValue] = useState("");
 
   useEffect(() => {
     fetchUsers();
@@ -29,7 +32,7 @@ export function AdminUserManagement() {
       const token = auth.getToken();
       if (!token) return;
       
-      const data = await api.get<any[]>('/admin/users', token);
+      const data = await api.get<User[]>('/admin/users', token);
       setUsers(data);
     } catch (error) {
       console.error("Failed to fetch users:", error);
@@ -56,10 +59,29 @@ export function AdminUserManagement() {
     }
   };
 
+  const updateEnrollmentId = async (userId: string) => {
+    setUpdatingId(userId);
+    try {
+      const token = auth.getToken();
+      if (!token) return;
+
+      await api.patch(`/admin/users/${userId}`, { enrollmentId: editIdValue }, token);
+      showToast.success("Enrollment ID updated");
+      setEditingId(null);
+      fetchUsers();
+    } catch (error) {
+      console.error("ID Update failed:", error);
+      showToast.error("Failed to update ID");
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
   const filteredUsers = users.filter(
     (u) =>
       u.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      u.email?.toLowerCase().includes(searchQuery.toLowerCase())
+      u.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      u.enrollmentId?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -93,21 +115,22 @@ export function AdminUserManagement() {
             <thead>
               <tr className="bg-gray-50/50 border-b border-gray-100">
                 <th className="px-6 py-4 text-sm font-bold text-gray-900 uppercase tracking-wider">User Information</th>
+                <th className="px-6 py-4 text-sm font-bold text-gray-900 uppercase tracking-wider">Enrollment ID</th>
                 <th className="px-6 py-4 text-sm font-bold text-gray-900 uppercase tracking-wider">Platform Role</th>
                 <th className="px-6 py-4 text-sm font-bold text-gray-900 uppercase tracking-wider">Activity Stats</th>
-                <th className="px-6 py-4 text-sm font-bold text-gray-900 uppercase tracking-wider text-right">Administrative Actions</th>
+                <th className="px-6 py-4 text-sm font-bold text-gray-900 uppercase tracking-wider text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {isLoading ? (
                 [1, 2, 3, 4, 5].map((i) => (
                   <tr key={i} className="animate-pulse">
-                    <td colSpan={4} className="px-6 py-8"><div className="h-10 bg-gray-50 rounded-xl w-full"></div></td>
+                    <td colSpan={5} className="px-6 py-8"><div className="h-10 bg-gray-50 rounded-xl w-full"></div></td>
                   </tr>
                 ))
               ) : filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-32 text-center">
+                  <td colSpan={5} className="px-6 py-32 text-center">
                     <div className="flex flex-col items-center gap-2">
                         <div className="size-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-300">
                             <UsersIcon className="size-8" />
@@ -139,6 +162,47 @@ export function AdminUserManagement() {
                                 <span className="flex items-center gap-1"><CalendarIcon className="size-3" /> Joined {new Date(user.createdAt).toLocaleDateString()}</span>
                             </div>
                         </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-5">
+                      <div className="flex items-center gap-2">
+                        {editingId === user.id ? (
+                          <div className="flex items-center gap-1">
+                            <input 
+                              type="text"
+                              value={editIdValue}
+                              onChange={(e) => setEditIdValue(e.target.value.replace(/\s+/g, ""))}
+                              className="w-32 px-2 py-1 text-xs font-mono border rounded outline-none focus:ring-1 focus:ring-indigo-500"
+                              autoFocus
+                            />
+                            <button 
+                              onClick={() => updateEnrollmentId(user.id)}
+                              disabled={updatingId === user.id}
+                              className="p-1 text-green-600 hover:bg-green-50 rounded disabled:opacity-50"
+                            >
+                              <SaveIcon className="size-3.5" />
+                            </button>
+                            <button 
+                              onClick={() => setEditingId(null)}
+                              className="p-1 text-gray-400 hover:bg-gray-50 rounded"
+                            >
+                              <XIcon className="size-3.5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <div 
+                            className="flex items-center gap-1.5 cursor-pointer group/id"
+                            onClick={() => {
+                              setEditingId(user.id);
+                              setEditIdValue(user.enrollmentId || "");
+                            }}
+                          >
+                            <span className="text-xs font-mono font-bold text-gray-600 bg-gray-100 px-2 py-1 rounded">
+                              {user.enrollmentId || "NO ID"}
+                            </span>
+                            <UserCogIcon className="size-3 text-gray-400 opacity-0 group-hover/id:opacity-100 transition-opacity" />
+                          </div>
+                        )}
                       </div>
                     </td>
                     <td className="px-6 py-5">

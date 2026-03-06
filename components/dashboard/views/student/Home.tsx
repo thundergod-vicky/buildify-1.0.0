@@ -15,11 +15,13 @@ import AnimatedContent from "@/components/animated-content";
 import { api } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import enrollmentsApi, { Enrollment } from "@/lib/enrollments";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function StudentHome() {
     const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
     const [testResults, setTestResults] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const { user } = useAuth();
 
     useEffect(() => {
         const fetchDashboardData = async () => {
@@ -58,7 +60,14 @@ export function StudentHome() {
             <AnimatedContent distance={20}>
                 <div className="bg-gradient-to-r from-blue-600 to-sky-400 rounded-3xl p-8 text-white relative overflow-hidden">
                     <div className="relative z-10 max-w-2xl">
-                        <h1 className="text-3xl font-bold font-urbanist">Welcome back, Student! 👋</h1>
+                        <div className="flex items-center gap-3 mb-2">
+                            <h1 className="text-3xl font-bold font-urbanist">Welcome back, {user?.name || 'Student'}! 👋</h1>
+                            {user?.enrollmentId && (
+                                <span className="bg-white/20 backdrop-blur-sm border border-white/20 px-3 py-1 rounded-full text-xs font-bold tracking-wider">
+                                    ID: {user.enrollmentId}
+                                </span>
+                            )}
+                        </div>
                         <p className="mt-2 text-blue-50/80 text-lg">
                             Welcome to the dashboard! Here you can track your progress and manage your courses.
                         </p>

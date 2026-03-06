@@ -124,6 +124,11 @@ export default function PublicProfilePage() {
                 <StarIcon className="size-4 fill-current" />
                 Verified Adhyayan Student
               </div>
+              {profile.enrollmentId && (
+                <div className="mt-2 text-gray-500 font-black text-xs tracking-[0.2em] uppercase bg-gray-100/50 px-4 py-1 rounded-lg">
+                  ID: {profile.enrollmentId}
+                </div>
+              )}
             </div>
           </AnimatedContent>
         </div>

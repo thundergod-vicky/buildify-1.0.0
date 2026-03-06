@@ -10,8 +10,10 @@ import AnimatedContent from "@/components/animated-content";
 
 import { api } from "@/lib/api";
 import { auth } from "@/lib/auth";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function TeacherHome() {
+    const { user } = useAuth();
     const [stats, setStats] = useState({
         students: 0,
         courses: 0,
@@ -61,7 +63,14 @@ export function TeacherHome() {
             <AnimatedContent distance={20}>
                 <div className="bg-gradient-to-r from-blue-600 to-blue-400 rounded-3xl p-8 text-white relative overflow-hidden">
                     <div className="relative z-10">
-                        <h1 className="text-3xl font-bold font-urbanist">Welcome back, Teacher! 👨‍🏫</h1>
+                        <div className="flex items-center gap-3 mb-2">
+                            <h1 className="text-3xl font-bold font-urbanist">Welcome back, {user?.name || 'Teacher'}! 👨‍🏫</h1>
+                            {user?.enrollmentId && (
+                                <span className="bg-white/20 backdrop-blur-sm border border-white/20 px-3 py-1 rounded-full text-xs font-bold tracking-wider">
+                                    ID: {user.enrollmentId}
+                                </span>
+                            )}
+                        </div>
                         <p className="mt-2 text-blue-50/80 text-lg">
                             {loading ? "Checking your schedule..." : `You have ${stats.classes} live sessions available.`}
                         </p>

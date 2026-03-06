@@ -11,6 +11,7 @@ import {
   LockIcon,
   CameraIcon,
   Trash2Icon,
+  FingerprintIcon,
 } from "lucide-react";
 
 import { resolveImageUrl } from "@/lib/utils";
@@ -28,6 +29,7 @@ export function SettingsForm() {
     name: user?.name || "",
     email: user?.email || "",
     phone: user?.phone || "",
+    enrollmentId: user?.enrollmentId || "",
     password: "",
     confirmPassword: "",
   });
@@ -39,6 +41,7 @@ export function SettingsForm() {
         name: user.name || "",
         email: user.email || "",
         phone: user.phone || "",
+        enrollmentId: user.enrollmentId || "",
       }));
     }
   }, [user]);
@@ -65,6 +68,7 @@ export function SettingsForm() {
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
+        enrollmentId: formData.enrollmentId,
       };
 
       if (formData.password) {
@@ -284,6 +288,31 @@ export function SettingsForm() {
                 placeholder="+1 234 567 890"
               />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Enrollment ID {user?.role !== 'ADMIN' && <span className="text-xs font-normal text-gray-400 ml-2">(Read-only)</span>}
+            </label>
+            <div className="relative">
+              <FingerprintIcon className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-gray-400" />
+              <input
+                type="text"
+                name="enrollmentId"
+                value={formData.enrollmentId}
+                onChange={handleChange}
+                readOnly={user?.role !== 'ADMIN'}
+                className={`w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-mono tracking-tight ${
+                  user?.role !== 'ADMIN' ? 'bg-gray-50 text-gray-500 cursor-not-allowed font-semibold' : ''
+                }`}
+                placeholder="ENRL-0000/00"
+              />
+            </div>
+            {user?.role === 'ADMIN' && (
+              <p className="mt-1 text-xs text-gray-500">
+                Only Admins can modify the Enrollment ID. Spaces are not allowed.
+              </p>
+            )}
           </div>
         </div>
 
