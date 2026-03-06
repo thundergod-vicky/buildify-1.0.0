@@ -82,13 +82,22 @@ export function TeacherTests() {
           <h1 className="text-3xl font-bold text-gray-900 font-urbanist">Practice Tests</h1>
           <p className="text-gray-500 mt-1">Manage and create tests for your students</p>
         </div>
-        <button
-          onClick={() => setIsCreating(true)}
-          className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 font-semibold w-fit"
-        >
-          <PlusIcon className="size-5" />
-          Create New Test
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => window.history.pushState(null, '', '?view=omr')}
+            className="flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-6 py-3 rounded-xl hover:bg-gray-50 transition-all font-semibold w-fit"
+          >
+            <PlusIcon className="size-5 text-blue-600 rotate-45" />
+            OMR Scanner
+          </button>
+          <button
+            onClick={() => setIsCreating(true)}
+            className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 font-semibold w-fit"
+          >
+            <PlusIcon className="size-5" />
+            Create New Test
+          </button>
+        </div>
       </div>
 
       {/* Stats/Filters Row */}

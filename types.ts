@@ -330,3 +330,26 @@ export interface PracticeTestResult {
     test?: PracticeTest;
     createdAt: string;
 }
+
+export interface OmrTemplate {
+    id: string;
+    name: string;
+    description?: string;
+    motherOmrUrl: string;
+    answers: any;
+    teacherId: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface OmrResult {
+    id: string;
+    studentName?: string;
+    studentId?: string;
+    templateId: string;
+    omrImageUrl: string;
+    score: number;
+    total: number;
+    answers: any;
+    createdAt: string;
+}

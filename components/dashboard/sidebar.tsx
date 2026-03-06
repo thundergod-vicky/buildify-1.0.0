@@ -18,6 +18,7 @@ import {
   UserPlusIcon,
   MessageSquareIcon,
   LayersIcon,
+  CameraIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Role } from "@/types";
@@ -48,6 +49,7 @@ export default function Sidebar() {
     { name: "Batch Management", icon: LayersIcon, view: "manage-batches" },
     { name: "My Batches", icon: LayersIcon, view: "batches" },
     { name: "Settings", icon: SettingsIcon, view: "settings" },
+    { name: "OMR Scanner", icon: CameraIcon, view: "omr" },
   ];
 
   const filteredItems = menuItems.filter((item) => {
@@ -60,7 +62,7 @@ export default function Sidebar() {
     
     // Teacher
     if (userRole === Role.TEACHER) {
-        return ["Home", "My Courses", "Practice Tests", "Student Management", "Messages", "Settings", "My Batches"].includes(item.name);
+        return ["Home", "My Courses", "Practice Tests", "Student Management", "Messages", "Settings", "My Batches", "OMR Scanner"].includes(item.name);
     }
 
     // Admin

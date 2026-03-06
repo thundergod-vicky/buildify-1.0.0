@@ -20,6 +20,7 @@ import { TeacherTests } from "@/components/dashboard/views/teacher/PracticeTests
 import { TeacherStudentManagement } from "@/components/dashboard/views/teacher/StudentManagement";
 import { TeacherSettings } from "@/components/dashboard/views/teacher/Settings";
 import { TeacherBatches } from "@/components/dashboard/views/teacher/Batches";
+import { OmrDashboard } from "@/components/dashboard/views/teacher/omr/OmrDashboard";
 
 // Parent Views
 import { ParentHome } from "@/components/dashboard/views/parent/Home";
@@ -39,14 +40,28 @@ import { AdminBatchManagement } from "@/components/dashboard/views/admin/BatchMa
 import { NotificationsView } from "@/components/dashboard/views/shared/Notifications";
 import { MessagesView } from "@/components/dashboard/views/shared/Messages";
 
+import { Suspense } from "react";
+
 export default function DashboardPage() {
+    return (
+        <Suspense fallback={<div className="p-8">Loading Dashboard...</div>}>
+            <DashboardContent />
+        </Suspense>
+    );
+}
+
+function DashboardContent() {
     const { user, isLoading } = useAuth();
     const searchParams = useSearchParams();
     const currentView = searchParams.get("view");
 
-    if (isLoading) return null;
-    if (!user) return null;
+    console.log("Current View:", currentView);
+    console.log("User Role:", user?.role);
 
+    if (isLoading) return <div className="p-8">Syncing user session...</div>;
+    if (!user) return <div className="p-8 text-red-500 font-bold underline cursor-pointer" onClick={() => window.location.href='/auth'}>Session expired. Please login again.</div>;
+
+    // Student
     if (user.role === Role.STUDENT) {
         switch (currentView) {
             case 'courses': return <StudentCourses />;
@@ -61,6 +76,7 @@ export default function DashboardPage() {
         }
     }
 
+    // Teacher
     if (user.role === Role.TEACHER) {
         switch (currentView) {
             case 'courses': return <TeacherCourses />;
@@ -70,6 +86,7 @@ export default function DashboardPage() {
             case 'notifications': return <NotificationsView />;
             case 'messages': return <MessagesView />;
             case 'batches': return <TeacherBatches />;
+            case 'omr': return <OmrDashboard />;
             default: return <TeacherHome />;
         }
     }

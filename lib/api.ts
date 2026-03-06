@@ -18,9 +18,13 @@ class ApiClient {
     const { token, ...fetchOptions } = options;
 
     const headers: any = {
-      'Content-Type': 'application/json',
       ...fetchOptions.headers,
     };
+
+    // Only set Content-Type if not FormData
+    if (!(fetchOptions.body instanceof FormData)) {
+      headers['Content-Type'] = 'application/json';
+    }
 
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
@@ -45,11 +49,12 @@ class ApiClient {
     return this.request<T>(endpoint, { method: 'GET', token });
   }
 
-  async post<T>(endpoint: string, data?: any, token?: string): Promise<T> {
+  async post<T>(endpoint: string, data?: any, token?: string, options: Partial<RequestOptions> = {}): Promise<T> {
     return this.request<T>(endpoint, {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: data instanceof FormData ? data : JSON.stringify(data),
       token,
+      ...options,
     });
   }
 
