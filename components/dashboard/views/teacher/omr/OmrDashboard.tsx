@@ -60,6 +60,17 @@ export function OmrDashboard() {
     }
   }, [view, fetchTemplates]);
 
+  // Body scroll lock for preview modal
+  useEffect(() => {
+    if (previewTemplate) {
+      const originalStyle = window.getComputedStyle(document.body).overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = originalStyle;
+      };
+    }
+  }, [previewTemplate]);
+
   if (renderError) {
     return (
       <div className="p-8 text-center text-red-500 bg-red-50 rounded-xl border border-red-100">
@@ -243,41 +254,43 @@ export function OmrDashboard() {
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* Image Column */}
-              <div className="space-y-4 min-h-0">
-                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Mother OMR Image</h3>
-                <div className="rounded-2xl border border-gray-100 overflow-hidden bg-gray-50 aspect-[3/4] relative">
-                  <img 
-                    src={getProxyUrl(previewTemplate.motherOmrUrl)} 
-                    alt="Mother OMR" 
-                    className="w-full h-full object-contain"
-                  />
+            <div className="flex-1 overflow-y-auto max-h-[calc(90vh-200px)] p-8 bg-gray-50/50">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Image Column */}
+                <div className="space-y-4">
+                  <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Mother OMR Image</h3>
+                  <div className="rounded-2xl border border-gray-100 overflow-hidden bg-gray-50 aspect-[3/4] relative">
+                    <img 
+                      src={getProxyUrl(previewTemplate.motherOmrUrl)} 
+                      alt="Mother OMR" 
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                  <a 
+                    href={getProxyUrl(previewTemplate.motherOmrUrl)} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-blue-600 font-semibold hover:underline text-sm"
+                  >
+                    <EyeIcon className="size-4" />
+                    View Original Image
+                  </a>
                 </div>
-                <a 
-                  href={getProxyUrl(previewTemplate.motherOmrUrl)} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-blue-600 font-semibold hover:underline text-sm"
-                >
-                  <EyeIcon className="size-4" />
-                  View Original Image
-                </a>
-              </div>
 
-              {/* Answers Column */}
-              <div className="space-y-4">
-                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Correct Answer Key</h3>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {Array.isArray(previewTemplate.answers) && previewTemplate.answers.map((ans: { number: number; answer: string }) => (
-                    <div 
-                      key={ans.number} 
-                      className="group p-3 bg-white rounded-xl border border-gray-100 hover:border-blue-200 hover:shadow-sm transition-all flex items-center justify-between"
-                    >
-                      <span className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">Q{ans.number}</span>
-                      <span className="text-xl font-black text-blue-600 font-urbanist">{ans.answer}</span>
-                    </div>
-                  ))}
+                {/* Answers Column */}
+                <div className="space-y-4">
+                  <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Correct Answer Key</h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {Array.isArray(previewTemplate.answers) && previewTemplate.answers.map((ans: { number: number; answer: string }) => (
+                      <div 
+                        key={ans.number} 
+                        className="group p-3 bg-white rounded-xl border border-gray-100 hover:border-blue-200 hover:shadow-sm transition-all flex items-center justify-between"
+                      >
+                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">Q{ans.number}</span>
+                        <span className="text-xl font-black text-blue-600 font-urbanist">{ans.answer}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>

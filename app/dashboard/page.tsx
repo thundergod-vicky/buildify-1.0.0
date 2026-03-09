@@ -29,16 +29,28 @@ import { ParentPerformance } from "@/components/dashboard/views/parent/Performan
 
 // Admin Views
 import { AdminHome } from "@/components/dashboard/views/admin/Home";
-import { AdminSettings } from "@/components/dashboard/views/admin/Settings";
 import { AdminUserManagement } from "@/components/dashboard/views/admin/UserManagement";
 import { AdminCourseManagement } from "@/components/dashboard/views/admin/CourseManagement";
 import { AdminPracticeTestManagement } from "@/components/dashboard/views/admin/PracticeTestManagement";
 import { AdminRequests } from "@/components/dashboard/views/admin/Requests";
 import { AdminBatchManagement } from "@/components/dashboard/views/admin/BatchManagement";
 
+// Academic Views
+import { AcademicHome } from "@/components/dashboard/views/academic/Home";
+import { ClassRoutine } from "@/components/dashboard/views/academic/Routine";
+import { ExamSchedules } from "@/components/dashboard/views/academic/Exams";
+import { DoubtAccess } from "@/components/dashboard/views/academic/Doubts";
+import { TeacherAccess } from "@/components/dashboard/views/academic/TeacherAccess";
+
+// Accounts Views
+import { AccountsHome } from "@/components/dashboard/views/accounts/Home";
+import { StudentDetails } from "@/components/dashboard/views/accounts/StudentDetails";
+import { BillingTemplate } from "@/components/dashboard/views/accounts/Billing";
+
 // Shared Views
 import { NotificationsView } from "@/components/dashboard/views/shared/Notifications";
 import { MessagesView } from "@/components/dashboard/views/shared/Messages";
+import { AdminSettings } from "@/components/dashboard/views/admin/Settings";
 
 import { Suspense } from "react";
 
@@ -113,6 +125,33 @@ function DashboardContent() {
             case 'messages': return <MessagesView />;
             case 'manage-batches': return <AdminBatchManagement />;
             default: return <AdminHome />;
+        }
+    }
+
+    if (user.role === Role.ACADEMIC_OPERATIONS) {
+        switch (currentView) {
+            case 'routine': return <ClassRoutine />;
+            case 'schedule': return <StudentSchedule />; // Reusing student schedule
+            case 'exams': return <ExamSchedules />;
+            case 'doubts': return <DoubtAccess />;
+            case 'teachers': return <TeacherAccess />;
+            case 'students': return <TeacherStudentManagement />; // Reusing teacher student management
+            case 'manage-batches': return <AdminBatchManagement />; // Reusing admin batch management
+            case 'settings': return <TeacherSettings />;
+            case 'messages': return <MessagesView />;
+            case 'omr': return <OmrDashboard />;
+            default: return <AcademicHome />;
+        }
+    }
+
+    if (user.role === Role.ACCOUNTS) {
+        switch (currentView) {
+            case 'revenue': return <AccountsHome />; 
+            case 'student-details': return <StudentDetails />;
+            case 'billing': return <BillingTemplate />;
+            case 'settings': return <AdminSettings />;
+            case 'messages': return <MessagesView />;
+            default: return <AccountsHome />;
         }
     }
 

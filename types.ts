@@ -63,7 +63,9 @@ export enum Role {
     STUDENT = 'STUDENT',
     TEACHER = 'TEACHER',
     ADMIN = 'ADMIN',
-    PARENT = 'PARENT'
+    PARENT = 'PARENT',
+    ACADEMIC_OPERATIONS = 'ACADEMIC_OPERATIONS',
+    ACCOUNTS = 'ACCOUNTS'
 }
 
 export enum LessonType {

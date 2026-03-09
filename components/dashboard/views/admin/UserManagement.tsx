@@ -4,14 +4,23 @@ import { useState, useEffect } from "react";
 import { SearchIcon, UserCogIcon, ShieldCheckIcon, Trash2Icon, MailIcon, CalendarIcon, UsersIcon, SaveIcon, XIcon } from "lucide-react";
 import { showToast } from "@/lib/toast";
 import { ConfirmationModal } from "@/components/ui/confirmation-modal";
-import { User } from "@/types";
+import { User, Role } from "@/types"; // Added Role import
 import { api } from "@/lib/api";
 import { auth } from "@/lib/auth";
 
-const ROLES = ["STUDENT", "TEACHER", "PARENT", "ADMIN"];
+// Define UserWithCounts interface based on the instruction and context
+interface UserWithCounts extends User {
+    _count?: {
+        enrollments: number;
+        teachingCourses: number;
+        coursesOwned: number;
+    };
+}
+
+const ROLES = ["STUDENT", "TEACHER", "PARENT", "ADMIN", "ACADEMIC_OPERATIONS", "ACCOUNTS"];
 
 export function AdminUserManagement() {
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<UserWithCounts[]>([]); // Changed any[] to UserWithCounts[]
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
@@ -148,6 +157,8 @@ export function AdminUserManagement() {
                             user.role === 'ADMIN' ? 'bg-indigo-100 text-indigo-700' :
                             user.role === 'TEACHER' ? 'bg-purple-100 text-purple-700' :
                             user.role === 'PARENT' ? 'bg-blue-100 text-blue-700' :
+                            user.role === 'ACADEMIC_OPERATIONS' ? 'bg-orange-100 text-orange-700' :
+                            user.role === 'ACCOUNTS' ? 'bg-emerald-100 text-emerald-700' :
                             'bg-blue-100 text-blue-700'
                         }`}>
                            {user.name?.[0]?.toUpperCase() || 'U'}
@@ -164,105 +175,103 @@ export function AdminUserManagement() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-5">
-                      <div className="flex items-center gap-2">
-                        {editingId === user.id ? (
-                          <div className="flex items-center gap-1">
-                            <input 
-                              type="text"
-                              value={editIdValue}
-                              onChange={(e) => setEditIdValue(e.target.value.replace(/\s+/g, ""))}
-                              className="w-32 px-2 py-1 text-xs font-mono border rounded outline-none focus:ring-1 focus:ring-indigo-500"
-                              autoFocus
-                            />
-                            <button 
-                              onClick={() => updateEnrollmentId(user.id)}
-                              disabled={updatingId === user.id}
-                              className="p-1 text-green-600 hover:bg-green-50 rounded disabled:opacity-50"
-                            >
-                              <SaveIcon className="size-3.5" />
-                            </button>
-                            <button 
-                              onClick={() => setEditingId(null)}
-                              className="p-1 text-gray-400 hover:bg-gray-50 rounded"
-                            >
-                              <XIcon className="size-3.5" />
-                            </button>
-                          </div>
-                        ) : (
-                          <div 
-                            className="flex items-center gap-1.5 cursor-pointer group/id"
-                            onClick={() => {
-                              setEditingId(user.id);
-                              setEditIdValue(user.enrollmentId || "");
-                            }}
-                          >
-                            <span className="text-xs font-mono font-bold text-gray-600 bg-gray-100 px-2 py-1 rounded">
-                              {user.enrollmentId || "NO ID"}
-                            </span>
-                            <UserCogIcon className="size-3 text-gray-400 opacity-0 group-hover/id:opacity-100 transition-opacity" />
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-5">
-                       <select
-                        value={user.role}
-                        onChange={(e) => setConfirmModal({
-                          isOpen: true,
-                          userId: user.id,
-                          newRole: e.target.value
-                        })}
-                        disabled={updatingId === user.id}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold border outline-none transition-all ${
-                            user.role === 'ADMIN' ? 'bg-indigo-50 border-indigo-200 text-indigo-700' :
-                            user.role === 'TEACHER' ? 'bg-purple-50 border-purple-200 text-purple-700' :
-                            user.role === 'PARENT' ? 'bg-blue-50 border-blue-200 text-blue-700' :
-                            'bg-blue-50 border-blue-200 text-blue-700'
-                        }`}
-                      >
-                        {ROLES.map((r) => (
-                          <option key={r} value={r}>{r}</option>
-                        ))}
-                      </select>
-                    </td>
-                    <td className="px-6 py-5">
-                      <div className="flex gap-4">
-                        <div className="text-center">
-                          <div className="text-sm font-bold text-gray-900">{user._count?.enrollments || 0}</div>
-                          <div className="text-[10px] text-gray-400 uppercase tracking-tighter">Enrollments</div>
-                        </div>
-                        {user.role === 'TEACHER' && (
-                            <div className="text-center border-l border-gray-100 pl-4">
-                                <div className="text-sm font-bold text-gray-900">{user._count?.coursesOwned || 0}</div>
-                                <div className="text-[10px] text-gray-400 uppercase tracking-tighter">Courses</div>
-                            </div>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-5 text-right">
-                       <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            {updatingId === user.id ? (
-                                <div className="size-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-                            ) : (
-                                <>
+                            <td className="px-6 py-5 whitespace-nowrap">
+                              <div className="flex items-center gap-2">
+                                {editingId === user.id ? (
+                                  <div className="flex items-center gap-2 bg-gray-50 p-1.5 rounded-2xl border border-blue-100 shadow-inner">
+                                    <input 
+                                      type="text"
+                                      value={editIdValue}
+                                      onChange={(e) => setEditIdValue(e.target.value.replace(/\s+/g, ""))}
+                                      className="w-32 px-4 py-2 text-xs font-black font-mono bg-white border border-blue-50 rounded-xl outline-none focus:ring-2 focus:ring-blue-100 transition-all shadow-sm"
+                                      autoFocus
+                                    />
                                     <button 
-                                        onClick={() => updateRole(user.id, user.role)}
-                                        className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
-                                        title="Refresh Permissions"
+                                      onClick={() => updateEnrollmentId(user.id)}
+                                      disabled={updatingId === user.id}
+                                      className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all disabled:opacity-50"
                                     >
-                                        <UserCogIcon className="size-5" />
+                                      <SaveIcon className="size-4" />
                                     </button>
                                     <button 
-                                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                                        title="Deactivate Account"
+                                      onClick={() => setEditingId(null)}
+                                      className="p-2 text-rose-400 hover:bg-rose-50 rounded-xl transition-all"
                                     >
-                                        <Trash2Icon className="size-5" />
+                                      <XIcon className="size-4" />
                                     </button>
-                                </>
-                            )}
-                       </div>
-                    </td>
+                                  </div>
+                                ) : (
+                                  <div 
+                                    className="flex items-center gap-3 cursor-pointer group/id"
+                                    onClick={() => {
+                                      setEditingId(user.id);
+                                      setEditIdValue(user.enrollmentId || "");
+                                    }}
+                                  >
+                                    <div className="inline-flex flex-col bg-gray-50 px-4 py-2 rounded-2xl border border-gray-100 shadow-sm group-hover/id:border-blue-200 group-hover/id:bg-white transition-all duration-300">
+                                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Enrollment</span>
+                                        <span className="text-xs font-black text-gray-700 font-mono tracking-tighter">{user.enrollmentId || 'PENDING'}</span>
+                                    </div>
+                                    <div className="size-8 rounded-xl flex items-center justify-center bg-gray-50 text-gray-300 opacity-0 group-hover/id:opacity-100 transition-all hover:bg-white hover:text-blue-600 hover:shadow-sm">
+                                        <UserCogIcon className="size-4" />
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-6 py-5 whitespace-nowrap">
+                              <select 
+                                    value={user.role}
+                                    onChange={(e) => setConfirmModal({
+                                        isOpen: true,
+                                        userId: user.id,
+                                        newRole: e.target.value
+                                    })}
+                                    disabled={updatingId === user.id}
+                                    className={`px-4 py-2 rounded-[1.25rem] text-[10px] font-black uppercase tracking-[0.12em] border outline-none transition-all cursor-pointer shadow-sm hover:shadow-md ${
+                                        user.role === 'ADMIN' ? 'bg-indigo-50 border-indigo-200 text-indigo-700' :
+                                        user.role === 'TEACHER' ? 'bg-purple-50 border-purple-200 text-purple-700' :
+                                        user.role === 'PARENT' ? 'bg-blue-50 border-blue-200 text-blue-700' :
+                                        user.role === 'ACADEMIC_OPERATIONS' ? 'bg-orange-50 border-orange-200 text-orange-700' :
+                                        user.role === 'ACCOUNTS' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' :
+                                        'bg-blue-50 border-blue-200 text-blue-700'
+                                    }`}
+                                >
+                                    {ROLES.map(role => (
+                                        <option key={role} value={role}>{role}</option>
+                                    ))}
+                                </select>
+                            </td>
+                            <td className="px-6 py-5 whitespace-nowrap">
+                                <div className="flex gap-10">
+                                    <div className="flex flex-col">
+                                        <span className="text-xs font-black text-gray-900 leading-none mb-1">{user._count?.enrollments || 0}</span>
+                                        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-none">Enrollments</span>
+                                    </div>
+                                    <div className="flex flex-col border-l border-gray-100 pl-8">
+                                        <span className="text-xs font-black text-gray-900 leading-none mb-1">{user._count?.teachingCourses || 0}</span>
+                                        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-none">Courses</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td className="px-6 py-5 whitespace-nowrap text-right">
+                               <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                                    {updatingId === user.id ? (
+                                        <div className="size-10 flex items-center justify-center">
+                                            <div className="size-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <button className="p-3 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-blue-600 hover:border-blue-100 hover:bg-blue-50 transition-all shadow-sm">
+                                                <UserCogIcon className="size-4" />
+                                            </button>
+                                            <button className="p-3 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-rose-600 hover:border-rose-100 hover:bg-rose-50 transition-all shadow-sm">
+                                                <Trash2Icon className="size-4" />
+                                            </button>
+                                        </>
+                                    )}
+                                </div>
+                            </td>
                   </tr>
                 ))
               )}

@@ -38,7 +38,7 @@ export default function Sidebar() {
     { name: "My Courses", icon: BookOpenIcon, view: "courses" },
     { name: "Practice Tests", icon: FileTextIcon, view: "tests" },
     { name: "Performance", icon: BarChart2Icon, view: "performance" },
-    { name: "Requests", icon: UserPlusIcon, view: "requests" }, // New for Admin
+    { name: "Requests", icon: UserPlusIcon, view: "requests" },
     { name: "Messages", icon: MessageSquareIcon, view: "messages" },
     { name: "Student Management", icon: GraduationCapIcon, view: "students" },
     { name: "User Management", icon: UsersIcon, view: "users" },
@@ -50,6 +50,14 @@ export default function Sidebar() {
     { name: "My Batches", icon: LayersIcon, view: "batches" },
     { name: "Settings", icon: SettingsIcon, view: "settings" },
     { name: "OMR Scanner", icon: CameraIcon, view: "omr" },
+    // Academic Operations specific
+    { name: "Class Routine", icon: CalendarIcon, view: "routine" },
+    { name: "Exam Schedules", icon: CalendarIcon, view: "exams" },
+    { name: "Doubts", icon: MessageSquareIcon, view: "doubts" },
+    { name: "Teacher Access", icon: UsersIcon, view: "teachers" },
+    // Accounts specific
+    { name: "Student Details", icon: GraduationCapIcon, view: "student-details" },
+    { name: "Billing Template", icon: FileTextIcon, view: "billing" },
   ];
 
   const filteredItems = menuItems.filter((item) => {
@@ -73,6 +81,16 @@ export default function Sidebar() {
     // Parent
     if (userRole === Role.PARENT) {
         return ["Home", "Performance", "Messages", "Settings"].includes(item.name);
+    }
+
+    // Academic Operations
+    if (userRole === Role.ACADEMIC_OPERATIONS) {
+        return ["Home", "Class Routine", "Schedule", "Exam Schedules", "OMR Scanner", "Doubts", "Teacher Access", "Student Management", "Batch Management", "Settings"].includes(item.name);
+    }
+
+    // Accounts
+    if (userRole === Role.ACCOUNTS) {
+        return ["Home", "Revenue", "Student Details", "Billing Template", "Settings"].includes(item.name);
     }
 
     return item.name === "Home" || item.name === "Settings";
