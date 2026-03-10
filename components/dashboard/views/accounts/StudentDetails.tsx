@@ -203,7 +203,7 @@ export function StudentDetails() {
     );
 
     return (
-        <div className="flex flex-col h-full p-8 max-w-[1400px] mx-auto font-sans selection:bg-indigo-100 selection:text-indigo-900 overflow-hidden">
+        <div className="h-full max-h-[100vh] flex flex-col p-8 max-w-[1400px] mx-auto font-sans selection:bg-indigo-100 selection:text-indigo-900 overflow-hidden">
             {/* Header Section - Sticky at top */}
             <div className="shrink-0 flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
                 <div className="space-y-1">
@@ -232,7 +232,7 @@ export function StudentDetails() {
             </div>
 
             {/* Scrollable Content Area */}
-            <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar space-y-8 pr-2">
+            <div className="flex-1 overflow-y-auto custom-scrollbar space-y-8 pr-2">
                 {/* Controls Bar */}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
                     <div className="lg:col-span-9 relative group">
