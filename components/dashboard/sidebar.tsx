@@ -33,68 +33,41 @@ export default function Sidebar() {
 
   const currentView = searchParams.get("view");
 
-  const menuItems = [
-    { name: "Home", icon: HomeIcon, view: "home" },
-    { name: "My Courses", icon: BookOpenIcon, view: "courses" },
-    { name: "Practice Tests", icon: FileTextIcon, view: "tests" },
-    { name: "Performance", icon: BarChart2Icon, view: "performance" },
-    { name: "Requests", icon: UserPlusIcon, view: "requests" },
-    { name: "Messages", icon: MessageSquareIcon, view: "messages" },
-    { name: "Student Management", icon: GraduationCapIcon, view: "students" },
-    { name: "User Management", icon: UsersIcon, view: "users" },
-    { name: "Course Control", icon: ShieldCheckIcon, view: "manage-courses" },
-    { name: "Revenue", icon: BarChart3Icon, view: "revenue" },
-    { name: "Practice Test Control", icon: FileTextIcon, view: "practice-tests" },
-    { name: "Schedule", icon: CalendarIcon, view: "schedule" },
-    { name: "Batch Management", icon: LayersIcon, view: "manage-batches" },
-    { name: "My Batches", icon: LayersIcon, view: "batches" },
-    { name: "Settings", icon: SettingsIcon, view: "settings" },
-    { name: "OMR Scanner", icon: CameraIcon, view: "omr" },
-    // Academic Operations specific
-    { name: "Class Routine", icon: CalendarIcon, view: "routine" },
-    { name: "Exam Schedules", icon: CalendarIcon, view: "exams" },
-    { name: "Doubts", icon: MessageSquareIcon, view: "doubts" },
-    { name: "Teacher Access", icon: UsersIcon, view: "teachers" },
-    // Accounts specific
-    { name: "Student Details", icon: GraduationCapIcon, view: "student-details" },
-    { name: "Billing Template", icon: FileTextIcon, view: "billing" },
-  ];
+  const allItems = {
+    home:              { name: "Home",                 icon: HomeIcon,         view: "home" },
+    courses:           { name: "My Courses",           icon: BookOpenIcon,     view: "courses" },
+    tests:             { name: "Practice Tests",       icon: FileTextIcon,     view: "tests" },
+    performance:       { name: "Performance",          icon: BarChart2Icon,    view: "performance" },
+    schedule:          { name: "Schedule",             icon: CalendarIcon,     view: "schedule" },
+    messages:          { name: "Messages",             icon: MessageSquareIcon,view: "messages" },
+    batches:           { name: "My Batches",           icon: LayersIcon,       view: "batches" },
+    students:          { name: "Student Management",   icon: GraduationCapIcon,view: "students" },
+    users:             { name: "User Management",      icon: UsersIcon,        view: "users" },
+    manageCourses:     { name: "Course Control",       icon: ShieldCheckIcon,  view: "manage-courses" },
+    revenue:           { name: "Revenue",              icon: BarChart3Icon,    view: "revenue" },
+    practiceTests:     { name: "Practice Test Control",icon: FileTextIcon,     view: "practice-tests" },
+    manageBatches:     { name: "Batch Management",     icon: LayersIcon,       view: "manage-batches" },
+    requests:          { name: "Requests",             icon: UserPlusIcon,     view: "requests" },
+    omr:               { name: "OMR Scanner",          icon: CameraIcon,       view: "omr" },
+    routine:           { name: "Class Routine",        icon: CalendarIcon,     view: "routine" },
+    exams:             { name: "Exam Schedules",       icon: CalendarIcon,     view: "exams" },
+    doubts:            { name: "Doubts",               icon: MessageSquareIcon,view: "doubts" },
+    teachers:          { name: "Teacher Access",       icon: UsersIcon,        view: "teachers" },
+    studentDetails:    { name: "Student Details",      icon: GraduationCapIcon,view: "student-details" },
+    billing:           { name: "Billing Template",     icon: FileTextIcon,     view: "billing" },
+    settings:          { name: "Settings",             icon: SettingsIcon,     view: "settings" },
+  };
 
-  const filteredItems = menuItems.filter((item) => {
-    const userRole = user?.role?.toUpperCase();
+  const roleMenus: Record<string, typeof allItems[keyof typeof allItems][]> = {
+    [Role.STUDENT]:             [allItems.home, allItems.courses, allItems.tests, allItems.performance, allItems.schedule, allItems.messages, allItems.batches, allItems.settings],
+    [Role.TEACHER]:             [allItems.home, allItems.courses, allItems.tests, allItems.students, allItems.batches, allItems.omr, allItems.messages, allItems.settings],
+    [Role.ADMIN]:               [allItems.home, allItems.users, allItems.manageCourses, allItems.practiceTests, allItems.manageBatches, allItems.revenue, allItems.requests, allItems.messages, allItems.settings],
+    [Role.PARENT]:              [allItems.home, allItems.performance, allItems.messages, allItems.settings],
+    [Role.ACADEMIC_OPERATIONS]: [allItems.home, allItems.students, allItems.manageBatches, allItems.schedule, allItems.routine, allItems.exams, allItems.omr, allItems.doubts, allItems.teachers, allItems.settings],
+    [Role.ACCOUNTS]:            [allItems.home, allItems.revenue, allItems.studentDetails, allItems.billing, allItems.settings],
+  };
 
-    // Student
-    if (userRole === Role.STUDENT) {
-        return ["Home", "My Courses", "Practice Tests", "Performance", "Schedule", "Messages", "Settings", "My Batches"].includes(item.name);
-    }
-    
-    // Teacher
-    if (userRole === Role.TEACHER) {
-        return ["Home", "My Courses", "Practice Tests", "Student Management", "Messages", "Settings", "My Batches", "OMR Scanner"].includes(item.name);
-    }
-
-    // Admin
-    if (userRole === Role.ADMIN) {
-        return ["Home", "User Management", "Course Control", "Practice Test Control", "Revenue", "Requests", "Messages", "Settings", "Batch Management"].includes(item.name);
-    }
-
-    // Parent
-    if (userRole === Role.PARENT) {
-        return ["Home", "Performance", "Messages", "Settings"].includes(item.name);
-    }
-
-    // Academic Operations
-    if (userRole === Role.ACADEMIC_OPERATIONS) {
-        return ["Home", "Class Routine", "Schedule", "Exam Schedules", "OMR Scanner", "Doubts", "Teacher Access", "Student Management", "Batch Management", "Settings"].includes(item.name);
-    }
-
-    // Accounts
-    if (userRole === Role.ACCOUNTS) {
-        return ["Home", "Revenue", "Student Details", "Billing Template", "Settings"].includes(item.name);
-    }
-
-    return item.name === "Home" || item.name === "Settings";
-  });
+  const filteredItems = roleMenus[user?.role?.toUpperCase() as Role] ?? [allItems.home, allItems.settings];
 
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 

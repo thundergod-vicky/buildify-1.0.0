@@ -44,6 +44,7 @@ import { TeacherAccess } from "@/components/dashboard/views/academic/TeacherAcce
 
 // Accounts Views
 import { AccountsHome } from "@/components/dashboard/views/accounts/Home";
+import { AccountsRevenue } from "@/components/dashboard/views/accounts/Revenue";
 import { StudentDetails } from "@/components/dashboard/views/accounts/StudentDetails";
 import { BillingTemplate } from "@/components/dashboard/views/accounts/Billing";
 
@@ -146,7 +147,7 @@ function DashboardContent() {
 
     if (user.role === Role.ACCOUNTS) {
         switch (currentView) {
-            case 'revenue': return <AccountsHome />; 
+            case 'revenue': return <AccountsRevenue />;
             case 'student-details': return <StudentDetails />;
             case 'billing': return <BillingTemplate />;
             case 'settings': return <AdminSettings />;
