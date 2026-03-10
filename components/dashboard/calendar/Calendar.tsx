@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
     ChevronLeftIcon, 
     ChevronRightIcon, 
@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
+import { auth } from "@/lib/auth";
 
 interface Event {
     id: string;
@@ -23,11 +24,11 @@ interface Event {
     location?: string;
     teacher?: string;
     description?: string;
+    batch?: string;
 }
 
-const MOCK_EVENTS: Event[] = [];
-
-export function Calendar() {
+export function Calendar({ mode = 'student' }: { mode?: 'student' | 'teacher' | 'operations' }) {
+    const [events, setEvents] = useState<Event[]>([]);
     const [currentDate, setCurrentDate] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
     const [view, setView] = useState<'month' | 'year' | 'day' | 'decade'>('month');
@@ -43,6 +44,33 @@ export function Calendar() {
     const nextMonth = () => {
         setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
     };
+
+    useEffect(() => {
+        import("@/lib/api").then(({ api }) => {
+            let endpoint: string;
+            if (mode === 'teacher') {
+                endpoint = '/class-sessions/my-sessions';
+            } else if (mode === 'operations') {
+                endpoint = '/class-sessions';
+            } else {
+                endpoint = '/class-sessions/student-sessions';
+            }
+            api.get<Record<string, unknown>[]>(endpoint, auth.getToken() || '').then(res => {
+                const mappedEvents = res.map(r => ({
+                    id: r.id as string,
+                    title: r.title as string,
+                    type: 'CLASS' as const,
+                    date: new Date(r.date as string),
+                    time: `${r.startTime} - ${r.endTime}`,
+                    location: (r.venue as string) ?? undefined,
+                    teacher: (r.teacher as { name?: string })?.name,
+                    batch: (r.batch as { name?: string })?.name,
+                    description: r.type as string,
+                }));
+                setEvents(mappedEvents);
+            }).catch(console.error);
+        });
+    }, [mode]);
 
     const renderHeader = () => {
         const monthName = currentDate.toLocaleString('default', { month: 'long' });
@@ -169,7 +197,7 @@ export function Calendar() {
             const date = new Date(year, month, day);
             const isToday = new Date().toDateString() === date.toDateString();
             const isSelected = selectedDate?.toDateString() === date.toDateString();
-            const dayEvents = MOCK_EVENTS.filter(e => e.date.toDateString() === date.toDateString());
+            const dayEvents = events.filter(e => e.date.toDateString() === date.toDateString());
 
             cells.push(
                 <motion.div 
@@ -235,7 +263,7 @@ export function Calendar() {
 
     const renderEventsList = () => {
         const dateString = selectedDate?.toLocaleDateString('default', { weekday: 'long', month: 'long', day: 'numeric' });
-        const dayEvents = MOCK_EVENTS.filter(e => e.date.toDateString() === selectedDate?.toDateString());
+        const dayEvents = events.filter(e => e.date.toDateString() === selectedDate?.toDateString());
 
         return (
             <motion.div 
@@ -286,6 +314,12 @@ export function Calendar() {
                                 </h4>
 
                                 <div className="space-y-2">
+                                    {event.batch && (
+                                        <div className="flex items-center gap-2 text-[11px] text-gray-500 font-medium">
+                                            <LayoutGridIcon className="size-3.5" />
+                                            {event.batch}
+                                        </div>
+                                    )}
                                     {event.teacher && (
                                         <div className="flex items-center gap-2 text-[11px] text-gray-500 font-medium">
                                             <GraduationCapIcon className="size-3.5" />
@@ -297,12 +331,11 @@ export function Calendar() {
                                         {event.location || "Online Class"}
                                     </div>
                                 </div>
-
-                                <button className={cn(
+                        <button className={cn(
                                     "w-full mt-4 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all",
                                     event.type === 'CLASS' ? "bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-200" : "bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-200"
                                 )}>
-                                    {event.type === 'CLASS' ? "Join Class" : "Start Test"}
+                                    {event.type === 'CLASS' ? mode === 'teacher' ? "Start Class" : mode === 'operations' ? "View Class" : "Join Class" : "Start Test"}
                                 </button>
                             </motion.div>
                         ))
@@ -345,7 +378,7 @@ export function Calendar() {
                                         "text-xs font-medium",
                                         isCurrent ? "text-blue-100" : "text-gray-400"
                                     )}>
-                                        {MOCK_EVENTS.filter(e => e.date.getMonth() === i && e.date.getFullYear() === currentDate.getFullYear()).length} Events
+                                        {events.filter(e => e.date.getMonth() === i && e.date.getFullYear() === currentDate.getFullYear()).length} Events
                                     </span>
                                 </button>
                             );

@@ -60,7 +60,7 @@ export default function Sidebar() {
 
   const roleMenus: Record<string, typeof allItems[keyof typeof allItems][]> = {
     [Role.STUDENT]:             [allItems.home, allItems.courses, allItems.tests, allItems.performance, allItems.schedule, allItems.messages, allItems.batches, allItems.settings],
-    [Role.TEACHER]:             [allItems.home, allItems.courses, allItems.tests, allItems.students, allItems.batches, allItems.omr, allItems.messages, allItems.settings],
+    [Role.TEACHER]:             [allItems.home, allItems.courses, allItems.tests, allItems.students, allItems.batches, allItems.omr, allItems.schedule, allItems.messages, allItems.settings],
     [Role.ADMIN]:               [allItems.home, allItems.users, allItems.manageCourses, allItems.practiceTests, allItems.manageBatches, allItems.revenue, allItems.requests, allItems.messages, allItems.settings],
     [Role.PARENT]:              [allItems.home, allItems.performance, allItems.messages, allItems.settings],
     [Role.ACADEMIC_OPERATIONS]: [allItems.home, allItems.students, allItems.manageBatches, allItems.schedule, allItems.routine, allItems.exams, allItems.omr, allItems.doubts, allItems.teachers, allItems.settings],

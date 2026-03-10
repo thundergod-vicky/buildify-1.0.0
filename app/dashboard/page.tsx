@@ -21,6 +21,7 @@ import { TeacherStudentManagement } from "@/components/dashboard/views/teacher/S
 import { TeacherSettings } from "@/components/dashboard/views/teacher/Settings";
 import { TeacherBatches } from "@/components/dashboard/views/teacher/Batches";
 import { OmrDashboard } from "@/components/dashboard/views/teacher/omr/OmrDashboard";
+import { TeacherSchedule } from "@/components/dashboard/views/teacher/Schedule";
 
 // Parent Views
 import { ParentHome } from "@/components/dashboard/views/parent/Home";
@@ -38,6 +39,7 @@ import { AdminBatchManagement } from "@/components/dashboard/views/admin/BatchMa
 // Academic Views
 import { AcademicHome } from "@/components/dashboard/views/academic/Home";
 import { ClassRoutine } from "@/components/dashboard/views/academic/Routine";
+import { AcademicSchedule } from "@/components/dashboard/views/academic/Schedule";
 import { ExamSchedules } from "@/components/dashboard/views/academic/Exams";
 import { DoubtAccess } from "@/components/dashboard/views/academic/Doubts";
 import { TeacherAccess } from "@/components/dashboard/views/academic/TeacherAccess";
@@ -100,6 +102,7 @@ function DashboardContent() {
             case 'messages': return <MessagesView />;
             case 'batches': return <TeacherBatches />;
             case 'omr': return <OmrDashboard />;
+            case 'schedule': return <TeacherSchedule />;
             default: return <TeacherHome />;
         }
     }
@@ -132,12 +135,12 @@ function DashboardContent() {
     if (user.role === Role.ACADEMIC_OPERATIONS) {
         switch (currentView) {
             case 'routine': return <ClassRoutine />;
-            case 'schedule': return <StudentSchedule />; // Reusing student schedule
+            case 'schedule': return <AcademicSchedule />;
             case 'exams': return <ExamSchedules />;
             case 'doubts': return <DoubtAccess />;
             case 'teachers': return <TeacherAccess />;
-            case 'students': return <TeacherStudentManagement />; // Reusing teacher student management
-            case 'manage-batches': return <AdminBatchManagement />; // Reusing admin batch management
+            case 'students': return <TeacherStudentManagement />;
+            case 'manage-batches': return <AdminBatchManagement />;
             case 'settings': return <TeacherSettings />;
             case 'messages': return <MessagesView />;
             case 'omr': return <OmrDashboard />;
