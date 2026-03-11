@@ -25,6 +25,8 @@ interface Event {
     teacher?: string;
     description?: string;
     batch?: string;
+    isOnline?: boolean;
+    meetingUrl?: string;
 }
 
 export function Calendar({ mode = 'student' }: { mode?: 'student' | 'teacher' | 'operations' }) {
@@ -66,6 +68,8 @@ export function Calendar({ mode = 'student' }: { mode?: 'student' | 'teacher' | 
                     teacher: (r.teacher as { name?: string })?.name,
                     batch: (r.batch as { name?: string })?.name,
                     description: r.type as string,
+                    isOnline: r.isOnline as boolean,
+                    meetingUrl: r.meetingUrl as string,
                 }));
                 setEvents(mappedEvents);
             }).catch(console.error);
@@ -328,14 +332,21 @@ export function Calendar({ mode = 'student' }: { mode?: 'student' | 'teacher' | 
                                     )}
                                     <div className="flex items-center gap-2 text-[11px] text-gray-500 font-medium">
                                         <MapPinIcon className="size-3.5" />
-                                        {event.location || "Online Class"}
+                                        {event.location || (event.isOnline ? "Online Class (Zoom)" : "Location TBA")}
                                     </div>
                                 </div>
-                        <button className={cn(
-                                    "w-full mt-4 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all",
-                                    event.type === 'CLASS' ? "bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-200" : "bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-200"
-                                )}>
-                                    {event.type === 'CLASS' ? mode === 'teacher' ? "Start Class" : mode === 'operations' ? "View Class" : "Join Class" : "Start Test"}
+                                <button
+                                    onClick={() => {
+                                        if (event.meetingUrl) {
+                                            window.open(event.meetingUrl, '_blank');
+                                        }
+                                    }} 
+                                    className={cn(
+                                        "w-full mt-4 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all",
+                                        event.type === 'CLASS' ? "bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-200" : "bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-200"
+                                    )}
+                                >
+                                    {event.type === 'CLASS' ? (event.meetingUrl ? "Join Zoom Meeting" : mode === 'teacher' ? "Start Class" : mode === 'operations' ? "View Class" : "Join Class") : "Start Test"}
                                 </button>
                             </motion.div>
                         ))

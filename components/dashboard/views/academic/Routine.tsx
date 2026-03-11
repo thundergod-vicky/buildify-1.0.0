@@ -28,6 +28,9 @@ interface ClassSession {
   startTime: string;
   endTime: string;
   venue?: string;
+  isOnline?: boolean;
+  meetingUrl?: string;
+  meetingId?: string;
 }
 
 function CreateSessionModal({ 
@@ -53,6 +56,7 @@ function CreateSessionModal({
     startTime: '09:00',
     endTime: '10:30',
     venue: '',
+    isOnline: false,
   });
 
   if (!isOpen) return null;
@@ -144,6 +148,19 @@ function CreateSessionModal({
                     {teachers.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                 </select>
             </div>
+          </div>
+
+          <div className="flex items-center gap-3 bg-blue-50/50 p-4 rounded-2xl border border-blue-100">
+             <input 
+                 type="checkbox" 
+                 id="isOnline"
+                 checked={formData.isOnline}
+                 onChange={e => setFormData({...formData, isOnline: e.target.checked})}
+                 className="size-5 rounded text-blue-600 focus:ring-blue-500 border-gray-300"
+             />
+             <label htmlFor="isOnline" className="text-sm font-black text-gray-900 cursor-pointer">
+                 Generate Zoom Meeting Link automatically
+             </label>
           </div>
 
           <div className="grid grid-cols-3 gap-6">
@@ -350,6 +367,11 @@ export function ClassRoutine() {
             </div>
 
             <div className="flex items-center gap-4 relative z-10">
+                {item.meetingUrl && (
+                  <button onClick={() => window.open(item.meetingUrl, '_blank')} className="px-5 py-3 bg-blue-50 text-blue-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-100 transition-all border border-blue-100 whitespace-nowrap">
+                    Join Zoom
+                  </button>
+                )}
                 <button onClick={() => handleDelete(item.id)} className="px-5 py-3 bg-red-50 text-red-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-red-100 transition-all border border-red-100">Cancel</button>
             </div>
           </div>
