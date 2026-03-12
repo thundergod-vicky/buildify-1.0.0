@@ -55,6 +55,7 @@ import { NotificationsView } from "@/components/dashboard/views/shared/Notificat
 import { MessagesView } from "@/components/dashboard/views/shared/Messages";
 import { AdminSettings } from "@/components/dashboard/views/admin/Settings";
 
+import { ZoomMeeting } from "@/components/dashboard/views/academic/ZoomMeeting";
 import { Suspense } from "react";
 
 export default function DashboardPage() {
@@ -75,6 +76,10 @@ function DashboardContent() {
 
     if (isLoading) return <div className="p-8">Syncing user session...</div>;
     if (!user) return <div className="p-8 text-red-500 font-bold underline cursor-pointer" onClick={() => window.location.href='/auth'}>Session expired. Please login again.</div>;
+
+    if (currentView === 'zoom-meeting') {
+        return <ZoomMeeting />;
+    }
 
     // Student
     if (user.role === Role.STUDENT) {

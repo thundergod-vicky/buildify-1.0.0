@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Virtual Classroom</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { width: 100%; height: 100%; background: #111; overflow: hidden; }
+        #meetingSDKElement { width: 100%; height: 100%; }
+        #status {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #fff;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid rgba(59,130,246,0.2);
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        #status p { color: #9ca3af; margin-top: 8px; font-size: 13px; }
+        #error-box {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(17,17,17,0.97);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: system-ui, sans-serif;
+            color: #fff;
+            text-align: center;
+            padding: 32px;
+        }
+        #error-msg { color: #f87171; margin-top: 12px; font-size: 14px; max-width: 420px; line-height: 1.6; }
+
+        /* Force Zoom's injected DOM to use 100% size */
+        .zmmtg-root { width: 100% !important; height: 100% !important; }
+        
+        #meetingSDKElement, #meetingSDKElement > div {
+            width: 100% !important;
+            height: 100% !important;
+            min-width: 100% !important;
+            min-height: 100% !important;
+            display: block !important;
+            position: absolute !important;
+            inset: 0 !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="meetingSDKElement"></div>
+
+    <div id="status">
+        <div class="spinner"></div>
+        <strong>Entering Classroom...</strong>
+        <p id="status-msg">Initializing SDK...</p>
+    </div>
+
+    <div id="error-box">
+        <strong style="font-size:18px;">Connection Error</strong>
+        <p id="error-msg"></p>
+    </div>
+
+    <!-- Step 1: Load React 18 from CDN (the Zoom SDK needs React < 19) -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+    <!-- Step 2: Load Zoom Embedded SDK (UMD – reads window.React & window.ReactDOM) -->
+    <script src="/zoom-sdk.js"></script>
+
+    <script>
+        const statusEl = document.getElementById('status');
+        const statusMsg = document.getElementById('status-msg');
+        const errorBox = document.getElementById('error-box');
+        const errorMsgEl = document.getElementById('error-msg');
+
+        function setStatus(msg) {
+            if (statusMsg) statusMsg.textContent = msg;
+            window.parent.postMessage({ type: 'ZOOM_LOG', message: msg }, '*');
+            console.log('[ZoomFrame]', msg);
+        }
+
+        function showError(msg) {
+            if (statusEl) statusEl.style.display = 'none';
+            if (errorBox) errorBox.style.display = 'flex';
+            if (errorMsgEl) errorMsgEl.textContent = msg;
+            window.parent.postMessage({ type: 'ZOOM_ERROR', message: msg }, '*');
+            console.error('[ZoomFrame] Error:', msg);
+        }
+
+        async function startMeeting(config) {
+            try {
+                // The Zoom SDK UMD is exposed as window.ReactWidgets
+                const ZoomMtgEmbedded = window.ReactWidgets;
+                if (!ZoomMtgEmbedded || typeof ZoomMtgEmbedded.createClient !== 'function') {
+                    throw new Error('Zoom SDK failed to load. ReactWidgets not found on window.');
+                }
+
+                setStatus('Creating meeting client...');
+                const client = ZoomMtgEmbedded.createClient();
+                const mountEl = document.getElementById('meetingSDKElement');
+
+                // Get dimensions dynamically
+                const getWidth = () => window.innerWidth || 1200;
+                const getHeight = () => window.innerHeight || 800;
+
+                setStatus('Initializing Zoom SDK...');
+                await client.init({
+                    zoomAppRoot: mountEl,
+                    language: 'en-US',
+                    patchJsMedia: true,
+                    leaveUrl: config.leaveUrl || window.location.origin,
+                    sdkKey: config.sdkKey,
+                    customize: {
+                        video: {
+                            isResizable: true,
+                            viewSizes: {
+                                default: {
+                                    width: getWidth(),
+                                    height: getHeight()
+                                },
+                                ribbon: { width: 300, height: 700 }
+                            }
+                        }
+                    }
+                });
+
+                setStatus('Joining the meeting room...');
+                const joinOptions = {
+                    signature: config.signature,
+                    meetingNumber: config.meetingNumber,
+                    userName: config.userName || 'Class Participant',
+                    userEmail: config.userEmail || '',
+                };
+                if (config.password) {
+                    joinOptions.password = config.password;
+                }
+
+                await client.join(joinOptions);
+
+                if (statusEl) statusEl.style.display = 'none';
+                window.parent.postMessage({ type: 'ZOOM_JOINED' }, '*');
+
+                // Update size if window is resized
+                window.addEventListener('resize', () => {
+                    // Zoom SDK embedded doesn't auto-resize out of the box, we have to call update
+                    // The SDK creates an iframe or styled div. We can simply let the canvas resize
+                    // or re-call a resize method if we need to. 
+                    // To handle responsiveness properly, we can target the .zmmtg-root class
+                    const rootEl = document.querySelector('#meetingSDKElement > div');
+                    if (rootEl) {
+                        rootEl.style.width = window.innerWidth + 'px';
+                        rootEl.style.height = window.innerHeight + 'px';
+                    }
+                });
+
+            } catch (err) {
+                console.error('[ZoomFrame] Error starting meeting:', err);
+                showError(err.reason || err.errorMessage || err.message || 'Unknown error starting meeting.');
+            }
+        }
+
+        // Listen for config message from the parent page
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'ZOOM_START') {
+                startMeeting(event.data.config);
+            }
+        });
+
+        // Tell the parent we are ready to receive config
+        window.parent.postMessage({ type: 'ZOOM_FRAME_READY' }, '*');
+        console.log('[ZoomFrame] Ready, waiting for ZOOM_START message...');
+    </script>
+</body>
+</html>

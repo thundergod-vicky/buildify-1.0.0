@@ -7,6 +7,7 @@ import LenisScroll from "@/components/lenis";
 import LayoutWrapper from "@/components/layout-wrapper";
 import { ToastContainer, Bounce } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import ZoomPolyfill from "@/components/ZoomPolyfill";
 
 const inter = Inter({
     variable: "--font-sans",
@@ -67,6 +68,7 @@ export default function RootLayout({
         <html lang="en">
             <body className={`${inter.variable} ${urbanist.variable}`}>
                 <PageLoader />
+                <ZoomPolyfill />
                 <ToastContainer
                     position="top-center"
                     autoClose={5000}

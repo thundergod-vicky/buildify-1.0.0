@@ -14,6 +14,9 @@ import {
 import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { auth } from "@/lib/auth";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
+import { Role } from "@/types";
 
 interface Event {
     id: string;
@@ -27,6 +30,7 @@ interface Event {
     batch?: string;
     isOnline?: boolean;
     meetingUrl?: string;
+    meetingId?: string;
 }
 
 export function Calendar({ mode = 'student' }: { mode?: 'student' | 'teacher' | 'operations' }) {
@@ -35,6 +39,8 @@ export function Calendar({ mode = 'student' }: { mode?: 'student' | 'teacher' | 
     const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
     const [view, setView] = useState<'month' | 'year' | 'day' | 'decade'>('month');
     const [decadeStart, setDecadeStart] = useState(new Date().getFullYear() - 4);
+    const router = useRouter();
+    const { user: authUser } = useAuth();
 
     const daysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
     const firstDayOfMonth = (year: number, month: number) => new Date(year, month, 1).getDay();
@@ -70,6 +76,7 @@ export function Calendar({ mode = 'student' }: { mode?: 'student' | 'teacher' | 
                     description: r.type as string,
                     isOnline: r.isOnline as boolean,
                     meetingUrl: r.meetingUrl as string,
+                    meetingId: r.meetingId as string,
                 }));
                 setEvents(mappedEvents);
             }).catch(console.error);
@@ -337,16 +344,27 @@ export function Calendar({ mode = 'student' }: { mode?: 'student' | 'teacher' | 
                                 </div>
                                 <button
                                     onClick={() => {
-                                        if (event.meetingUrl) {
-                                            window.open(event.meetingUrl, '_blank');
+                                        if (event.meetingId) {
+                                            const role = authUser?.role === Role.TEACHER ? 1 : 0;
+                                            const cleanId = event.meetingId?.replace(/[^0-9]/g, '');
+                                            let pwd = '';
+                                            if (event.meetingUrl) {
+                                                try {
+                                                    const url = new URL(event.meetingUrl);
+                                                    pwd = url.searchParams.get('pwd') || '';
+                                                } catch (e) {
+                                                    console.error("Could not parse meeting URL for password", e);
+                                                }
+                                            }
+                                            router.push(`/dashboard?view=zoom-meeting&meetingId=${cleanId}&role=${role}&from=${mode === 'operations' ? 'routine' : 'schedule'}&password=${pwd}`);
                                         }
                                     }} 
                                     className={cn(
-                                        "w-full mt-4 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all",
-                                        event.type === 'CLASS' ? "bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-200" : "bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-200"
+                                        "w-full mt-4 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg",
+                                        event.type === 'CLASS' ? "bg-blue-600 text-white hover:bg-blue-700 shadow-blue-200" : "bg-red-600 text-white hover:bg-red-700 shadow-red-200"
                                     )}
                                 >
-                                    {event.type === 'CLASS' ? (event.meetingUrl ? "Join Zoom Meeting" : mode === 'teacher' ? "Start Class" : mode === 'operations' ? "View Class" : "Join Class") : "Start Test"}
+                                    {event.type === 'CLASS' ? (event.meetingId ? "Join Zoom Classroom" : mode === 'teacher' ? "Start Class" : mode === 'operations' ? "View Class" : "Join Class") : "Start Test"}
                                 </button>
                             </motion.div>
                         ))

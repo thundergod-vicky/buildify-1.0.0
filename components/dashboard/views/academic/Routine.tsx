@@ -5,6 +5,9 @@ import { ClockIcon, MapPinIcon, MoreVerticalIcon, PlusIcon, CalendarIcon, Gradua
 import { api } from "@/lib/api";
 import { toast } from "react-toastify";
 import { auth } from "@/lib/auth";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
+import { Role } from "@/types";
 
 type SessionType = 'LECTURE' | 'PRACTICAL' | 'WORKSHOP';
 
@@ -214,6 +217,8 @@ export function ClassRoutine() {
   const [batches, setBatches] = useState<Batch[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const { user } = useAuth();
 
   // For routine viewing, filter by the next 7 days in tabs
   const [selectedDateFilter, setSelectedDateFilter] = useState<string>(new Date().toISOString().split('T')[0]);
@@ -367,9 +372,25 @@ export function ClassRoutine() {
             </div>
 
             <div className="flex items-center gap-4 relative z-10">
-                {item.meetingUrl && (
-                  <button onClick={() => window.open(item.meetingUrl, '_blank')} className="px-5 py-3 bg-blue-50 text-blue-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-100 transition-all border border-blue-100 whitespace-nowrap">
-                    Join Zoom
+                {item.meetingId && (
+                  <button 
+                    onClick={() => {
+                        const role = user?.role === Role.TEACHER ? 1 : 0;
+                        const cleanId = item.meetingId?.replace(/[^0-9]/g, '');
+                        let pwd = '';
+                        if (item.meetingUrl) {
+                            try {
+                                const url = new URL(item.meetingUrl);
+                                pwd = url.searchParams.get('pwd') || '';
+                            } catch (e) {
+                                console.error("Could not parse meeting URL for password", e);
+                            }
+                        }
+                        router.push(`/dashboard?view=zoom-meeting&meetingId=${cleanId}&role=${role}&from=routine&password=${pwd}`);
+                    }} 
+                    className="px-5 py-3 bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all border border-blue-600 whitespace-nowrap shadow-lg shadow-blue-100"
+                  >
+                    Join Zoom Classroom
                   </button>
                 )}
                 <button onClick={() => handleDelete(item.id)} className="px-5 py-3 bg-red-50 text-red-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-red-100 transition-all border border-red-100">Cancel</button>
