@@ -61,9 +61,9 @@ export function TeacherBatches() {
         <div className="lg:col-span-1 space-y-4">
           <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Your Batches</h2>
           {loading ? (
-            [...Array(3)].map((_, i) => (
-              <div key={i} className="h-24 bg-gray-100 animate-pulse rounded-2xl" />
-            ))
+            <div className="flex flex-col items-center justify-center py-10 bg-white rounded-2xl border border-gray-100">
+              <div className="spinner scale-50"></div>
+            </div>
           ) : batches.length > 0 ? (
             batches.map((batch) => (
               <button

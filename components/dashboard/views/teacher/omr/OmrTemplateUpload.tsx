@@ -93,25 +93,22 @@ export function OmrTemplateUpload({ onBack, onSuccess }: OmrTemplateUploadProps)
 
           <div className="space-y-2">
             <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-              Number of Questions *
-              <span className="text-xs font-normal text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
-                Must match your OMR sheet exactly
-              </span>
+              Exam Format *
             </label>
-            <input
-              type="number"
-              required
-              min={1}
-              max={200}
+            <select
               value={totalQuestions}
-              onChange={(e) => setTotalQuestions(parseInt(e.target.value) || 20)}
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-lg"
-            />
-            <div className="flex items-start gap-2 bg-blue-50 rounded-xl p-3 text-xs text-blue-700">
+              onChange={(e) => setTotalQuestions(parseInt(e.target.value))}
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-lg appearance-none"
+            >
+              <option value={180}>NEET (180 Questions)</option>
+              <option value={80}>Class 9 & 10 (80 Questions)</option>
+              <option value={70}>Class 6 to 8 (70 Questions)</option>
+            </select>
+            <div className="flex items-start gap-2 bg-blue-50 rounded-xl p-3 text-xs text-blue-700 mt-2">
               <InfoIcon className="size-4 mt-0.5 shrink-0" />
               <span>
-                The system will use this to locate exactly how many bubble rows to analyze.
-                Accuracy improves when this matches the actual number on the sheet.
+                Please upload a clear, flat, well-lit image of the Mother OMR. 
+                The system uses high-end local computer vision which requires the entire outer box to be visible.
               </span>
             </div>
           </div>

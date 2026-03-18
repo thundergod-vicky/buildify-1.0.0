@@ -1,7 +1,38 @@
 import { UsersIcon, BookOpenIcon, CalendarIcon, MessageSquareIcon, AlertCircleIcon } from "lucide-react";
 import StatCard from "../../stat-card";
+import { useState, useEffect } from "react";
+import { api } from "@/lib/api";
+import { auth } from "@/lib/auth";
 
 export function AcademicHome() {
+  const [stats, setStats] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const token = auth.getToken();
+        if (!token) return;
+        const data = await api.get("/admin/academic/stats", token);
+        setStats(data);
+      } catch (err) {
+        console.error("Failed to fetch academic stats:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStats();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh]">
+        <div className="spinner scale-75"></div>
+        <p className="text-gray-400 font-medium animate-pulse mt-4">Synchronizing hub data...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="relative overflow-hidden bg-gradient-to-br from-indigo-600 via-blue-600 to-sky-500 rounded-[3rem] p-10 text-white shadow-2xl shadow-blue-200">
@@ -25,11 +56,15 @@ export function AcademicHome() {
           
           <div className="flex gap-4">
             <div className="p-8 bg-white/10 backdrop-blur-xl rounded-[2.5rem] border border-white/20 shadow-xl flex flex-col items-center justify-center min-w-[140px] hover:scale-105 transition-transform duration-500 group">
-              <span className="text-4xl font-black mb-1 group-hover:text-blue-200 transition-colors">24</span>
+              <span className="text-4xl font-black mb-1 group-hover:text-blue-200 transition-colors">
+                {stats?.todayClasses || 0}
+              </span>
               <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Today&apos;s Classes</span>
             </div>
             <div className="p-8 bg-white/10 backdrop-blur-xl rounded-[2.5rem] border border-white/20 shadow-xl flex flex-col items-center justify-center min-w-[140px] hover:scale-105 transition-transform duration-500 group">
-              <span className="text-4xl font-black mb-1 group-hover:text-amber-200 transition-colors">156</span>
+              <span className="text-4xl font-black mb-1 group-hover:text-amber-200 transition-colors">
+                {stats?.pendingDoubts || 0}
+              </span>
               <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Pending Doubts</span>
             </div>
           </div>
@@ -39,15 +74,15 @@ export function AcademicHome() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title="Active Teachers"
-          value="42"
+          value={stats?.activeTeachers?.toString() || "0"}
           icon={UsersIcon}
-          trend="8 currently live"
+          trend="+8 currently live"
           trendType="positive"
           colorClass="bg-indigo-50 text-indigo-600 border border-indigo-100/50"
         />
         <StatCard
           title="Avg. Resolve Time"
-          value="14m"
+          value={stats?.avgResolveTime || "14m"}
           icon={MessageSquareIcon}
           trend="-2m since yesterday"
           trendType="positive"
@@ -55,7 +90,7 @@ export function AcademicHome() {
         />
         <StatCard
           title="Student Engagement"
-          value="94%"
+          value={stats?.studentEngagement || "94%"}
           icon={BookOpenIcon}
           trend="+5% peak today"
           trendType="positive"
@@ -63,7 +98,7 @@ export function AcademicHome() {
         />
         <StatCard
           title="System Health"
-          value="Optimum"
+          value={stats?.systemHealth || "Optimum"}
           icon={AlertCircleIcon}
           trend="All services up"
           trendType="positive"
@@ -71,8 +106,8 @@ export function AcademicHome() {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-          <div className="lg:col-span-2 space-y-8">
+      <div className="grid grid-cols-1 gap-10">
+          <div className="space-y-8">
               <div className="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-xl shadow-gray-200/40 relative overflow-hidden group">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full blur-3xl group-hover:bg-blue-100 transition-colors" />
                   <div className="relative z-10">
@@ -83,11 +118,9 @@ export function AcademicHome() {
                           </button>
                       </div>
                       <div className="space-y-4">
-                          {[
-                              { title: "Term Assessment - Batch Alpha", date: "12th Oct 2026", type: "Examination", color: "blue" },
-                              { title: "Parent Teacher Meeting - Grade 12", date: "15th Oct 2026", type: "Event", color: "purple" },
-                              { title: "New Material Release - Organic Chemistry", date: "18th Oct 2026", type: "Release", color: "emerald" }
-                          ].map((item, i) => (
+                          {(stats?.milestones?.length > 0 ? stats.milestones : [
+                              { title: "No upcoming milestones", date: "-", type: "None", color: "gray" }
+                          ]).map((item: any, i: number) => (
                               <div key={i} className="flex items-center justify-between p-6 bg-gray-50/50 rounded-3xl border border-gray-100 hover:border-blue-200 hover:bg-white hover:shadow-lg transition-all duration-300 group/item">
                                   <div className="flex items-center gap-5">
                                       <div className={`size-14 bg-white rounded-2xl flex items-center justify-center shadow-sm group-hover/item:scale-110 transition-transform duration-500`}>
@@ -110,49 +143,6 @@ export function AcademicHome() {
                   </div>
               </div>
           </div>
-
-          <div className="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-xl shadow-gray-200/40 flex flex-col relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-48 h-48 bg-amber-50 rounded-full blur-3xl -mr-20 -mt-20 opacity-50" />
-              <div className="relative z-10 flex flex-col h-full">
-                  <h3 className="text-2xl font-black text-gray-900 font-urbanist tracking-tight mb-4">Batch Health Status</h3>
-                  <p className="text-sm text-gray-500 mb-8 font-medium">Real-time attendance and interaction tracking across all active batches.</p>
-                  
-                  <div className="space-y-8 flex-1">
-                      {[
-                        { name: "Batch Alpha (Medical)", percentage: 94, color: "blue" },
-                        { name: "Batch Beta (Engineering)", percentage: 88, color: "indigo" },
-                        { name: "Batch Delta (Foundation)", percentage: 76, color: "amber" }
-                      ].map((batch, i) => (
-                        <div key={i} className="space-y-3">
-                          <div className="flex justify-between items-end">
-                            <span className="text-sm font-bold text-gray-900">{batch.name}</span>
-                            <span className={`text-xs font-black text-${batch.color}-600`}>{batch.percentage}%</span>
-                          </div>
-                          <div className="w-full h-3 bg-gray-50 rounded-full overflow-hidden p-0.5 border border-gray-100">
-                            <div 
-                              className={`h-full bg-gradient-to-r from-${batch.color}-400 to-${batch.color}-600 rounded-full transition-all duration-1000`} 
-                              style={{ width: `${batch.percentage}%` }} 
-                            />
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-
-                  <div className="mt-10 p-6 bg-gradient-to-br from-indigo-50 to-blue-50 rounded-[2rem] border border-blue-100/50">
-                      <div className="flex items-center gap-3 mb-2">
-                          <AlertCircleIcon className="size-4 text-blue-600" />
-                          <p className="text-xs font-black text-blue-900 uppercase tracking-widest">Operational Tip</p>
-                      </div>
-                      <p className="text-xs text-blue-800 leading-relaxed font-medium">Consider re-assigning <span className="font-black italic">Mrs. Sneha</span> to evening doubts for optimized resolution.</p>
-                  </div>
-              </div>
-          </div>
-      </div>
-
-      <div className="pt-10 border-t border-gray-100">
-        <div className="inline-flex items-center gap-2 px-6 py-2 bg-gray-900 text-white rounded-full text-[10px] font-black uppercase tracking-[0.3em] italic mx-auto block w-fit shadow-xl shadow-gray-200">
-          Note: This is mock data for operational demonstration purposes
-        </div>
       </div>
     </div>
   );

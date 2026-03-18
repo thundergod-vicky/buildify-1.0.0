@@ -133,9 +133,10 @@ export function AdminBatchManagement() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {loading ? (
-          [...Array(6)].map((_, i) => (
-            <div key={i} className="h-64 bg-gray-100 animate-pulse rounded-3xl" />
-          ))
+          <div className="col-span-full flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-gray-100 min-h-[400px]">
+            <div className="spinner scale-75"></div>
+            <p className="text-gray-400 font-medium animate-pulse mt-4">Loading batches...</p>
+          </div>
         ) : filteredBatches.length > 0 ? (
           filteredBatches.map((batch) => (
             <AnimatedContent key={batch.id}>

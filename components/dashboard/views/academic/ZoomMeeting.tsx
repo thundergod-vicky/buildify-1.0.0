@@ -6,8 +6,6 @@ import { auth } from '@/lib/auth';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { ChevronLeftIcon } from 'lucide-react';
 
-const SDK_KEY = process.env.NEXT_PUBLIC_ZOOM_SDK_KEY || 'n9S9NJJSSie0SGI_Ixgdwg';
-
 export function ZoomMeeting() {
     const searchParams = useSearchParams();
     const router = useRouter();
@@ -15,31 +13,31 @@ export function ZoomMeeting() {
     const role = parseInt(searchParams.get('role') || '0');
     const password = searchParams.get('password') || '';
 
-    const [status, setStatus] = useState<'loading' | 'joined' | 'error'>('loading');
+    const initialError = !meetingNumber ? 'Meeting ID is missing from the URL.' : null;
+
+    const [status, setStatus] = useState<'loading' | 'joined' | 'error'>(initialError ? 'error' : 'loading');
     const [statusMsg, setStatusMsg] = useState('Preparing classroom...');
-    const [error, setError] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(initialError);
     const iframeRef = useRef<HTMLIFrameElement>(null);
-    const startedRef = useRef(false);
     const user = auth.getUser();
 
     useEffect(() => {
-        if (!meetingNumber) {
-            setError('Meeting ID is missing from the URL.');
-            setStatus('error');
-            return;
-        }
+        if (initialError) return;
 
         const handleMessage = async (event: MessageEvent) => {
             const { type, message } = event.data || {};
 
             if (type === 'ZOOM_FRAME_READY') {
-                if (startedRef.current) return;
-                startedRef.current = true;
+                // To avoid "Duplicated join" (5012), only start if not already joined
+                if (status === 'joined') {
+                    console.log('[Zoom SDK] Frame ready but already joined. Skipping start.');
+                    return;
+                }
 
                 try {
                     setStatusMsg('Fetching meeting credentials...');
                     const token = auth.getToken() || '';
-                    const cleanMeetingNumber = meetingNumber.replace(/[^0-9]/g, '');
+                    const cleanMeetingNumber = (meetingNumber || '').replace(/[^0-9]/g, '');
 
                     const response = await api.post<{ signature: string, sdkKey: string }>('/zoom/signature', {
                         meetingNumber: cleanMeetingNumber,
@@ -82,41 +80,35 @@ export function ZoomMeeting() {
 
         window.addEventListener('message', handleMessage);
         return () => window.removeEventListener('message', handleMessage);
-    }, [meetingNumber, role, password, user?.name, user?.email]);
+    }, [initialError, meetingNumber, role, password, user?.name, user?.email, status]);
 
     return (
-        <div className="fixed inset-0 z-[9999] flex flex-col bg-[#1a1a1a] overflow-hidden">
-            {/* Header */}
-            <div className="flex items-center justify-between p-4 bg-[#242424] border-b border-white/10 z-10 shrink-0">
-                <div className="flex items-center gap-4">
-                    <button
-                        onClick={() => router.back()}
-                        className="p-2 hover:bg-white/5 rounded-xl transition-all group"
-                    >
-                        <ChevronLeftIcon className="w-5 h-5 text-gray-400 group-hover:text-white" />
-                    </button>
-                    <div>
-                        <h2 className="text-white font-semibold">Virtual Classroom</h2>
-                        <p className="text-xs text-gray-500">ID: {meetingNumber}</p>
-                    </div>
-                </div>
-
-                <div className="px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full">
-                    <span className="text-xs font-medium text-green-400 flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-                        {status === 'joined' ? 'In Meeting' : 'Connecting...'}
-                    </span>
+        <div className="fixed inset-0 z-[99999] bg-black overflow-hidden animate-in fade-in duration-700">
+            {/* Minimalist Floating Header Bar */}
+            <div className="absolute top-6 left-8 z-[100000] flex items-center pointer-events-none group">
+                <button
+                    onClick={() => router.back()}
+                    className="pointer-events-auto p-3 bg-black/40 hover:bg-white/10 text-white rounded-2xl backdrop-blur-2xl transition-all border border-white/10 group-hover:border-white/30 shadow-2xl"
+                    title="Exit Meeting"
+                >
+                    <ChevronLeftIcon className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+                </button>
+                <div className="ml-5 flex flex-col drop-shadow-lg scale-90 origin-left">
+                    <span className="text-white text-xs font-black tracking-[0.3em] uppercase opacity-90 leading-none mb-1">Virtual Classroom</span>
+                    <span className="text-white/40 text-[10px] uppercase tracking-[0.2em] font-bold">In Session • Room {meetingNumber}</span>
                 </div>
             </div>
 
             {/* Content Area */}
-            <div className="flex-1 relative bg-black min-h-0 overflow-hidden">
-                {/* Loading overlay */}
+            <div className="w-full h-full relative">
+                {/* Loading overlay - matched to Zoom black */}
                 {status === 'loading' && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#1a1a1a] z-50 pointer-events-none">
-                        <div className="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin mb-4" />
-                        <div className="text-white font-medium">Entering Classroom...</div>
-                        <div className="text-sm text-gray-400 mt-2 italic px-8 text-center">
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#1a1a1a] z-20">
+                        <div className="w-12 h-12 border-2 border-white/5 border-t-white/50 rounded-full animate-spin mb-6" />
+                        <div className="text-[10px] text-white/40 uppercase tracking-[0.4em] font-black animate-pulse">
+                            Establishing encrypted connection...
+                        </div>
+                        <div className="mt-4 text-[9px] text-white/20 uppercase tracking-widest font-bold">
                             {statusMsg}
                         </div>
                     </div>
@@ -124,40 +116,38 @@ export function ZoomMeeting() {
 
                 {/* Error view */}
                 {status === 'error' && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-red-500/5 p-8 text-center z-50">
-                        <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mb-6">
-                            <span className="text-red-500 text-3xl font-bold">!</span>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0a0a0a] p-12 text-center z-30">
+                        <div className="w-24 h-24 bg-red-500/5 rounded-3xl flex items-center justify-center mb-10 border border-red-500/10 scale-110">
+                            <span className="text-red-500 text-5xl font-black italic">!</span>
                         </div>
-                        <h3 className="text-white text-xl font-bold mb-4">Classroom Error</h3>
-                        <p className="text-gray-400 max-w-md mb-8 leading-relaxed">{error}</p>
+                        <h3 className="text-white text-3xl font-black mb-4 tracking-tighter">Connection Interrupted</h3>
+                        <p className="text-gray-500 max-w-md mb-12 text-sm font-medium leading-relaxed opacity-70 italic">&quot;{error}&quot;</p>
                         <div className="flex gap-4">
                             <button
                                 onClick={() => window.location.reload()}
-                                className="px-6 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl transition-all"
+                                className="px-10 py-4 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-2xl transition-all font-black uppercase text-xs tracking-widest"
                             >
-                                Retry Connection
+                                Reconnect
                             </button>
                             <button
                                 onClick={() => router.back()}
-                                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-medium shadow-lg shadow-blue-500/20 transition-all"
+                                className="px-10 py-4 bg-red-600/10 hover:bg-red-600/20 border border-red-500/20 text-red-500 rounded-2xl font-black uppercase text-xs tracking-widest shadow-2xl transition-all"
                             >
-                                Return to Dashboard
+                                Terminate
                             </button>
                         </div>
                     </div>
                 )}
 
-                {/* The isolated Zoom iframe — always present so it can fire ZOOM_FRAME_READY */}
-                <div className="absolute inset-0">
-                    <iframe
-                        ref={iframeRef}
-                        src="/zoom-frame.html"
-                        className="w-full h-full border-none block m-0 p-0"
-                        allow="camera; microphone; display-capture; fullscreen; autoplay"
-                        style={{ display: status === 'error' ? 'none' : 'block' }}
-                        title="Virtual Classroom"
-                    />
-                </div>
+                {/* The isolated Zoom iframe */}
+                <iframe
+                    ref={iframeRef}
+                    src="/zoom-frame.html"
+                    className="w-full h-full border-none block m-0 p-0"
+                    allow="camera; microphone; display-capture; fullscreen; autoplay"
+                    style={{ visibility: status === 'error' ? 'hidden' : 'visible' }}
+                    title="Virtual Classroom"
+                />
             </div>
         </div>
     );

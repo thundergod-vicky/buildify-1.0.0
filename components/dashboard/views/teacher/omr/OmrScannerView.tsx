@@ -204,7 +204,7 @@ export function OmrScannerView({ template, onBack }: OmrScannerViewProps) {
                              <EyeIcon className="size-5" />
                            </button>
                            <div className="size-10 flex items-center justify-center">
-                             {result.score / result.total >= 0.4 ? (
+                             {Math.max(0, result.score) / result.total >= 0.4 ? (
                                <CheckCircleIcon className="size-6 text-green-500" />
                              ) : (
                                <XCircleIcon className="size-6 text-red-500" />
@@ -331,7 +331,7 @@ export function OmrScannerView({ template, onBack }: OmrScannerViewProps) {
                  </div>
                  <div className="text-left">
                     <p className="text-sm text-gray-500 font-bold uppercase tracking-widest">Accuracy</p>
-                    <p className="text-2xl font-black text-blue-600">{Math.round((selectedResult.score / selectedResult.total) * 100)}%</p>
+                    <p className="text-2xl font-black text-blue-600">{Math.max(0, Math.round((selectedResult.score / selectedResult.total) * 100))}%</p>
                  </div>
               </div>
               <button
