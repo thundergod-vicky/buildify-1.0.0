@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { api } from '@/lib/api';
 import { auth } from '@/lib/auth';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { ChevronLeftIcon } from 'lucide-react';
+import { ArrowLeft, AlertCircle } from 'lucide-react';
 
 export function ZoomMeeting() {
     const searchParams = useSearchParams();
@@ -83,45 +83,54 @@ export function ZoomMeeting() {
     }, [initialError, meetingNumber, role, password, user?.name, user?.email, status]);
 
     return (
-        <div className="fixed inset-0 z-[99999] bg-black overflow-hidden animate-in fade-in duration-700">
-            {/* Minimalist Floating Header Bar */}
-            <div className="absolute top-6 left-8 z-[100000] flex items-center pointer-events-none group">
-                <button
-                    onClick={() => router.back()}
-                    className="pointer-events-auto p-3 bg-black/40 hover:bg-white/10 text-white rounded-2xl backdrop-blur-2xl transition-all border border-white/10 group-hover:border-white/30 shadow-2xl"
-                    title="Exit Meeting"
-                >
-                    <ChevronLeftIcon className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-                </button>
-                <div className="ml-5 flex flex-col drop-shadow-lg scale-90 origin-left">
-                    <span className="text-white text-xs font-black tracking-[0.3em] uppercase opacity-90 leading-none mb-1">Virtual Classroom</span>
-                    <span className="text-white/40 text-[10px] uppercase tracking-[0.2em] font-bold">In Session • Room {meetingNumber}</span>
+        <div className="fixed inset-0 z-[99999] bg-black overflow-hidden flex flex-col animate-in fade-in duration-700">
+            {/* Header (Stable top bar) */}
+            <div className="p-6 pb-2 flex items-center justify-between bg-gradient-to-b from-black/90 to-black/40 z-50">
+                <div className="flex items-center gap-4">
+                    <button 
+                        onClick={() => window.history.back()}
+                        className="bg-zinc-900/50 hover:bg-zinc-800 p-3 rounded-xl border border-zinc-800/50 transition-all pointer-events-auto group"
+                    >
+                        <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+                    </button>
+                    <div>
+                        <h1 className="text-sm font-black tracking-[0.2em] uppercase opacity-90">Virtual Classroom</h1>
+                        <p className="text-[10px] text-zinc-500 uppercase tracking-widest mt-0.5 font-medium">
+                            In Session • Room {meetingNumber}
+                        </p>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-6 pointer-events-auto">
+                    {status === 'joined' && (
+                        <div className="flex items-center gap-3 px-3 py-1.5 bg-green-500/10 border border-green-500/20 rounded-full">
+                            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                            <span className="text-[10px] font-bold text-green-500 uppercase tracking-widest">Live</span>
+                        </div>
+                    )}
                 </div>
             </div>
 
-            {/* Content Area */}
-            <div className="w-full h-full relative">
-                {/* Loading overlay - matched to Zoom black */}
-                {status === 'loading' && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#1a1a1a] z-20">
-                        <div className="w-12 h-12 border-2 border-white/5 border-t-white/50 rounded-full animate-spin mb-6" />
-                        <div className="text-[10px] text-white/40 uppercase tracking-[0.4em] font-black animate-pulse">
-                            Establishing encrypted connection...
-                        </div>
-                        <div className="mt-4 text-[9px] text-white/20 uppercase tracking-widest font-bold">
-                            {statusMsg}
+            {/* Main Content Area (Perfectly fitted below the header) */}
+            <div className="flex-1 relative bg-black overflow-hidden">
+                {(status === 'loading' || !status) && (
+                    <div className="absolute inset-0 z-[60] flex flex-col items-center justify-center bg-black/80 backdrop-blur-xl">
+                        <div className="w-12 h-12 border-2 border-zinc-800 border-t-white rounded-full animate-spin mb-6" />
+                        <div className="text-center">
+                            <h2 className="text-lg font-bold mb-2 tracking-tight">Joining Virtual Classroom</h2>
+                            <p className="text-sm text-zinc-400 animate-pulse">{statusMsg}</p>
                         </div>
                     </div>
                 )}
 
-                {/* Error view */}
                 {status === 'error' && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0a0a0a] p-12 text-center z-30">
-                        <div className="w-24 h-24 bg-red-500/5 rounded-3xl flex items-center justify-center mb-10 border border-red-500/10 scale-110">
-                            <span className="text-red-500 text-5xl font-black italic">!</span>
+                    <div className="absolute inset-0 z-[70] flex flex-col items-center justify-center bg-zinc-950 p-12 text-center">
+                        <div className="w-16 h-16 bg-red-500/10 rounded-2xl flex items-center justify-center mb-6">
+                            <AlertCircle className="w-8 h-8 text-red-500" />
                         </div>
-                        <h3 className="text-white text-3xl font-black mb-4 tracking-tighter">Connection Interrupted</h3>
-                        <p className="text-gray-500 max-w-md mb-12 text-sm font-medium leading-relaxed opacity-70 italic">&quot;{error}&quot;</p>
+                        <h2 className="text-xl font-bold mb-2">Classroom Connection Failed</h2>
+                        <p className="text-zinc-400 max-w-md mx-auto mb-10 text-sm leading-relaxed">{error}</p>
+                        
                         <div className="flex gap-4">
                             <button
                                 onClick={() => window.location.reload()}
