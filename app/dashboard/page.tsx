@@ -49,6 +49,7 @@ import { AccountsHome } from "@/components/dashboard/views/accounts/Home";
 import { AccountsRevenue } from "@/components/dashboard/views/accounts/Revenue";
 import { StudentDetails } from "@/components/dashboard/views/accounts/StudentDetails";
 import { BillingTemplate } from "@/components/dashboard/views/accounts/Billing";
+import { AccountsInvoices } from "@/components/dashboard/views/accounts/Invoices";
 
 // Shared Views
 import { NotificationsView } from "@/components/dashboard/views/shared/Notifications";
@@ -158,6 +159,7 @@ function DashboardContent() {
             case 'revenue': return <AccountsRevenue />;
             case 'student-details': return <StudentDetails />;
             case 'billing': return <BillingTemplate />;
+            case 'invoices': return <AccountsInvoices />;
             case 'settings': return <AdminSettings />;
             case 'messages': return <MessagesView />;
             default: return <AccountsHome />;

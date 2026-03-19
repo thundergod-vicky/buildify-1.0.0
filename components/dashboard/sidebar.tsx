@@ -63,6 +63,7 @@ function SidebarContent() {
     teachers:          { name: "Teacher Access",       icon: UsersIcon,        view: "teachers" },
     studentDetails:    { name: "Student Details",      icon: GraduationCapIcon,view: "student-details" },
     billing:           { name: "Billing Template",     icon: FileTextIcon,     view: "billing" },
+    invoices:          { name: "Invoices",             icon: FileTextIcon,     view: "invoices" },
     settings:          { name: "Settings",             icon: SettingsIcon,     view: "settings" },
   };
 
@@ -72,7 +73,7 @@ function SidebarContent() {
     [Role.ADMIN]:               [allItems.home, allItems.users, allItems.manageCourses, allItems.practiceTests, allItems.manageBatches, allItems.revenue, allItems.requests, allItems.messages, allItems.settings],
     [Role.PARENT]:              [allItems.home, allItems.performance, allItems.messages, allItems.settings],
     [Role.ACADEMIC_OPERATIONS]: [allItems.home, allItems.students, allItems.manageBatches, allItems.schedule, allItems.routine, allItems.exams, allItems.omr, allItems.doubts, allItems.teachers, allItems.settings],
-    [Role.ACCOUNTS]:            [allItems.home, allItems.revenue, allItems.studentDetails, allItems.billing, allItems.settings],
+    [Role.ACCOUNTS]:            [allItems.home, allItems.revenue, allItems.studentDetails, allItems.invoices, allItems.settings],
   };
 
   const filteredItems = roleMenus[user?.role?.toUpperCase() as Role] ?? [allItems.home, allItems.settings];

@@ -16,6 +16,8 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "gsap": "^3.14.2",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.7",
     "lenis": "^1.3.16",
     "lucide-react": "^0.562.0",
     "motion": "^12.23.26",

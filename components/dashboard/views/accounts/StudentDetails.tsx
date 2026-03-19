@@ -11,12 +11,22 @@ import {
     CalendarIcon,
     ArrowRightIcon,
     ChevronDownIcon,
-    WalletIcon
+    WalletIcon,
+    PrinterIcon,
+    FileTextIcon,
+    Trash2Icon,
+    DownloadIcon,
+    Settings2Icon,
+    HistoryIcon,
+    AlertCircleIcon
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "motion/react";
+import { InvoicePreviewModal } from "./InvoicePreviewModal";
+import { generateInvoicePdf, InvoiceData } from "@/lib/pdfGenerator";
+import { InvoiceView } from "./InvoiceView";
 
 interface StudentSummary {
     id: string;
@@ -59,6 +69,8 @@ export function StudentDetails() {
     const [selectedStudent, setSelectedStudent] = useState<StudentSummary | null>(null);
     const [studentPayments, setStudentPayments] = useState<PaymentRecord[]>([]);
     const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+    const [selectedStudentIds, setSelectedStudentIds] = useState<Set<string>>(new Set());
+    const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
 
     // Payment Form State
     const [isManualEntry, setIsManualEntry] = useState(false);
@@ -73,6 +85,45 @@ export function StudentDetails() {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const [allStudents, setAllStudents] = useState<StudentBasicInfo[]>([]);
+    
+    // Billing Templates for PDF Reciept Generation
+    const [templates, setTemplates] = useState<any[]>([]);
+    const [receiptTemplateId, setReceiptTemplateId] = useState("");
+    const [previewInvoiceData, setPreviewInvoiceData] = useState<InvoiceData | null>(null);
+    // Map of studentId -> latest invoice
+    const [studentInvoices, setStudentInvoices] = useState<Record<string, any>>({});
+
+    const fetchTemplates = async () => {
+        try {
+            const token = localStorage.getItem("auth_token") || "";
+            const data = await api.get<any[]>("/billing/templates", token);
+            if (data && Array.isArray(data)) {
+                setTemplates(data);
+                if (data.length > 0 && !receiptTemplateId) setReceiptTemplateId(data[0].id);
+            }
+        } catch (e) {
+            console.error("Failed to load templates", e);
+        }
+    };
+
+    const fetchStudentInvoices = async () => {
+        try {
+            const token = localStorage.getItem("auth_token") || "";
+            const data = await api.get<any[]>("/billing/invoices", token);
+            if (data && Array.isArray(data)) {
+                const map: Record<string, any> = {};
+                data.forEach((inv: any) => {
+                    // Keep most recent invoice per student
+                    if (!map[inv.studentId] || new Date(inv.createdAt) > new Date(map[inv.studentId].createdAt)) {
+                        map[inv.studentId] = inv;
+                    }
+                });
+                setStudentInvoices(map);
+            }
+        } catch (e) {
+            console.error("Failed to load invoices", e);
+        }
+    };
 
     const fetchSummaries = async () => {
         setIsLoading(true);
@@ -145,6 +196,15 @@ export function StudentDetails() {
     useEffect(() => {
         fetchSummaries();
         fetchAllStudents();
+        fetchTemplates();
+        fetchStudentInvoices();
+
+        const handleInvoiceRefresh = () => {
+            fetchStudentInvoices();
+            fetchSummaries();
+        };
+        window.addEventListener("refresh-student-invoices", handleInvoiceRefresh);
+        return () => window.removeEventListener("refresh-student-invoices", handleInvoiceRefresh);
     }, []);
 
     // Body scroll lock
@@ -175,6 +235,83 @@ export function StudentDetails() {
 
             await api.post("/payments", payload, auth.getToken() || "");
             setIsPaymentModalOpen(false);
+            
+            // Generate REAL Invoice if registered student and template is selected
+            if (receiptTemplateId && !isManualEntry && selectedStudentId) {
+                try {
+                    const token = auth.getToken() || "";
+                    const invoicePayload = {
+                        studentId: selectedStudentId,
+                        templateId: receiptTemplateId,
+                        amount: parseFloat(amount),
+                        paymentMethod: paymentMode,
+                        transactionId: payload.txRef,
+                        status: paymentStatus === 'SUCCESS' ? 'PAID' : 'PENDING',
+                        metadata: {
+                            description: description,
+                            paymentMode: paymentMode,
+                            refId: payload.txRef
+                        }
+                    };
+
+                    const inv = await api.post<any>("/billing/invoices", invoicePayload, token);
+                    
+                    // Refresh student invoices map
+                    fetchStudentInvoices();
+                    
+                    // Show the REAL invoice in preview (so delete works etc)
+                    setPreviewInvoiceData({
+                        id: inv.id,
+                        invoiceNumber: inv.invoiceNumber,
+                        issueDate: new Date(inv.createdAt),
+                        status: inv.status,
+                        institute: inv.template?.metadata?.institute || { name: "Adhyayan", address: "Education Hub, MG Road, Mumbai", logo: "/assets/images/brandlogo.png" },
+                        student: { 
+                            name: inv.student?.name || "Unknown", 
+                            enrollmentId: inv.student?.enrollmentId || "UNKNOWN", 
+                            course: inv.template?.name || "Fee Payment", 
+                            session: "Current", 
+                            contact: "-" 
+                        },
+                        payment: {
+                            baseFee: inv.amount,
+                            gstPercent: 0,
+                            gstAmount: inv.tax || 0,
+                            discountAmount: 0,
+                            grandTotal: inv.total || inv.amount
+                        },
+                        paymentMethod: inv.paymentMethod || "Cash"
+                    });
+                } catch (err) {
+                    console.error("Failed to auto-generate invoice:", err);
+                    alert("Payment recorded, but invoice generation failed. You can generate it manually from the table.");
+                }
+            } else if (receiptTemplateId && isManualEntry) {
+                // For manual entries, we still show a visual mock invoice (since no DB record can be created)
+                const tpl = templates.find(t => t.id === receiptTemplateId);
+                setPreviewInvoiceData({
+                    invoiceNumber: `REC-${Date.now()}`,
+                    issueDate: new Date(),
+                    status: "PAID",
+                    institute: tpl?.metadata?.institute || { name: "Adhyayan", address: "Education Hub, MG Road, Mumbai", logo: "/assets/images/brandlogo.png" },
+                    student: { 
+                        name: manualName, 
+                        enrollmentId: "MANUAL", 
+                        course: "External Payment", 
+                        session: "N/A", 
+                        contact: manualPhone 
+                    },
+                    payment: {
+                        baseFee: parseFloat(amount),
+                        gstPercent: 0,
+                        gstAmount: 0,
+                        discountAmount: 0,
+                        grandTotal: parseFloat(amount)
+                    },
+                    paymentMethod: paymentMode
+                });
+            }
+
             resetForm();
             fetchSummaries();
         } catch (error) {
@@ -228,6 +365,42 @@ export function StudentDetails() {
                         <PlusIcon className="size-5 group-hover:rotate-90 transition-transform duration-500" />
                         Record Transaction
                     </button>
+                    {selectedStudentIds.size > 0 && (
+                        <motion.button 
+                            initial={{ scale: 0.8, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                            onClick={() => setIsInvoiceModalOpen(true)}
+                            className="group flex items-center gap-3 px-6 py-4 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-slate-100 hover:bg-black transition-all duration-300 hover:-translate-y-0.5"
+                        >
+                            <FileTextIcon className="size-4" />
+                            Generate Invoices ({selectedStudentIds.size})
+                        </motion.button>
+                    )}
+                    {selectedStudentIds.size > 0 && (
+                        <motion.button 
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            onClick={async () => {
+                                if (confirm(`Are you sure you want to delete all invoices and payment history for the ${selectedStudentIds.size} selected students? This cannot be undone.`)) {
+                                    try {
+                                        await api.post("/billing/invoices/bulk-delete", { studentIds: Array.from(selectedStudentIds) }, localStorage.getItem("auth_token") || "");
+                                        setSelectedStudentIds(new Set());
+                                        window.dispatchEvent(new CustomEvent("refresh-student-invoices"));
+                                        window.dispatchEvent(new CustomEvent("refresh-accounts-home"));
+                                        fetchSummaries();
+                                        alert("Records deleted successfully.");
+                                    } catch (err) {
+                                        console.error(err);
+                                        alert("Failed to delete records.");
+                                    }
+                                }
+                            }}
+                            className="group flex items-center gap-3 px-6 py-4 bg-rose-50 text-rose-600 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-rose-100 shadow-xl shadow-rose-100/20 hover:bg-rose-600 hover:text-white transition-all duration-300 hover:-translate-y-0.5"
+                        >
+                            <Trash2Icon className="size-4" />
+                            Delete Records ({selectedStudentIds.size})
+                        </motion.button>
+                    )}
                 </div>
             </div>
 
@@ -262,6 +435,20 @@ export function StudentDetails() {
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="bg-slate-50/50 border-b border-slate-100">
+                                    <th className="px-6 py-5 text-[11px] font-bold uppercase tracking-widest text-slate-400">
+                                        <input 
+                                            type="checkbox" 
+                                            className="size-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                            checked={filteredSummaries.length > 0 && selectedStudentIds.size === filteredSummaries.length}
+                                            onChange={(e) => {
+                                                if (e.target.checked) {
+                                                    setSelectedStudentIds(new Set(filteredSummaries.map(s => s.id)));
+                                                } else {
+                                                    setSelectedStudentIds(new Set());
+                                                }
+                                            }}
+                                        />
+                                    </th>
                                     <th className="px-8 py-5 text-[11px] font-bold uppercase tracking-widest text-slate-400">Student Identity</th>
                                     <th className="px-8 py-5 text-[11px] font-bold uppercase tracking-widest text-slate-400">Ledger Balance</th>
                                     <th className="px-8 py-5 text-[11px] font-bold uppercase tracking-widest text-slate-400">Amount Paid</th>
@@ -292,7 +479,23 @@ export function StudentDetails() {
                                         </td>
                                     </tr>
                                 ) : filteredSummaries.map((s) => (
-                                    <tr key={s.id} className="hover:bg-indigo-50/[0.15] transition-colors duration-200 group">
+                                    <tr key={s.id} className={cn(
+                                        "hover:bg-indigo-50/[0.15] transition-colors duration-200 group",
+                                        selectedStudentIds.has(s.id) && "bg-indigo-50/30"
+                                    )}>
+                                        <td className="px-6 py-6">
+                                            <input 
+                                                type="checkbox" 
+                                                className="size-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                                checked={selectedStudentIds.has(s.id)}
+                                                onChange={() => {
+                                                    const next = new Set(selectedStudentIds);
+                                                    if (next.has(s.id)) next.delete(s.id);
+                                                    else next.add(s.id);
+                                                    setSelectedStudentIds(next);
+                                                }}
+                                            />
+                                        </td>
                                         <td className="px-8 py-6">
                                             <div className="flex items-center gap-5">
                                                 <div className={cn(
@@ -350,12 +553,50 @@ export function StudentDetails() {
                                             </div>
                                         </td>
                                         <td className="px-8 py-6 text-right">
-                                            <button 
-                                                onClick={() => fetchStudentHistory(s)}
-                                                className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-slate-50 rounded-xl transition-all"
-                                            >
-                                                <ArrowRightIcon className="size-5" />
-                                            </button>
+                                            <div className="flex items-center justify-end gap-1">
+                                                {studentInvoices[s.id] ? (
+                                                    <>
+                                                        <button
+                                                            onClick={() => {
+                                                                const inv = studentInvoices[s.id];
+                                                                setPreviewInvoiceData({
+                                                                    id: inv.id,
+                                                                    invoiceNumber: inv.invoiceNumber,
+                                                                    issueDate: new Date(inv.createdAt),
+                                                                    status: inv.status,
+                                                                    institute: templates[0]?.metadata?.institute || { name: "Adhyayan", address: "Education Hub, MG Road, Mumbai", logo: "/assets/images/brandlogo.png" },
+                                                                    student: { name: s.name, enrollmentId: s.enrollmentId || "N/A", course: s.batches[0]?.name || "N/A", session: "Current", contact: "-" },
+                                                                    payment: { baseFee: inv.amount, gstPercent: 0, gstAmount: inv.tax || 0, discountAmount: 0, grandTotal: inv.total || inv.amount },
+                                                                    paymentMethod: inv.paymentMethod || "Cash"
+                                                                });
+                                                            }}
+                                                            title="View Invoice"
+                                                            className="px-3 py-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5"
+                                                        >
+                                                            <FileTextIcon className="size-3" />
+                                                            Invoiced
+                                                        </button>
+                                                    </>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => {
+                                                            setSelectedStudentId(s.id);
+                                                            setIsManualEntry(false);
+                                                            setIsPaymentModalOpen(true);
+                                                        }}
+                                                        className="px-3 py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5"
+                                                    >
+                                                        <PlusIcon className="size-3" />
+                                                        Record Fee
+                                                    </button>
+                                                )}
+                                                <button 
+                                                    onClick={() => fetchStudentHistory(s)}
+                                                    className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-slate-50 rounded-xl transition-all"
+                                                >
+                                                    <ArrowRightIcon className="size-5" />
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
@@ -516,6 +757,33 @@ export function StudentDetails() {
                                             </div>
                                         </div>
 
+                                        {/* Auto-Receipt Generator Setting */}
+                                        <div className="space-y-3 pt-6 border-t border-slate-100 bg-indigo-50/30 -mx-10 px-10 pb-8 mt-4">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="size-5 bg-indigo-600 rounded-lg flex items-center justify-center text-white scale-90">
+                                                        <FileTextIcon className="size-3" />
+                                                    </div>
+                                                    <label className="text-[10px] font-black text-indigo-900 uppercase tracking-widest leading-none">Smart Invoice Generation</label>
+                                                </div>
+                                                <span className="text-[9px] font-bold text-indigo-400 uppercase tracking-tighter">Live Preview follows</span>
+                                            </div>
+                                            <div className="relative">
+                                                <select 
+                                                    value={receiptTemplateId}
+                                                    onChange={e => setReceiptTemplateId(e.target.value)}
+                                                    className="w-full pl-5 pr-10 py-3.5 bg-white border-2 border-indigo-100 rounded-xl outline-none focus:border-indigo-500 transition-all font-bold text-xs text-slate-700 appearance-none cursor-pointer shadow-sm shadow-indigo-100/50"
+                                                >
+                                                    <option value="">Do not generate receipt</option>
+                                                    {templates.map(t => (
+                                                        <option key={t.id} value={t.id}>{t.name} (Official Layout)</option>
+                                                    ))}
+                                                </select>
+                                                <ChevronDownIcon className="absolute right-5 top-1/2 -translate-y-1/2 size-4 text-indigo-400 pointer-events-none" />
+                                            </div>
+                                            <p className="text-[10px] text-indigo-400/80 font-medium italic mt-1 leading-relaxed px-1">&ldquo;Recording this transaction will automatically commit a new numbered invoice to the system.&rdquo;</p>
+                                        </div>
+
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">Notes</label>
                                             <textarea 
@@ -532,14 +800,16 @@ export function StudentDetails() {
                                     <button 
                                         disabled={isSubmitting}
                                         type="submit"
-                                        className="w-full py-4.5 bg-slate-900 text-white rounded-2xl font-bold uppercase tracking-[0.1em] text-xs hover:bg-black transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.98]"
+                                        className="w-full py-5 bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-[1.2rem] font-black uppercase tracking-[0.2em] text-[10px] hover:from-black hover:to-indigo-900 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 active:scale-[0.98] shadow-xl shadow-indigo-100 ring-4 ring-white"
                                     >
                                         {isSubmitting ? (
-                                            <div className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                            <div className="size-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                                         ) : (
                                             <>
-                                                <PlusIcon className="size-4" />
-                                                Add Transaction
+                                                <div className="size-6 bg-white/10 rounded-lg flex items-center justify-center">
+                                                    <FileTextIcon className="size-3.5" />
+                                                </div>
+                                                Record & Generate Invoice
                                             </>
                                         )}
                                     </button>
@@ -615,6 +885,31 @@ export function StudentDetails() {
                                                         <p className="text-xs font-bold text-slate-500 line-clamp-1 max-w-[150px]">{p.description || 'No description'}</p>
                                                     </div>
                                                     <div className="flex items-center gap-2">
+                                                        <button
+                                                            onClick={() => {
+                                                                const tpl = templates.length > 0 ? templates[0] : null;
+                                                                setPreviewInvoiceData({
+                                                                    invoiceNumber: `REC-${p.id.slice(-6).toUpperCase()}`,
+                                                                    issueDate: new Date(p.createdAt),
+                                                                    status: p.status === "SUCCESS" ? "PAID" : p.status,
+                                                                    institute: tpl?.metadata?.institute || { name: "Adhyayan Institute", address: "" },
+                                                                    student: { name: selectedStudent?.name || "Unknown", enrollmentId: selectedStudent?.enrollmentId || "Unknown", course: "Fee Payment", session: "Current", contact: "-" },
+                                                                    payment: {
+                                                                        baseFee: p.amount,
+                                                                        gstPercent: 0,
+                                                                        gstAmount: 0,
+                                                                        discountAmount: 0,
+                                                                        grandTotal: p.amount
+                                                                    },
+                                                                    paymentMethod: p.mode || "Cash",
+                                                                    remarks: p.description || ""
+                                                                });
+                                                            }}
+                                                            title="View Receipt"
+                                                            className="p-3 text-slate-300 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
+                                                        >
+                                                            <PrinterIcon className="size-5" />
+                                                        </button>
                                                         {p.status === 'PENDING' && (
                                                             <button 
                                                                 onClick={() => handleUpdateStatus(p.id, 'SUCCESS')}
@@ -626,6 +921,7 @@ export function StudentDetails() {
                                                         )}
                                                         <button 
                                                             onClick={() => handleDeletePayment(p.id)}
+                                                            title="Delete Record"
                                                             className="p-3 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
                                                         >
                                                             <XIcon className="size-5" />
@@ -641,6 +937,24 @@ export function StudentDetails() {
                     </div>
                 )}
             </AnimatePresence>
+
+            {/* Invoice Generation Modal */}
+            <InvoicePreviewModal 
+                isOpen={isInvoiceModalOpen}
+                onClose={() => {
+                    setIsInvoiceModalOpen(false);
+                    setSelectedStudentIds(new Set());
+                    fetchSummaries();
+                }}
+                selectedStudents={summaries.filter(s => selectedStudentIds.has(s.id))}
+            />
+
+            {/* Individual Invoice View Modal for Receipts */}
+            <InvoiceView 
+                isOpen={!!previewInvoiceData}
+                data={previewInvoiceData}
+                onClose={() => setPreviewInvoiceData(null)}
+            />
         </div>
     );
 }

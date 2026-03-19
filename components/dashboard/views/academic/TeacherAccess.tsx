@@ -10,7 +10,7 @@ export function TeacherAccess() {
   useEffect(() => {
     const fetchTeachers = async () => {
       try {
-        const data = await api.get<any[]>("/users/teachers", localStorage.getItem("token") || "");
+        const data = await api.get<any[]>("/users/teachers", localStorage.getItem("auth_token") || "");
         setTeachers(data);
       } catch (error) {
         console.error("Failed to fetch teachers:", error);

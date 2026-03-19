@@ -15,20 +15,37 @@ import { api } from "@/lib/api";
 
 export function AccountsHome() {
   const [studentCount, setStudentCount] = useState<number | null>(null);
+  const [summary, setSummary] = useState<any>(null);
+  const [recentInvoices, setRecentInvoices] = useState<any[]>([]);
 
   useEffect(() => {
+    const token = localStorage.getItem("auth_token") || "";
+    
     api
-      .get<any[]>("/users/students", localStorage.getItem("token") || "")
+      .get<any[]>("/users/students", token)
       .then((d) => setStudentCount(d.length))
       .catch(() => setStudentCount(null));
+
+    api
+      .get<any>("/billing/summary", token)
+      .then((d) => setSummary(d))
+      .catch(() => setSummary(null));
+
+    api
+      .get<any[]>("/billing/invoices", token)
+      .then((d) => setRecentInvoices(d.slice(0, 4)))
+      .catch(() => setRecentInvoices([]));
   }, []);
 
-  const alerts = [
-    { label: "Fee overdue — Batch Gamma (12 students)", type: "critical", time: "1h ago" },
-    { label: "New billing template pending approval", type: "warning", time: "3h ago" },
-    { label: "Invoice #INV-0156 cleared successfully", type: "success", time: "5h ago" },
-    { label: "Quarterly report due in 3 days", type: "warning", time: "Yesterday" },
-  ];
+  const alerts = recentInvoices.map(inv => ({
+    label: `Invoice ${inv.invoiceNumber} — ${inv.status}`,
+    type: inv.status === "PAID" ? "success" : inv.status === "PENDING" ? "warning" : "critical",
+    time: new Date(inv.createdAt).toLocaleDateString()
+  }));
+
+  if (alerts.length === 0) {
+    alerts.push({ label: "No recent invoicing activity", type: "warning", time: "Now" });
+  }
 
   const quickActions = [
     { label: "View Revenue", icon: TrendingUpIcon, view: "revenue", color: "emerald" },
@@ -61,9 +78,9 @@ export function AccountsHome() {
           <div className="grid grid-cols-2 gap-4 min-w-[300px]">
             {[
               { label: "Total Students", value: studentCount !== null ? studentCount.toString() : "...", color: "bg-white/5" },
-              { label: "Outstanding", value: "₹82,400", color: "bg-rose-500/10" },
-              { label: "Cleared Today", value: "₹1.4L", color: "bg-emerald-500/10" },
-              { label: "Invoices", value: "156", color: "bg-indigo-500/10" },
+              { label: "Outstanding", value: summary ? `₹${summary.outstandingAmount.toLocaleString()}` : "...", color: "bg-rose-500/10" },
+              { label: "Cleared Today", value: summary ? `₹${summary.clearedTodayAmount.toLocaleString()}` : "...", color: "bg-emerald-500/10" },
+              { label: "Invoices", value: summary ? summary.totalInvoices.toString() : "...", color: "bg-indigo-500/10" },
             ].map((s, i) => (
               <div key={i} className={`${s.color} backdrop-blur-md border border-white/10 rounded-[2rem] p-5 space-y-1`}>
                 <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">{s.label}</p>
