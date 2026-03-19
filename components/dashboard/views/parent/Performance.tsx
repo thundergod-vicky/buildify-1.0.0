@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api";
 import { auth } from "@/lib/auth";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { PracticeTestResult } from "@/types";
+import { PracticeTestResult, User } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Trophy, BookOpen, Clock, AlertCircle } from "lucide-react";
 import { TestResultModal } from "./TestResultModal";
@@ -17,7 +18,10 @@ export function ParentPerformance() {
   const [selectedResult, setSelectedResult] =
     useState<PracticeTestResult | null>(null);
 
-  const linkedStudents = user?.parentOf?.map((p) => p.student) || [];
+  const linkedStudents = useMemo(() => 
+    user?.parentOf?.map((p) => p.student as User) || [], 
+  [user?.parentOf]);
+
   const [selectedStudentId, setSelectedStudentId] = useState<string>("");
 
   useEffect(() => {
@@ -58,29 +62,49 @@ export function ParentPerformance() {
 
   return (
     <div className="p-8 space-y-8 max-w-7xl mx-auto">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <h1 className="text-3xl font-bold font-urbanist text-gray-900">
-          Performance Report
-        </h1>
+    <div className="flex flex-col gap-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <h1 className="text-3xl font-bold font-urbanist text-gray-900">
+            Performance Report
+          </h1>
 
-        {linkedStudents.length > 1 && (
-          <div className="flex items-center gap-3 bg-white p-2 border border-gray-100 rounded-xl shadow-sm">
-            <span className="text-sm font-medium text-gray-500 ml-2">
-              Viewing:
-            </span>
-            <select
-              value={selectedStudentId}
-              onChange={(e) => setSelectedStudentId(e.target.value)}
-              className="bg-transparent font-semibold text-blue-600 focus:outline-none cursor-pointer pr-4"
-            >
-              {linkedStudents.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name}
-                </option>
-              ))}
-            </select>
+          <div className="flex items-center gap-2 text-sm text-gray-500 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100 italic">
+            <AlertCircle className="size-4 text-blue-500" />
+            Showing detailed metrics for the selected student
           </div>
-        )}
+        </div>
+
+        {/* Enhanced Student Switcher */}
+        <div className="flex flex-wrap gap-3">
+          {linkedStudents.map((student) => {
+            const isActive = student.id === selectedStudentId;
+            return (
+              <button
+                key={student.id}
+                onClick={() => setSelectedStudentId(student.id)}
+                className={cn(
+                  "flex items-center gap-3 px-4 py-2.5 rounded-2xl border transition-all duration-300",
+                  isActive
+                    ? "bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-200 ring-2 ring-blue-600/20"
+                    : "bg-white border-gray-200 text-gray-600 hover:border-blue-300 hover:bg-blue-50/50"
+                )}
+              >
+                <div className={cn(
+                  "size-8 rounded-lg flex items-center justify-center font-bold text-xs uppercase",
+                  isActive ? "bg-white/20" : "bg-gray-100"
+                )}>
+                  {student.name?.[0] || "?"}
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-bold leading-tight">{student.name}</p>
+                  <p className={cn("text-[10px]", isActive ? "text-blue-100" : "text-gray-400")}>
+                    {student.enrollmentId || student.email}
+                  </p>
+                </div>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {isLoading ? (

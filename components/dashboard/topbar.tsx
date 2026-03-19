@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from "react";
 import { 
-    SearchIcon, 
     BellIcon, 
     UserIcon, 
     ChevronDownIcon, 
@@ -23,8 +22,10 @@ import {
     CheckCircleIcon,
     InfoIcon,
     AlertTriangleIcon,
-    Loader2Icon
+    Loader2Icon,
+    SparklesIcon,
 } from "lucide-react";
+import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { Role, ProfileSettings } from "@/types";
 import Link from "next/link";
@@ -56,6 +57,7 @@ export default function Topbar() {
         showCourses: true,
         showTestResults: true,
     });
+    const [currentTime, setCurrentTime] = useState(new Date());
     
     const menuRef = useRef<HTMLDivElement>(null);
     const notificationsRef = useRef<HTMLDivElement>(null);
@@ -147,6 +149,8 @@ export default function Topbar() {
 
     useEffect(() => {
         fetchNotifications();
+        const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+        return () => clearInterval(timer);
     }, []);
 
     const markAsRead = async (id: string) => {
@@ -161,20 +165,53 @@ export default function Topbar() {
     };
 
     const unreadCount = notifications.filter(n => !n.isRead).length;
+    
+    const timeBasedGreeting = () => {
+        const hour = new Date().getHours();
+        if (hour < 12) return { text: "Good Morning", icon: "", color: "text-amber-500" };
+        if (hour < 17) return { text: "Good Afternoon", icon: "", color: "text-blue-500" };
+        if (hour < 21) return { text: "Good Evening", icon: "", color: "text-indigo-500" };
+        return { text: "Late Night", color: "text-purple-500" };
+    };
+
+    const greeting = timeBasedGreeting();
 
     return (
         <header className="h-20 bg-white border-b border-gray-100 flex items-center justify-between px-8 sticky top-0 z-50">
-            <div className="flex-1 max-w-xl">
-                <div className="relative group">
-                    <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-5 text-gray-400 group-focus-within:text-blue-600 transition-colors" />
-                    <input 
-                        type="text" 
-                        placeholder="Search for courses, tests, or resources..." 
-                        className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-transparent rounded-xl focus:outline-none focus:bg-white focus:border-blue-200 focus:ring-4 focus:ring-blue-50 transition-all"
-                    />
-                </div>
+            <div className="flex-1 max-w-xl flex items-center overflow-hidden">
+                <motion.div 
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="relative px-3 py-1 group"
+                >
+                    <div className="absolute -inset-x-12 inset-y-0 bg-blue-50/20 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+                    <div className="relative">
+                        <div className="flex items-center gap-2">
+                            <motion.span 
+                                animate={{ 
+                                    scale: [1, 1.2, 1],
+                                    rotate: [0, 10, -10, 0]
+                                }}
+                                transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
+                                className="text-lg"
+                            >
+                                {greeting.icon}
+                            </motion.span>
+                            <h2 className="text-lg font-black text-gray-900 tracking-tight leading-none">
+                                {greeting.text}, <span className="text-blue-600">{user?.name ? user.name.split(' ')[0] : 'Scholar'}</span>
+                            </h2>
+                        </div>
+                        
+                        <div className="flex items-center gap-2 mt-1 px-1">
+                            <div className="size-1 bg-blue-400 rounded-full animate-pulse shadow-sm shadow-blue-200"></div>
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">
+                                {user?.role.replace(/_/g, ' ')} Session <span className="text-blue-500 ml-1">• LIVE</span> • {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                            </p>
+                            <SparklesIcon className="size-2 text-yellow-400 animate-bounce" />
+                        </div>
+                    </div>
+                </motion.div>
             </div>
-
             <div className="flex items-center gap-4">
                 <div className="relative" ref={notificationsRef}>
                     <button 

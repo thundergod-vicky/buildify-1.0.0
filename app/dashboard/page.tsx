@@ -12,6 +12,8 @@ import { StudentPerformance } from "@/components/dashboard/views/student/Perform
 import { StudentSchedule } from "@/components/dashboard/views/student/Schedule";
 import { StudentSettings } from "@/components/dashboard/views/student/Settings";
 import { StudentBatches } from "@/components/dashboard/views/student/Batches";
+import { StudentExams } from "@/components/dashboard/views/student/Exams";
+import { ExamInterface } from "@/components/dashboard/views/student/ExamInterface";
 
 // Teacher Views
 import { TeacherHome } from "@/components/dashboard/views/teacher/Home";
@@ -41,8 +43,6 @@ import { AcademicHome } from "@/components/dashboard/views/academic/Home";
 import { ClassRoutine } from "@/components/dashboard/views/academic/Routine";
 import { AcademicSchedule } from "@/components/dashboard/views/academic/Schedule";
 import { ExamSchedules } from "@/components/dashboard/views/academic/Exams";
-import { DoubtAccess } from "@/components/dashboard/views/academic/Doubts";
-import { TeacherAccess } from "@/components/dashboard/views/academic/TeacherAccess";
 
 // Accounts Views
 import { AccountsHome } from "@/components/dashboard/views/accounts/Home";
@@ -71,6 +71,7 @@ function DashboardContent() {
     const { user, isLoading } = useAuth();
     const searchParams = useSearchParams();
     const currentView = searchParams.get("view");
+    const examId = searchParams.get("id");
 
     console.log("Current View:", currentView);
     console.log("User Role:", user?.role);
@@ -93,6 +94,8 @@ function DashboardContent() {
             case 'notifications': return <NotificationsView />;
             case 'messages': return <MessagesView />;
             case 'batches': return <StudentBatches />;
+            case 'exams': return <StudentExams />;
+            case 'take-exam': return examId ? <ExamInterface examId={examId} onBack={() => window.location.href='/dashboard?view=exams'} /> : <StudentExams />;
             default: return <StudentHome />;
         }
     }
@@ -109,6 +112,7 @@ function DashboardContent() {
             case 'batches': return <TeacherBatches />;
             case 'omr': return <OmrDashboard />;
             case 'schedule': return <TeacherSchedule />;
+            case 'exams': return <ExamSchedules />;
             default: return <TeacherHome />;
         }
     }
@@ -134,6 +138,7 @@ function DashboardContent() {
             case 'notifications': return <NotificationsView />;
             case 'messages': return <MessagesView />;
             case 'manage-batches': return <AdminBatchManagement />;
+            case 'exams': return <ExamSchedules />;
             default: return <AdminHome />;
         }
     }
@@ -143,11 +148,12 @@ function DashboardContent() {
             case 'routine': return <ClassRoutine />;
             case 'schedule': return <AcademicSchedule />;
             case 'exams': return <ExamSchedules />;
-            case 'doubts': return <DoubtAccess />;
-            case 'teachers': return <TeacherAccess />;
+            case 'users': return <AdminUserManagement />;
+            case 'requests': return <AdminRequests />;
             case 'students': return <TeacherStudentManagement />;
+            case 'manage-courses': return <AdminCourseManagement />;
             case 'manage-batches': return <AdminBatchManagement />;
-            case 'settings': return <TeacherSettings />;
+            case 'settings': return <AdminSettings />;
             case 'messages': return <MessagesView />;
             case 'omr': return <OmrDashboard />;
             default: return <AcademicHome />;

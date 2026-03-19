@@ -1,7 +1,10 @@
-import { useState } from 'react';
-import { XIcon, Loader2Icon } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { XIcon, Loader2Icon, UserIcon } from 'lucide-react';
 import { coursesApi } from '@/lib/courses';
-import { CourseType } from '@/types';
+import { CourseType, Role } from '@/types';
+import { useAuth } from '@/contexts/AuthContext';
+import { api } from '@/lib/api';
+import { auth } from '@/lib/auth';
 
 interface CourseCreateModalProps {
     isOpen: boolean;
@@ -10,12 +13,33 @@ interface CourseCreateModalProps {
 }
 
 export function CourseCreateModal({ isOpen, onClose, onSuccess }: CourseCreateModalProps) {
+    const { user } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
+    const [teachers, setTeachers] = useState<any[]>([]);
     const [formData, setFormData] = useState({
         title: '',
         description: '',
         courseType: CourseType.PUBLIC as CourseType,
+        teacherId: '',
     });
+
+    const isAdminOrOps = user?.role === Role.ADMIN || user?.role === Role.ACADEMIC_OPERATIONS;
+
+    useEffect(() => {
+        if (isOpen && isAdminOrOps) {
+            fetchTeachers();
+        }
+    }, [isOpen]);
+
+    const fetchTeachers = async () => {
+        try {
+            const token = auth.getToken();
+            const data = await api.get<any[]>('/users', token); // Assuming /users has a way to filter or just take all and filter in frontend
+            setTeachers(data.filter(u => u.role === Role.TEACHER));
+        } catch (error) {
+            console.error('Failed to fetch teachers:', error);
+        }
+    };
 
     if (!isOpen) return null;
 
@@ -55,6 +79,26 @@ export function CourseCreateModal({ isOpen, onClose, onSuccess }: CourseCreateMo
                             placeholder="e.g., Advanced Mathematics"
                         />
                     </div>
+
+                    {isAdminOrOps && (
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Assigned Teacher</label>
+                            <div className="relative group">
+                                <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-gray-400 group-focus-within:text-indigo-500 transition-colors" />
+                                <select
+                                    required={isAdminOrOps}
+                                    value={formData.teacherId}
+                                    onChange={(e) => setFormData({ ...formData, teacherId: e.target.value })}
+                                    className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 appearance-none transition-all"
+                                >
+                                    <option value="">Select a teacher...</option>
+                                    {teachers.map((t) => (
+                                        <option key={t.id} value={t.id}>{t.name} ({t.email})</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+                    )}
 
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700">Description</label>

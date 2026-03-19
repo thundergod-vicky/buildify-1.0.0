@@ -46,7 +46,7 @@ function SidebarContent() {
     courses:           { name: "My Courses",           icon: BookOpenIcon,     view: "courses" },
     tests:             { name: "Practice Tests",       icon: FileTextIcon,     view: "tests" },
     performance:       { name: "Performance",          icon: BarChart2Icon,    view: "performance" },
-    schedule:          { name: "Schedule",             icon: CalendarIcon,     view: "schedule" },
+    schedule:          { name: "Calendar View",        icon: CalendarIcon,     view: "schedule" },
     messages:          { name: "Messages",             icon: MessageSquareIcon,view: "messages" },
     batches:           { name: "My Batches",           icon: LayersIcon,       view: "batches" },
     students:          { name: "Student Management",   icon: GraduationCapIcon,view: "students" },
@@ -68,11 +68,11 @@ function SidebarContent() {
   };
 
   const roleMenus: Record<string, typeof allItems[keyof typeof allItems][]> = {
-    [Role.STUDENT]:             [allItems.home, allItems.courses, allItems.tests, allItems.performance, allItems.schedule, allItems.messages, allItems.batches, allItems.settings],
-    [Role.TEACHER]:             [allItems.home, allItems.courses, allItems.tests, allItems.students, allItems.batches, allItems.omr, allItems.schedule, allItems.messages, allItems.settings],
-    [Role.ADMIN]:               [allItems.home, allItems.users, allItems.manageCourses, allItems.practiceTests, allItems.manageBatches, allItems.revenue, allItems.requests, allItems.messages, allItems.settings],
+    [Role.STUDENT]:             [allItems.home, allItems.courses, allItems.tests, allItems.performance, allItems.schedule, allItems.exams, allItems.messages, allItems.batches, allItems.settings],
+    [Role.TEACHER]:             [allItems.home, allItems.courses, allItems.tests, allItems.students, allItems.batches, allItems.omr, allItems.schedule, allItems.exams, allItems.messages, allItems.settings],
+    [Role.ADMIN]:               [allItems.home, allItems.users, allItems.manageCourses, allItems.practiceTests, allItems.manageBatches, allItems.exams, allItems.revenue, allItems.requests, allItems.messages, allItems.settings],
     [Role.PARENT]:              [allItems.home, allItems.performance, allItems.messages, allItems.settings],
-    [Role.ACADEMIC_OPERATIONS]: [allItems.home, allItems.students, allItems.manageBatches, allItems.schedule, allItems.routine, allItems.exams, allItems.omr, allItems.doubts, allItems.teachers, allItems.settings],
+    [Role.ACADEMIC_OPERATIONS]: [allItems.home, allItems.users, allItems.manageCourses, allItems.students, allItems.manageBatches, allItems.requests, allItems.schedule, allItems.routine, allItems.exams, allItems.omr, allItems.settings],
     [Role.ACCOUNTS]:            [allItems.home, allItems.revenue, allItems.studentDetails, allItems.invoices, allItems.settings],
   };
 

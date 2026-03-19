@@ -267,14 +267,14 @@ export function SettingsForm() {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                readOnly={user?.role === 'ACCOUNTS'}
+                readOnly={user?.role !== 'ADMIN'}
                 className={`w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all ${
-                  user?.role === 'ACCOUNTS' ? 'bg-gray-50 text-gray-500 cursor-not-allowed font-semibold' : ''
+                  user?.role !== 'ADMIN' ? 'bg-gray-50 text-gray-500 cursor-not-allowed font-semibold' : ''
                 }`}
                 placeholder="name@example.com"
               />
             </div>
-            {user?.role === 'ACCOUNTS' && (
+            {user?.role !== 'ADMIN' && (
               <p className="mt-1 text-[10px] text-rose-500 font-bold uppercase tracking-wider">
                 Note: Only Admins can modify your email address.
               </p>
@@ -292,14 +292,14 @@ export function SettingsForm() {
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                readOnly={user?.role === 'ACCOUNTS'}
+                readOnly={user?.role !== 'ADMIN'}
                 className={`w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all ${
-                  user?.role === 'ACCOUNTS' ? 'bg-gray-50 text-gray-500 cursor-not-allowed font-semibold' : ''
+                  user?.role !== 'ADMIN' ? 'bg-gray-50 text-gray-500 cursor-not-allowed font-semibold' : ''
                 }`}
                 placeholder="+1 234 567 890"
               />
             </div>
-            {user?.role === 'ACCOUNTS' && (
+            {user?.role !== 'ADMIN' && (
               <p className="mt-1 text-[10px] text-rose-500 font-bold uppercase tracking-wider">
                 Note: Only Admins can modify your phone number.
               </p>

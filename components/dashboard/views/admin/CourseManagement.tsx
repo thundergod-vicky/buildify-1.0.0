@@ -8,10 +8,13 @@ import { api } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import Link from "next/link";
 
+import { CourseCreateModal } from "../teacher/CourseCreateModal";
+
 export function AdminCourseManagement() {
   const [courses, setCourses] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
@@ -63,9 +66,18 @@ export function AdminCourseManagement() {
 
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 font-urbanist">Course Oversight</h1>
-        <p className="text-gray-500 mt-1">Audit, monitor, and manage all educational content on the platform</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 font-urbanist">Course Oversight</h1>
+          <p className="text-gray-500 mt-1">Audit, monitor, and manage all educational content on the platform</p>
+        </div>
+        <button
+          onClick={() => setIsCreateModalOpen(true)}
+          className="flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-2xl hover:bg-purple-700 transition-all shadow-lg shadow-purple-200 font-black text-xs uppercase tracking-widest"
+        >
+          <BookOpenIcon className="size-4" />
+          Create New Course
+        </button>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
@@ -179,6 +191,17 @@ export function AdminCourseManagement() {
             </div>
           ))}
         </div>
+      )}
+
+      {isCreateModalOpen && (
+        <CourseCreateModal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          onSuccess={() => {
+            setIsCreateModalOpen(false);
+            fetchCourses();
+          }}
+        />
       )}
         <ConfirmationModal
             isOpen={confirmModal.isOpen}

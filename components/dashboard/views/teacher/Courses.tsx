@@ -45,24 +45,19 @@ export function TeacherCourses() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">My Courses</h1>
-                    <p className="text-gray-500 mt-1">Manage your courses and content</p>
+                    <p className="text-gray-500 mt-1">Access and manage your assigned courses</p>
                 </div>
-                <button
-                    onClick={() => setIsCreateModalOpen(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200"
-                >
-                    <PlusIcon className="size-5" />
-                    Create Course
-                </button>
             </div>
 
             {isLoading ? (
                 <div className="text-center py-12">Loading...</div>
             ) : courses.length === 0 ? (
-                <div className="text-center py-12 bg-gray-50 rounded-3xl border border-dashed border-gray-200">
-                    <BookOpenIcon className="size-12 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900">No courses yet</h3>
-                    <p className="text-gray-500 mt-1">Create your first course to get started</p>
+                <div className="text-center py-20 bg-gray-50 rounded-[2.5rem] border border-gray-100 shadow-inner">
+                    <div className="size-20 bg-white rounded-3xl shadow-sm flex items-center justify-center mx-auto mb-6">
+                        <BookOpenIcon className="size-10 text-gray-200" />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900">No active courses</h3>
+                    <p className="text-gray-500 mt-2 max-w-xs mx-auto">You haven't been assigned any courses yet. Contact your administrator to get started.</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

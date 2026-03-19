@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { SearchIcon, UserCogIcon, ShieldCheckIcon, Trash2Icon, MailIcon, CalendarIcon, UsersIcon, SaveIcon, XIcon, PhoneIcon, Loader2Icon } from "lucide-react";
+import { SearchIcon, UserCogIcon, ShieldCheckIcon, Trash2Icon, MailIcon, CalendarIcon, UsersIcon, SaveIcon, XIcon, PhoneIcon, Loader2Icon, Lock } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { showToast } from "@/lib/toast";
 import { ConfirmationModal } from "@/components/ui/confirmation-modal";
 import { User, Role } from "@/types"; // Added Role import
 import { api } from "@/lib/api";
 import { auth } from "@/lib/auth";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Define UserWithCounts interface based on the instruction and context
 interface UserWithCounts extends User {
@@ -21,6 +22,7 @@ interface UserWithCounts extends User {
 const ROLES = ["STUDENT", "TEACHER", "PARENT", "ADMIN", "ACADEMIC_OPERATIONS", "ACCOUNTS"];
 
 export function AdminUserManagement() {
+  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<UserWithCounts[]>([]); // Changed any[] to UserWithCounts[]
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -34,6 +36,20 @@ export function AdminUserManagement() {
   const [editIdValue, setEditIdValue] = useState("");
   const [editingUser, setEditingUser] = useState<UserWithCounts | null>(null);
   const [isUpdatingUser, setIsUpdatingUser] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isCreatingUser, setIsCreatingUser] = useState(false);
+  const [newUser, setNewUser] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    password: "Password@123",
+    role: "STUDENT" as Role
+  });
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    isOpen: boolean;
+    userId: string;
+    userName: string;
+  }>({ isOpen: false, userId: "", userName: "" });
 
   useEffect(() => {
     fetchUsers();
@@ -113,12 +129,63 @@ export function AdminUserManagement() {
     }
   };
 
-  const filteredUsers = users.filter(
-    (u) =>
+  const handleDeleteUser = async (userId: string) => {
+    setUpdatingId(userId);
+    try {
+      const token = auth.getToken();
+      if (!token) return;
+
+      await api.delete(`/admin/users/${userId}`, token);
+      showToast.success("User deleted successfully");
+      fetchUsers();
+    } catch (error) {
+      console.error("Delete failed:", error);
+      showToast.error("Failed to delete user");
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const handleCreateUser = async () => {
+    setIsCreatingUser(true);
+    try {
+      const token = auth.getToken();
+      if (!token) return;
+
+      await api.post('/admin/users', newUser, token);
+      showToast.success("User created successfully");
+      setIsAddModalOpen(false);
+      setNewUser({
+        name: "",
+        email: "",
+        phone: "",
+        password: "Password@123",
+        role: "STUDENT" as Role
+      });
+      fetchUsers();
+    } catch (error) {
+      console.error("Creation failed:", error);
+      showToast.error("Failed to create user");
+    } finally {
+      setIsCreatingUser(false);
+    }
+  };
+
+  const filteredUsers = users.filter((u) => {
+    const matchesSearch =
       u.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       u.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      u.enrollmentId?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+      u.enrollmentId?.toLowerCase().includes(searchQuery.toLowerCase());
+
+    if (!matchesSearch) return false;
+
+    // Security: Operations should not see/manage Admin accounts
+    if (currentUser?.role === Role.ACADEMIC_OPERATIONS) {
+      return u.role !== Role.ADMIN;
+    }
+
+    return true;
+  });
 
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-8">
@@ -139,8 +206,15 @@ export function AdminUserManagement() {
             />
         </div>
         <div className="flex gap-2">
-            <div className="px-4 py-2 bg-indigo-50 text-indigo-700 rounded-lg text-sm font-bold border border-indigo-100">
-                {users.length} Total Users
+            <button 
+                onClick={() => setIsAddModalOpen(true)}
+                className="px-6 py-3 bg-indigo-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all flex items-center gap-2"
+            >
+                <UsersIcon className="size-4" />
+                Add New User
+            </button>
+            <div className="px-4 py-3 bg-indigo-50 text-indigo-700 rounded-lg text-sm font-bold border border-indigo-100 flex items-center">
+                {filteredUsers.length} Total Users
             </div>
         </div>
       </div>
@@ -264,7 +338,7 @@ export function AdminUserManagement() {
                                         'bg-blue-50 border-blue-200 text-blue-700'
                                     }`}
                                 >
-                                    {ROLES.map(role => (
+                                    {ROLES.filter(r => currentUser?.role !== Role.ACADEMIC_OPERATIONS || r !== 'ADMIN').map(role => (
                                         <option key={role} value={role}>{role}</option>
                                     ))}
                                 </select>
@@ -295,7 +369,14 @@ export function AdminUserManagement() {
                                             >
                                                 <UserCogIcon className="size-4" />
                                             </button>
-                                            <button className="p-3 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-rose-600 hover:border-rose-100 hover:bg-rose-50 transition-all shadow-sm">
+                                            <button 
+                                                onClick={() => setDeleteConfirm({
+                                                    isOpen: true,
+                                                    userId: user.id,
+                                                    userName: user.name || "this user"
+                                                })}
+                                                className="p-3 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-rose-600 hover:border-rose-100 hover:bg-rose-50 transition-all shadow-sm"
+                                            >
                                                 <Trash2Icon className="size-4" />
                                             </button>
                                         </>
@@ -362,10 +443,16 @@ export function AdminUserManagement() {
                                         value={editingUser.email || ""} 
                                         onChange={e => setEditingUser({...editingUser, email: e.target.value})}
                                         type="email"
-                                        className="w-full pl-12 pr-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl outline-none focus:border-indigo-500 focus:bg-white transition-all font-bold text-sm text-slate-700 shadow-inner"
+                                        readOnly={currentUser?.role !== Role.ADMIN}
+                                        className={`w-full pl-12 pr-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl outline-none focus:border-indigo-500 focus:bg-white transition-all font-bold text-sm text-slate-700 shadow-inner ${
+                                            currentUser?.role !== Role.ADMIN ? 'opacity-60 cursor-not-allowed' : ''
+                                        }`}
                                         placeholder="user@example.com"
                                     />
                                 </div>
+                                {currentUser?.role !== Role.ADMIN && (
+                                    <p className="text-[9px] font-bold text-rose-500 uppercase tracking-tighter mt-1 ml-1">Admin level clearance required to modify email</p>
+                                )}
                             </div>
                             <div className="space-y-2">
                                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">Phone Number</label>
@@ -375,10 +462,16 @@ export function AdminUserManagement() {
                                         value={editingUser.phone || ""} 
                                         onChange={e => setEditingUser({...editingUser, phone: e.target.value})}
                                         type="tel"
-                                        className="w-full pl-12 pr-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl outline-none focus:border-indigo-500 focus:bg-white transition-all font-bold text-sm text-slate-700 shadow-inner"
+                                        readOnly={currentUser?.role !== Role.ADMIN}
+                                        className={`w-full pl-12 pr-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl outline-none focus:border-indigo-500 focus:bg-white transition-all font-bold text-sm text-slate-700 shadow-inner ${
+                                            currentUser?.role !== Role.ADMIN ? 'opacity-60 cursor-not-allowed' : ''
+                                        }`}
                                         placeholder="+91 XXXXX XXXXX"
                                     />
                                 </div>
+                                {currentUser?.role !== Role.ADMIN && (
+                                    <p className="text-[9px] font-bold text-rose-500 uppercase tracking-tighter mt-1 ml-1">Admin level clearance required to modify phone</p>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -397,6 +490,128 @@ export function AdminUserManagement() {
                         >
                             {isUpdatingUser ? <Loader2Icon className="size-4 animate-spin" /> : <SaveIcon className="size-4" />}
                             Commit Changes
+                        </button>
+                    </div>
+                </motion.div>
+            </div>
+        )}
+      </AnimatePresence>
+
+      <ConfirmationModal
+        isOpen={deleteConfirm.isOpen}
+        onClose={() => setDeleteConfirm({ ...deleteConfirm, isOpen: false })}
+        onConfirm={() => {
+            setDeleteConfirm({ ...deleteConfirm, isOpen: false });
+            handleDeleteUser(deleteConfirm.userId);
+        }}
+        title="Delete User"
+        message={`Are you sure you want to delete ${deleteConfirm.userName}? This action is permanent and will remove all their data.`}
+        confirmText="Delete Permanently"
+        variant="danger"
+      />
+
+      {/* Add User Modal */}
+      <AnimatePresence>
+        {isAddModalOpen && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+                <motion.div 
+                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                    className="bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl overflow-hidden border border-slate-100"
+                >
+                    <div className="px-10 py-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
+                        <div>
+                            <h2 className="text-xl font-black text-slate-900 tracking-tight">Register New User</h2>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Platform Onboarding</p>
+                        </div>
+                        <button onClick={() => setIsAddModalOpen(false)} className="p-3 bg-white border border-slate-100 rounded-2xl text-slate-400 hover:text-rose-500 transition-all shadow-sm">
+                            <XIcon className="size-5" />
+                        </button>
+                    </div>
+
+                    <div className="p-10 space-y-4 max-h-[60vh] overflow-y-auto custom-scrollbar">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">Full Name</label>
+                            <input 
+                                value={newUser.name} 
+                                onChange={e => setNewUser({...newUser, name: e.target.value})}
+                                type="text"
+                                className="w-full px-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl outline-none focus:border-indigo-500 focus:bg-white transition-all font-bold text-sm text-slate-700 shadow-inner"
+                                placeholder="Enter user name..."
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">Email Address</label>
+                            <div className="relative group">
+                                <MailIcon className="absolute left-5 top-1/2 -translate-y-1/2 size-4 text-slate-300 group-focus-within:text-indigo-400 transition-colors" />
+                                <input 
+                                    value={newUser.email} 
+                                    onChange={e => setNewUser({...newUser, email: e.target.value})}
+                                    type="email"
+                                    className="w-full pl-12 pr-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl outline-none focus:border-indigo-500 focus:bg-white transition-all font-bold text-sm text-slate-700 shadow-inner"
+                                    placeholder="user@example.com"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">Phone Number</label>
+                            <div className="relative group">
+                                <PhoneIcon className="absolute left-5 top-1/2 -translate-y-1/2 size-4 text-slate-300 group-focus-within:text-indigo-400 transition-colors" />
+                                <input 
+                                    value={newUser.phone} 
+                                    onChange={e => setNewUser({...newUser, phone: e.target.value})}
+                                    type="tel"
+                                    className="w-full pl-12 pr-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl outline-none focus:border-indigo-500 focus:bg-white transition-all font-bold text-sm text-slate-700 shadow-inner"
+                                    placeholder="+91 XXXXX XXXXX"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">Assigned Role</label>
+                            <select 
+                                value={newUser.role}
+                                onChange={e => setNewUser({...newUser, role: e.target.value as Role})}
+                                className="w-full px-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl outline-none focus:border-indigo-500 focus:bg-white transition-all font-bold text-sm text-slate-700 shadow-inner appearance-none cursor-pointer"
+                            >
+                                {ROLES.filter(r => currentUser?.role !== Role.ACADEMIC_OPERATIONS || r !== 'ADMIN').map(role => (
+                                    <option key={role} value={role}>{role}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">Initial Password</label>
+                            <div className="relative group">
+                                <Lock className="absolute left-5 top-1/2 -translate-y-1/2 size-4 text-slate-300 group-focus-within:text-indigo-400 transition-colors" />
+                                <input 
+                                    value={newUser.password} 
+                                    onChange={e => setNewUser({...newUser, password: e.target.value})}
+                                    type="text"
+                                    className="w-full pl-12 pr-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl outline-none focus:border-indigo-500 focus:bg-white transition-all font-bold text-sm text-slate-700 shadow-inner"
+                                    placeholder="Enter password..."
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="px-10 py-8 bg-slate-50/50 border-t border-slate-50 flex justify-end gap-4">
+                        <button 
+                            onClick={() => setIsAddModalOpen(false)}
+                            className="px-6 py-3 bg-white border border-slate-200 text-slate-500 rounded-xl text-xs font-bold hover:bg-slate-100 transition-all shadow-sm"
+                        >
+                            Cancel
+                        </button>
+                        <button 
+                            onClick={handleCreateUser}
+                            disabled={isCreatingUser || !newUser.name || !newUser.email}
+                            className="px-8 py-3 bg-indigo-600 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-200 flex items-center gap-2 disabled:opacity-50"
+                        >
+                            {isCreatingUser ? <Loader2Icon className="size-4 animate-spin" /> : <UsersIcon className="size-4" />}
+                            Register User
                         </button>
                     </div>
                 </motion.div>

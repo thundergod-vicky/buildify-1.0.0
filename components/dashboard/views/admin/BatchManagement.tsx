@@ -8,8 +8,8 @@ import {
   UsersIcon,
   Trash2Icon,
   SearchIcon,
-  SettingsIcon,
-  GraduationCapIcon
+  GraduationCapIcon,
+  UserCheckIcon
 } from "lucide-react";
 import AnimatedContent from "@/components/animated-content";
 import { api } from "@/lib/api";
@@ -23,8 +23,9 @@ export function AdminBatchManagement() {
   const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [isAssignTeacherModalOpen, setIsAssignTeacherModalOpen] = useState(false);
   const [selectedBatch, setSelectedBatch] = useState<any>(null);
-  const [newBatch, setNewBatch] = useState({ name: "", description: "", teacherId: "" });
+  const [newBatch, setNewBatch] = useState({ name: "", description: "", teacherIds: [] as string[] });
   const [assignStudentIds, setAssignStudentIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -63,7 +64,7 @@ export function AdminBatchManagement() {
       await api.post("/batches", newBatch, token);
       toast.success("Batch created successfully");
       setIsCreateModalOpen(false);
-      setNewBatch({ name: "", description: "", teacherId: "" });
+      setNewBatch({ name: "", description: "", teacherIds: [] });
       fetchData();
     } catch (err) {
       toast.error("Failed to create batch");
@@ -101,7 +102,7 @@ export function AdminBatchManagement() {
 
   const filteredBatches = batches.filter(b => 
     b.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    b.teacher?.name?.toLowerCase().includes(searchQuery.toLowerCase())
+    b.teachers?.some((t: any) => t.name?.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   return (
@@ -147,14 +148,29 @@ export function AdminBatchManagement() {
                   </div>
                   <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button 
-                      onClick={() => {
-                        setSelectedBatch(batch);
+                      onClick={async () => {
+                        const token = auth.getToken();
+                        if (!token) return;
+                        // Fetch the full batch details to get current students
+                        const fullBatch = await api.get<any>(`/batches/${batch.id}`, token);
+                        setSelectedBatch(fullBatch);
+                        setAssignStudentIds(fullBatch.students?.map((s: any) => s.id) || []);
                         setIsAssignModalOpen(true);
                       }}
                       className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
                       title="Assign Students"
                     >
                       <UserPlusIcon className="size-5" />
+                    </button>
+                    <button 
+                      onClick={() => {
+                        setSelectedBatch(batch);
+                        setIsAssignTeacherModalOpen(true);
+                      }}
+                      className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg"
+                      title="Assign Teachers"
+                    >
+                      <UserCheckIcon className="size-5" />
                     </button>
                     <button 
                       onClick={() => handleDeleteBatch(batch.id)}
@@ -170,13 +186,23 @@ export function AdminBatchManagement() {
                 <p className="text-sm text-gray-500 mb-6 line-clamp-2 min-h-[40px]">{batch.description || "No description provided."}</p>
 
                 <div className="space-y-3">
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-2xl">
-                    <div className="size-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-xs font-bold">
-                      {batch.teacher?.name?.[0] || "T"}
-                    </div>
-                    <div>
-                      <p className="text-[10px] text-gray-400 font-bold uppercase">Teacher</p>
-                      <p className="text-sm font-bold text-gray-900">{batch.teacher?.name || "Unassigned"}</p>
+                  <div className="flex flex-col gap-2">
+                    <p className="text-[10px] text-gray-400 font-bold uppercase ml-1">Teachers</p>
+                    <div className="flex flex-wrap gap-2">
+                      {batch.teachers && batch.teachers.length > 0 ? (
+                        batch.teachers.map((teacher: any) => (
+                          <div key={teacher.id} className="flex items-center gap-2 p-2 bg-blue-50 rounded-xl border border-blue-100/50">
+                            <div className="size-6 rounded-full bg-blue-600 flex items-center justify-center text-white text-[10px] font-bold">
+                              {teacher.name?.[0] || "T"}
+                            </div>
+                            <span className="text-xs font-bold text-gray-700">{teacher.name}</span>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-xl border border-gray-100">
+                          <span className="text-xs font-bold text-gray-400 italic">Unassigned</span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -235,18 +261,38 @@ export function AdminBatchManagement() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-bold text-gray-700 mb-2 block">Assign Teacher</label>
-                  <select
-                    required
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    value={newBatch.teacherId}
-                    onChange={(e) => setNewBatch({...newBatch, teacherId: e.target.value})}
-                  >
-                    <option value="">Select a teacher</option>
+                  <label className="text-sm font-bold text-gray-700 mb-2 block">Assign Teachers (Select Multiple)</label>
+                  <div className="grid grid-cols-1 gap-2 max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
                     {teachers.map(t => (
-                      <option key={t.id} value={t.id}>{t.name} ({t.email})</option>
+                      <div 
+                        key={t.id}
+                        onClick={() => {
+                          if (newBatch.teacherIds.includes(t.id)) {
+                            setNewBatch({...newBatch, teacherIds: newBatch.teacherIds.filter(id => id !== t.id)});
+                          } else {
+                            setNewBatch({...newBatch, teacherIds: [...newBatch.teacherIds, t.id]});
+                          }
+                        }}
+                        className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${
+                          newBatch.teacherIds.includes(t.id)
+                            ? "border-blue-500 bg-blue-50"
+                            : "border-gray-100 hover:bg-gray-50"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="size-8 rounded-full bg-white border border-gray-100 flex items-center justify-center text-gray-400 text-xs font-bold group-hover:text-blue-600">
+                            {t.name?.[0] || "T"}
+                          </div>
+                          <span className="text-sm font-medium text-gray-700">{t.name}</span>
+                        </div>
+                        {newBatch.teacherIds.includes(t.id) && (
+                          <div className="size-5 bg-blue-600 rounded-full flex items-center justify-center text-white">
+                            <PlusIcon className="size-3" />
+                          </div>
+                        )}
+                      </div>
                     ))}
-                  </select>
+                  </div>
                 </div>
               </div>
               <div className="flex gap-4">
@@ -324,6 +370,80 @@ export function AdminBatchManagement() {
                 className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Assign {assignStudentIds.length} Students
+              </button>
+          </div>
+        </div>
+      </div>
+      )}
+
+      {/* Assign Teachers Modal */}
+      {isAssignTeacherModalOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl">
+            <div className="p-8 border-b border-gray-100">
+              <h2 className="text-2xl font-bold text-gray-900">Manage Teachers: {selectedBatch?.name}</h2>
+              <p className="text-gray-500">Assign or remove teachers for this batch</p>
+            </div>
+            <div className="p-8 max-h-[400px] overflow-y-auto space-y-2">
+              {teachers.map(t => {
+                const isAssigned = selectedBatch?.teachers?.some((bt: any) => bt.id === t.id);
+                return (
+                  <div 
+                    key={t.id}
+                    onClick={async () => {
+                      const token = auth.getToken();
+                      if (!token) return;
+                      
+                      const currentTeacherIds = selectedBatch?.teachers?.map((bt: any) => bt.id) || [];
+                      let newTeacherIds;
+                      if (isAssigned) {
+                        newTeacherIds = currentTeacherIds.filter((id: string) => id !== t.id);
+                      } else {
+                        newTeacherIds = [...currentTeacherIds, t.id];
+                      }
+
+                      try {
+                        await api.patch(`/batches/${selectedBatch.id}/teachers`, { teacherIds: newTeacherIds }, token);
+                        toast.success(isAssigned ? "Teacher removed" : "Teacher assigned");
+                        // Update local selectedBatch state to reflect changes immediately in modal if needed, 
+                        // but fetchData will handle it for the main UI.
+                        const updatedBatch = await api.get<any>(`/batches/${selectedBatch.id}`, token);
+                        setSelectedBatch(updatedBatch);
+                        fetchData();
+                      } catch (err) {
+                        toast.error("Failed to update teachers");
+                      }
+                    }}
+                    className={`flex items-center justify-between p-4 rounded-2xl border cursor-pointer transition-all ${
+                      isAssigned 
+                        ? "border-indigo-500 bg-indigo-50 shadow-sm" 
+                        : "border-gray-100 hover:bg-gray-50 text-gray-400"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`size-10 rounded-full flex items-center justify-center font-bold text-sm ${isAssigned ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-400'}`}>
+                        {t.name?.[0] || "T"}
+                      </div>
+                      <div>
+                        <p className={`font-bold ${isAssigned ? 'text-indigo-900' : 'text-gray-500'}`}>{t.name}</p>
+                        <p className="text-xs opacity-60">{t.email}</p>
+                      </div>
+                    </div>
+                    {isAssigned && (
+                      <div className="size-6 bg-indigo-600 rounded-full flex items-center justify-center text-white">
+                        <PlusIcon className="size-4 rotate-45" />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            <div className="p-8 border-t border-gray-100 bg-gray-50">
+              <button 
+                onClick={() => setIsAssignTeacherModalOpen(false)}
+                className="w-full px-6 py-3 bg-white border border-gray-100 text-gray-600 rounded-xl font-bold hover:bg-gray-50 transition-colors"
+              >
+                Close
               </button>
             </div>
           </div>
