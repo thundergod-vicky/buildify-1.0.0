@@ -81,7 +81,10 @@ export function AccountsHome() {
           {quickActions.map((a, i) => (
             <button
               key={i}
-              onClick={() => window.history.pushState({}, "", `/dashboard?view=${a.view}`) && window.dispatchEvent(new PopStateEvent("popstate"))}
+              onClick={() => {
+                window.history.pushState({}, "", `/dashboard?view=${a.view}`);
+                window.dispatchEvent(new PopStateEvent("popstate"));
+              }}
               className={`group bg-white p-8 rounded-[3rem] border border-gray-100 shadow-xl shadow-gray-100/30 hover:shadow-2xl hover:scale-[1.03] transition-all duration-500 flex items-center gap-6 text-left`}
             >
               <div className={`size-16 bg-${a.color}-50 text-${a.color}-600 rounded-[1.75rem] flex items-center justify-center group-hover:rotate-6 transition-transform duration-500 border border-${a.color}-100/50`}>
