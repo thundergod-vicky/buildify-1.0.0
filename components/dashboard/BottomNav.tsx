@@ -16,11 +16,19 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Role } from "@/types";
 
 export function BottomNav() {
+  return (
+    <Suspense fallback={<div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-100 flex items-center justify-around px-2 py-3 shadow-[0_-8px_30px_rgb(0,0,0,0.04)]" />}>
+      <BottomNavContent />
+    </Suspense>
+  );
+}
+
+function BottomNavContent() {
   const searchParams = useSearchParams();
   const { user, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);

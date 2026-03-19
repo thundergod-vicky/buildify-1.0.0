@@ -23,10 +23,18 @@ import {
 import { cn } from "@/lib/utils";
 import { Role } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { ConfirmationModal } from "@/components/ui/confirmation-modal";
 
 export default function Sidebar() {
+  return (
+    <Suspense fallback={<aside className="hidden lg:flex w-64 bg-white border-r border-gray-100 flex-col h-screen sticky top-0" />}>
+      <SidebarContent />
+    </Suspense>
+  );
+}
+
+function SidebarContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { logout, user } = useAuth();
