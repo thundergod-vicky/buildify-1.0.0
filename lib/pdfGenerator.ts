@@ -107,12 +107,12 @@ export async function generateInvoicePdf(data: InvoiceData) {
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(22);
-  doc.text(data.institute.name || "Adhyayan", logoBase64 ? 50 : 14, 25);
+  doc.text("Adhyayan", logoBase64 ? 50 : 14, 25);
   
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(200, 200, 200);
-  doc.text(data.institute.address || "Education Hub, MG Road, Mumbai", logoBase64 ? 50 : 14, 32);
+  doc.text("City Center, Durgapur, West Bengal", logoBase64 ? 50 : 14, 32);
 
   // Invoice Title
   doc.setTextColor(255, 255, 255);

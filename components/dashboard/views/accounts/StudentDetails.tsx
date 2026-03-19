@@ -82,6 +82,12 @@ export function StudentDetails() {
     const [paymentMode, setPaymentMode] = useState("Cash");
     const [refId, setRefId] = useState("");
     const [description, setDescription] = useState("");
+    const [gstPercent, setGstPercent] = useState("0");
+    const [discountAmount, setDiscountAmount] = useState("0");
+    const [upiId, setUpiId] = useState("");
+    const [cardNo, setCardNo] = useState("");
+    const [chequeNo, setChequeNo] = useState("");
+    const [bankName, setBankName] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const [allStudents, setAllStudents] = useState<StudentBasicInfo[]>([]);
@@ -240,17 +246,36 @@ export function StudentDetails() {
             if (receiptTemplateId && !isManualEntry && selectedStudentId) {
                 try {
                     const token = auth.getToken() || "";
+                    const baseAmt = parseFloat(amount) || 0;
+                    const gstPct = parseFloat(gstPercent) || 0;
+                    const discountAmt = parseFloat(discountAmount) || 0;
+                    const gstAmt = (baseAmt * gstPct) / 100;
+                    const totalAmt = baseAmt + gstAmt - discountAmt;
+
                     const invoicePayload = {
                         studentId: selectedStudentId,
                         templateId: receiptTemplateId,
-                        amount: parseFloat(amount),
+                        amount: baseAmt,
+                        tax: gstAmt,
+                        total: totalAmt,
                         paymentMethod: paymentMode,
                         transactionId: payload.txRef,
                         status: paymentStatus === 'SUCCESS' ? 'PAID' : 'PENDING',
                         metadata: {
                             description: description,
                             paymentMode: paymentMode,
-                            refId: payload.txRef
+                            refId: payload.txRef,
+                            payment: {
+                                baseFee: baseAmt,
+                                gstPercent: gstPct,
+                                gstAmount: gstAmt,
+                                discountAmount: discountAmt,
+                                grandTotal: totalAmt,
+                                upiId: upiId,
+                                cardNo: cardNo,
+                                chequeNo: chequeNo,
+                                bankName: bankName
+                            }
                         }
                     };
 
@@ -265,7 +290,11 @@ export function StudentDetails() {
                         invoiceNumber: inv.invoiceNumber,
                         issueDate: new Date(inv.createdAt),
                         status: inv.status,
-                        institute: inv.template?.metadata?.institute || { name: "Adhyayan", address: "Education Hub, MG Road, Mumbai", logo: "/assets/images/brandlogo.png" },
+                        institute: { 
+                            name: "Adhyayan", 
+                            address: "City Center, Durgapur, West Bengal", 
+                            logo: "/assets/images/brandlogo.png" 
+                        },
                         student: { 
                             name: inv.student?.name || "Unknown", 
                             enrollmentId: inv.student?.enrollmentId || "UNKNOWN", 
@@ -275,9 +304,9 @@ export function StudentDetails() {
                         },
                         payment: {
                             baseFee: inv.amount,
-                            gstPercent: 0,
-                            gstAmount: inv.tax || 0,
-                            discountAmount: 0,
+                            gstPercent: inv.metadata?.payment?.gstPercent || inv.metadata?.payment?.gstPct || inv.template?.taxRate || 0,
+                            gstAmount: inv.tax || inv.metadata?.payment?.gstAmount || 0,
+                            discountAmount: inv.metadata?.payment?.discountAmount || 0,
                             grandTotal: inv.total || inv.amount
                         },
                         paymentMethod: inv.paymentMethod || "Cash"
@@ -293,7 +322,11 @@ export function StudentDetails() {
                     invoiceNumber: `REC-${Date.now()}`,
                     issueDate: new Date(),
                     status: "PAID",
-                    institute: tpl?.metadata?.institute || { name: "Adhyayan", address: "Education Hub, MG Road, Mumbai", logo: "/assets/images/brandlogo.png" },
+                    institute: { 
+                        name: "Adhyayan", 
+                        address: "City Center, Durgapur, West Bengal", 
+                        logo: "/assets/images/brandlogo.png" 
+                    },
                     student: { 
                         name: manualName, 
                         enrollmentId: "MANUAL", 
@@ -302,11 +335,11 @@ export function StudentDetails() {
                         contact: manualPhone 
                     },
                     payment: {
-                        baseFee: parseFloat(amount),
-                        gstPercent: 0,
-                        gstAmount: 0,
-                        discountAmount: 0,
-                        grandTotal: parseFloat(amount)
+                        baseFee: parseFloat(amount) || 0,
+                        gstPercent: parseFloat(gstPercent) || 0,
+                        gstAmount: (parseFloat(amount) || 0) * (parseFloat(gstPercent) || 0) / 100,
+                        discountAmount: parseFloat(discountAmount) || 0,
+                        grandTotal: (parseFloat(amount) || 0) + ((parseFloat(amount) || 0) * (parseFloat(gstPercent) || 0) / 100) - (parseFloat(discountAmount) || 0)
                     },
                     paymentMethod: paymentMode
                 });
@@ -331,6 +364,12 @@ export function StudentDetails() {
         setPaymentMode("Cash");
         setRefId("");
         setDescription("");
+        setGstPercent("0");
+        setDiscountAmount("0");
+        setUpiId("");
+        setCardNo("");
+        setChequeNo("");
+        setBankName("");
         setIsManualEntry(false);
     };
 
@@ -566,8 +605,16 @@ export function StudentDetails() {
                                                                     status: inv.status,
                                                                     institute: templates[0]?.metadata?.institute || { name: "Adhyayan", address: "Education Hub, MG Road, Mumbai", logo: "/assets/images/brandlogo.png" },
                                                                     student: { name: s.name, enrollmentId: s.enrollmentId || "N/A", course: s.batches[0]?.name || "N/A", session: "Current", contact: "-" },
-                                                                    payment: { baseFee: inv.amount, gstPercent: 0, gstAmount: inv.tax || 0, discountAmount: 0, grandTotal: inv.total || inv.amount },
-                                                                    paymentMethod: inv.paymentMethod || "Cash"
+                                                                    payment: { 
+                                                                        baseFee: inv.amount, 
+                                                                        gstPercent: inv.metadata?.payment?.gstPercent || inv.metadata?.payment?.gstPct || 0, 
+                                                                        gstAmount: inv.tax || inv.metadata?.payment?.gstAmount || 0, 
+                                                                        discountAmount: inv.metadata?.payment?.discountAmount || 0, 
+                                                                        grandTotal: inv.total || inv.amount 
+                                                                    },
+                                                                    paymentMethod: inv.paymentMethod || "Cash",
+                                                                    transactionRef: inv.transactionId || null,
+                                                                    remarks: inv.remarks || inv.metadata?.remarks || ""
                                                                 });
                                                             }}
                                                             title="View Invoice"
@@ -743,6 +790,7 @@ export function StudentDetails() {
                                                     >
                                                         <option>Cash</option>
                                                         <option>UPI</option>
+                                                        <option>Card</option>
                                                         <option>NEFT</option>
                                                         <option>RTGS</option>
                                                         <option>Cheque</option>
@@ -754,6 +802,79 @@ export function StudentDetails() {
                                             <div className="space-y-2">
                                                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">Identifier / ID</label>
                                                 <input value={refId} onChange={e => setRefId(e.target.value)} type="text" placeholder="Ref no..." className="w-full px-5 py-3 bg-white border border-slate-200 rounded-xl outline-none focus:border-indigo-500 transition-all font-medium text-xs text-slate-600" />
+                                            </div>
+                                        </div>
+
+                                        {/* Conditional Mode Details */}
+                                        <AnimatePresence mode="wait">
+                                            {paymentMode === 'UPI' && (
+                                                <motion.div 
+                                                    initial={{ opacity: 0, height: 0 }} 
+                                                    animate={{ opacity: 1, height: 'auto' }} 
+                                                    exit={{ opacity: 0, height: 0 }}
+                                                    className="space-y-2 overflow-hidden"
+                                                >
+                                                    <label className="text-[10px] font-bold text-indigo-500 uppercase tracking-wider ml-1">UPI ID</label>
+                                                    <input value={upiId} onChange={e => setUpiId(e.target.value)} type="text" placeholder="username@bank..." className="w-full px-5 py-3 bg-indigo-50/50 border border-indigo-100 rounded-xl outline-none focus:border-indigo-500 transition-all font-medium text-xs text-indigo-900" />
+                                                </motion.div>
+                                            )}
+                                            {paymentMode === 'Card' && (
+                                                <motion.div 
+                                                    initial={{ opacity: 0, height: 0 }} 
+                                                    animate={{ opacity: 1, height: 'auto' }} 
+                                                    exit={{ opacity: 0, height: 0 }}
+                                                    className="space-y-2 overflow-hidden"
+                                                >
+                                                    <label className="text-[10px] font-bold text-indigo-500 uppercase tracking-wider ml-1">Card Number (Last 4 digits or Full)</label>
+                                                    <input value={cardNo} onChange={e => setCardNo(e.target.value)} type="text" placeholder="**** **** **** 1234" className="w-full px-5 py-3 bg-indigo-50/50 border border-indigo-100 rounded-xl outline-none focus:border-indigo-500 transition-all font-medium text-xs text-indigo-900" />
+                                                </motion.div>
+                                            )}
+                                            {paymentMode === 'Cheque' && (
+                                                <motion.div 
+                                                    initial={{ opacity: 0, height: 0 }} 
+                                                    animate={{ opacity: 1, height: 'auto' }} 
+                                                    exit={{ opacity: 0, height: 0 }}
+                                                    className="grid grid-cols-2 gap-4 overflow-hidden"
+                                                >
+                                                    <div className="space-y-2">
+                                                        <label className="text-[10px] font-bold text-indigo-500 uppercase tracking-wider ml-1">Cheque No</label>
+                                                        <input value={chequeNo} onChange={e => setChequeNo(e.target.value)} type="text" placeholder="123456" className="w-full px-5 py-3 bg-indigo-50/50 border border-indigo-100 rounded-xl outline-none focus:border-indigo-500 transition-all font-medium text-xs text-indigo-900" />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <label className="text-[10px] font-bold text-indigo-500 uppercase tracking-wider ml-1">Bank Name</label>
+                                                        <input value={bankName} onChange={e => setBankName(e.target.value)} type="text" placeholder="SBI, HDFC, etc" className="w-full px-5 py-3 bg-indigo-50/50 border border-indigo-100 rounded-xl outline-none focus:border-indigo-500 transition-all font-medium text-xs text-indigo-900" />
+                                                    </div>
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+
+                                        {/* Tax & Discounts (Optional Override) */}
+                                        <div className="grid grid-cols-2 gap-4 pb-6 pt-2 border-t border-slate-50">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">GST / Tax %</label>
+                                                <div className="relative group">
+                                                    <input 
+                                                        value={gstPercent} 
+                                                        onChange={e => setGstPercent(e.target.value)} 
+                                                        type="number" 
+                                                        placeholder="18" 
+                                                        className="w-full pl-5 pr-10 py-3 bg-white border border-slate-200 rounded-xl outline-none focus:border-indigo-500 transition-all font-semibold text-xs text-slate-600 shadow-sm" 
+                                                    />
+                                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-300 group-focus-within:text-indigo-400 Transition-colors">%</span>
+                                                </div>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">Discount Amt</label>
+                                                <div className="relative group">
+                                                    <input 
+                                                        value={discountAmount} 
+                                                        onChange={e => setDiscountAmount(e.target.value)} 
+                                                        type="number" 
+                                                        placeholder="0.00" 
+                                                        className="w-full pl-8 pr-5 py-3 bg-white border border-slate-200 rounded-xl outline-none focus:border-indigo-500 transition-all font-semibold text-xs text-slate-600 shadow-sm" 
+                                                    />
+                                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-300 group-focus-within:text-indigo-400 Transition-colors">₹</span>
+                                                </div>
                                             </div>
                                         </div>
 
@@ -792,9 +913,22 @@ export function StudentDetails() {
                                                 placeholder="Additional context for this record..."
                                                 className="w-full px-5 py-4 bg-white border border-slate-200 rounded-2xl outline-none focus:border-indigo-500 transition-all font-medium text-xs min-h-[100px] text-slate-600 resize-none"
                                             />
-                                        </div>
-                                    </div>
-                                </div>
+                        </div>
+
+                        {/* Grand Total Preview */}
+                        <div className="mt-4 p-4 bg-slate-900 rounded-2xl flex items-center justify-between shadow-lg shadow-slate-200/50">
+                            <div className="space-y-0.5">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Grand Total</p>
+                                <p className="text-[8px] text-slate-500 font-medium italic">Base + Tax - Disc.</p>
+                            </div>
+                            <div className="text-right">
+                                <p className="text-2xl font-black text-white tabular-nums">
+                                    ₹{((parseFloat(amount) || 0) + ((parseFloat(amount) || 0) * (parseFloat(gstPercent) || 0) / 100) - (parseFloat(discountAmount) || 0)).toLocaleString()}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                                 <div className="px-10 py-8 bg-slate-50/50 border-t border-slate-50">
                                     <button 

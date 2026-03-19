@@ -34,15 +34,24 @@ export function InvoiceView({ isOpen, onClose, data }: InvoiceViewProps) {
     }
     current[parts[parts.length - 1]] = value;
     
-    // Recalculate totals if items or baseFee change
+    // Recalculate GST and totals
+    if (path === 'payment.gstPercent') {
+        const base = parseFloat(newData.payment.baseFee.toString()) || 0;
+        newData.payment.gstAmount = Math.round((base * (parseFloat(value.toString()) || 0) / 100) * 100) / 100;
+    }
+    if (path === 'payment.baseFee' && !newData.items) {
+        const percent = parseFloat(newData.payment.gstPercent || 0);
+        newData.payment.gstAmount = Math.round(((parseFloat(value.toString()) || 0) * percent / 100) * 100) / 100;
+    }
+
     if (path.startsWith('payment') || path.startsWith('items')) {
         let grandTotal = 0;
-        if (newData.items) {
+        if (newData.items && newData.items.length > 0) {
             grandTotal = newData.items.reduce((sum: number, item: { amount: number }) => sum + (parseFloat(item.amount.toString()) || 0), 0);
         } else {
             grandTotal = (parseFloat(newData.payment.baseFee.toString()) || 0) + (parseFloat(newData.payment.gstAmount.toString()) || 0) - (parseFloat(newData.payment.discountAmount.toString()) || 0);
         }
-        newData.payment.grandTotal = grandTotal;
+        newData.payment.grandTotal = Math.round(grandTotal * 100) / 100;
     }
 
     setEditableData(newData);
@@ -85,7 +94,8 @@ export function InvoiceView({ isOpen, onClose, data }: InvoiceViewProps) {
             ...data.metadata, // preserve original metadata if any
             student: editableData.student,
             institute: editableData.institute,
-            payment: editableData.payment
+            payment: editableData.payment,
+            remarks: editableData.remarks
         }
       };
 
@@ -212,8 +222,8 @@ export function InvoiceView({ isOpen, onClose, data }: InvoiceViewProps) {
                             </div>
                         )}
                         <div className="text-white">
-                            <h1 className="text-3xl font-black tracking-tight leading-tight">{data.institute.name}</h1>
-                            <p className="text-slate-400 text-xs mt-1 font-bold uppercase tracking-widest">{data.institute.address}</p>
+                            <h1 className="text-3xl font-black tracking-tight leading-tight">Adhyayan</h1>
+                            <p className="text-slate-400 text-xs mt-1 font-bold uppercase tracking-widest text-wrap max-w-[300px]">City Center, Durgapur, West Bengal</p>
                         </div>
                     </div>
                     <div className="text-right relative z-10">
@@ -225,7 +235,9 @@ export function InvoiceView({ isOpen, onClose, data }: InvoiceViewProps) {
                                     onChange={(e) => handleInputChange('status', e.target.value)}
                                     className="bg-slate-800 text-white text-[10px] font-black uppercase tracking-widest rounded-full px-4 py-1.5 border border-white/20 outline-none"
                                 >
-                                    <option value="PAID">PAID</option>
+                                    <option value="PAID">FULL PAID</option>
+                                    <option value="EMI">EMI</option>
+                                    <option value="PARTIAL">PARTIAL</option>
                                     <option value="PENDING">PENDING</option>
                                     <option value="CANCELLED">CANCELLED</option>
                                 </select>
@@ -286,10 +298,11 @@ export function InvoiceView({ isOpen, onClose, data }: InvoiceViewProps) {
                                     {isEditing ? (
                                         <select value={editableData.paymentMethod} onChange={(e) => handleInputChange('paymentMethod', e.target.value)} className="bg-gray-50 border border-gray-200 rounded px-2 py-0.5 w-full">
                                             <option value="Cash">Cash</option>
-                                            <option value="UPI">UPI</option>
-                                            <option value="NEFT">NEFT</option>
-                                            <option value="RTGS">RTGS</option>
-                                            <option value="Cheque">Cheque</option>
+                                            <option value="UPI">UPI Sync (Trans ID)</option>
+                                            <option value="Card">Credit/Debit Card</option>
+                                            <option value="Cheque">Bank Cheque</option>
+                                            <option value="NEFT">NEFT Transfer</option>
+                                            <option value="RTGS">RTGS Transfer</option>
                                         </select>
                                     ) : editableData.paymentMethod || 'N/A'}
                                 </span>
@@ -346,19 +359,28 @@ export function InvoiceView({ isOpen, onClose, data }: InvoiceViewProps) {
                                             ) : `₹${editableData.payment.baseFee.toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
                                         </td>
                                     </tr>
-                                    {editableData.payment.gstAmount > 0 && (
-                                        <tr className="border-b border-gray-100">
-                                            <td className="py-5 font-semibold text-gray-700">GST ({editableData.payment.gstPercent}%)</td>
-                                            <td className="py-5 text-right font-bold text-gray-900">
-                                                {isEditing ? (
-                                                    <div className="flex items-center justify-end">
-                                                        <span>₹</span>
-                                                        <input type="number" value={editableData.payment.gstAmount} onChange={(e) => handleInputChange('payment.gstAmount', e.target.value)} className="bg-gray-50 border border-gray-200 rounded px-2 py-1 w-24 text-right" />
-                                                    </div>
-                                                ) : `₹${editableData.payment.gstAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
-                                            </td>
-                                        </tr>
-                                    )}
+                                    <tr className="border-b border-gray-100">
+                                        <td className="py-5 font-semibold text-gray-700">
+                                            {isEditing ? (
+                                                <div className="flex items-center gap-2">
+                                                    <span>Tax Label:</span>
+                                                    <input value="GST" disabled className="bg-gray-100 border border-gray-200 rounded px-2 py-0.5 w-12 text-xs" />
+                                                    <input type="number" value={editableData.payment.gstPercent || 0} onChange={(e) => handleInputChange('payment.gstPercent', e.target.value)} className="bg-gray-50 border border-gray-200 rounded px-2 py-0.5 w-12 text-xs" />
+                                                    <span>%</span>
+                                                </div>
+                                            ) : (
+                                                `GST (${editableData.payment.gstPercent}%)`
+                                            )}
+                                        </td>
+                                        <td className="py-5 text-right font-bold text-gray-900">
+                                            {isEditing ? (
+                                                <div className="flex items-center justify-end">
+                                                    <span>₹</span>
+                                                    <input type="number" value={editableData.payment.gstAmount} onChange={(e) => handleInputChange('payment.gstAmount', e.target.value)} className="bg-gray-50 border border-gray-200 rounded px-2 py-1 w-24 text-right" />
+                                                </div>
+                                            ) : `₹${editableData.payment.gstAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
+                                        </td>
+                                    </tr>
                                 </>
                             )}
                         </tbody>

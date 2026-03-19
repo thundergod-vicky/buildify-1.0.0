@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { SearchIcon, UserCogIcon, ShieldCheckIcon, Trash2Icon, MailIcon, CalendarIcon, UsersIcon, SaveIcon, XIcon } from "lucide-react";
+import { SearchIcon, UserCogIcon, ShieldCheckIcon, Trash2Icon, MailIcon, CalendarIcon, UsersIcon, SaveIcon, XIcon, PhoneIcon, Loader2Icon } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { showToast } from "@/lib/toast";
 import { ConfirmationModal } from "@/components/ui/confirmation-modal";
 import { User, Role } from "@/types"; // Added Role import
@@ -31,6 +32,8 @@ export function AdminUserManagement() {
   }>({ isOpen: false, userId: "", newRole: "" });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editIdValue, setEditIdValue] = useState("");
+  const [editingUser, setEditingUser] = useState<UserWithCounts | null>(null);
+  const [isUpdatingUser, setIsUpdatingUser] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -65,6 +68,30 @@ export function AdminUserManagement() {
       showToast.error("Error connecting to server");
     } finally {
       setUpdatingId(null);
+    }
+  };
+
+  const handleUpdateUser = async () => {
+    if (!editingUser) return;
+    setIsUpdatingUser(true);
+    try {
+      const token = auth.getToken();
+      if (!token) return;
+
+      await api.patch(`/admin/users/${editingUser.id}`, {
+        name: editingUser.name,
+        email: editingUser.email,
+        phone: editingUser.phone
+      }, token);
+      
+      showToast.success("User particulars updated");
+      setEditingUser(null);
+      fetchUsers();
+    } catch (error) {
+      console.error("User update failed:", error);
+      showToast.error("Failed to update user details");
+    } finally {
+      setIsUpdatingUser(false);
     }
   };
 
@@ -262,7 +289,10 @@ export function AdminUserManagement() {
                                         </div>
                                     ) : (
                                         <>
-                                            <button className="p-3 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-blue-600 hover:border-blue-100 hover:bg-blue-50 transition-all shadow-sm">
+                                            <button 
+                                                onClick={() => setEditingUser(user)}
+                                                className="p-3 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-blue-600 hover:border-blue-100 hover:bg-blue-50 transition-all shadow-sm"
+                                            >
                                                 <UserCogIcon className="size-4" />
                                             </button>
                                             <button className="p-3 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-rose-600 hover:border-rose-100 hover:bg-rose-50 transition-all shadow-sm">
@@ -290,6 +320,89 @@ export function AdminUserManagement() {
         confirmText="Change Role"
         variant="warning"
       />
+
+      {/* Edit User Details Modal */}
+      <AnimatePresence>
+        {editingUser && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+                <motion.div 
+                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                    className="bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl overflow-hidden border border-slate-100"
+                >
+                    <div className="px-10 py-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
+                        <div>
+                            <h2 className="text-xl font-black text-slate-900 tracking-tight">Edit User Particulars</h2>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Direct Record Modification</p>
+                        </div>
+                        <button onClick={() => setEditingUser(null)} className="p-3 bg-white border border-slate-100 rounded-2xl text-slate-400 hover:text-rose-500 transition-all shadow-sm">
+                            <XIcon className="size-5" />
+                        </button>
+                    </div>
+
+                    <div className="p-10 space-y-6">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">Full Name</label>
+                            <input 
+                                value={editingUser.name || ""} 
+                                onChange={e => setEditingUser({...editingUser, name: e.target.value})}
+                                type="text"
+                                className="w-full px-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl outline-none focus:border-indigo-500 focus:bg-white transition-all font-bold text-sm text-slate-700 shadow-inner"
+                                placeholder="Enter user name..."
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-6">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">Email Address</label>
+                                <div className="relative group">
+                                    <MailIcon className="absolute left-5 top-1/2 -translate-y-1/2 size-4 text-slate-300 group-focus-within:text-indigo-400 transition-colors" />
+                                    <input 
+                                        value={editingUser.email || ""} 
+                                        onChange={e => setEditingUser({...editingUser, email: e.target.value})}
+                                        type="email"
+                                        className="w-full pl-12 pr-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl outline-none focus:border-indigo-500 focus:bg-white transition-all font-bold text-sm text-slate-700 shadow-inner"
+                                        placeholder="user@example.com"
+                                    />
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">Phone Number</label>
+                                <div className="relative group">
+                                    <PhoneIcon className="absolute left-5 top-1/2 -translate-y-1/2 size-4 text-slate-300 group-focus-within:text-indigo-400 transition-colors" />
+                                    <input 
+                                        value={editingUser.phone || ""} 
+                                        onChange={e => setEditingUser({...editingUser, phone: e.target.value})}
+                                        type="tel"
+                                        className="w-full pl-12 pr-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl outline-none focus:border-indigo-500 focus:bg-white transition-all font-bold text-sm text-slate-700 shadow-inner"
+                                        placeholder="+91 XXXXX XXXXX"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="px-10 py-8 bg-slate-50/50 border-t border-slate-50 flex justify-end gap-4 mt-4">
+                        <button 
+                            onClick={() => setEditingUser(null)}
+                            className="px-6 py-3 bg-white border border-slate-200 text-slate-500 rounded-xl text-xs font-bold hover:bg-slate-100 transition-all shadow-sm"
+                        >
+                            Cancel
+                        </button>
+                        <button 
+                            onClick={handleUpdateUser}
+                            disabled={isUpdatingUser}
+                            className="px-8 py-3 bg-slate-900 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 flex items-center gap-2 disabled:opacity-50"
+                        >
+                            {isUpdatingUser ? <Loader2Icon className="size-4 animate-spin" /> : <SaveIcon className="size-4" />}
+                            Commit Changes
+                        </button>
+                    </div>
+                </motion.div>
+            </div>
+        )}
+      </AnimatePresence>
     </div>
     </div>
   );

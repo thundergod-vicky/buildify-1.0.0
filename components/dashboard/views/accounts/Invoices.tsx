@@ -74,7 +74,7 @@ export function AccountsInvoices() {
       status: inv.status,
       paymentMethod: inv.paymentMethod,
       transactionRef: inv.transactionId,
-      remarks: inv.remarks,
+      remarks: inv.remarks || meta.remarks || "",
       institute: {
         name: inst.name || "Adhyayan",
         address: inst.address || "Education Hub, MG Road, Mumbai",
@@ -89,9 +89,9 @@ export function AccountsInvoices() {
       },
       payment: {
         baseFee: inv.amount || inv.total || 0,
-        gstPercent: meta.payment?.gstPct || 0,
-        gstAmount: inv.tax || meta.payment?.gstAmt || 0,
-        discountAmount: meta.payment?.discountAmt || 0,
+        gstPercent: meta.payment?.gstPercent || meta.payment?.gstPct || 0,
+        gstAmount: inv.tax || meta.payment?.gstAmount || meta.payment?.gstAmt || 0,
+        discountAmount: meta.payment?.discountAmount || meta.payment?.discountAmt || 0,
         grandTotal: inv.total || inv.amount || 0,
       },
       items: inv.items && inv.items.length > 0 ? inv.items : [
