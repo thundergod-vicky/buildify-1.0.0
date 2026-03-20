@@ -98,7 +98,7 @@ export default function InvoicingForm({ initialData, studentData, onSave, onCanc
       discount: initialData?.discount || "0", 
       grand: 0 
     },
-    plan: initialData?.tenure ? tenureToPlan(initialData.tenure) : 1,
+    plan: (initialData?.tenure ? tenureToPlan(initialData.tenure) : 1) as number | string,
     customN: "",
     emiData: [] as any[],
     method: "upi",
