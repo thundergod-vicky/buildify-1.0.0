@@ -34,7 +34,7 @@ export function CourseCreateModal({ isOpen, onClose, onSuccess }: CourseCreateMo
     const fetchTeachers = async () => {
         try {
             const token = auth.getToken();
-            const data = await api.get<any[]>('/users', token); // Assuming /users has a way to filter or just take all and filter in frontend
+            const data = await api.get<any[]>('/users', token || undefined); // Assuming /users has a way to filter or just take all and filter in frontend
             setTeachers(data.filter(u => u.role === Role.TEACHER));
         } catch (error) {
             console.error('Failed to fetch teachers:', error);

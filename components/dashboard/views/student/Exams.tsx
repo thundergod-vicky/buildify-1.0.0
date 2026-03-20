@@ -40,7 +40,7 @@ export function StudentExams() {
   const fetchExams = async () => {
     try {
       const token = auth.getToken();
-      const data = await api.get<Exam[]>('/exams/student', token);
+      const data = await api.get<Exam[]>('/exams/student', token || undefined);
       setExams(data);
     } catch (error) {
       console.error("Failed to fetch exams:", error);

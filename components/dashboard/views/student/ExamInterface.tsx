@@ -29,9 +29,91 @@ export function ExamInterface({ examId, onBack }: Props) {
   }>({ isOpen: false, type: null });
   const hasSubmittedRef = useRef(false);
 
+  const fetchExam = async () => {
+    try {
+      const token = auth.getToken();
+      const response = await api.get<any>(`/exams/${examId}`, token || undefined);
+      
+      if (!response || !response.questions) {
+        showToast.error("Exam questions not yet available. Please wait for the access window.");
+        onBack();
+        return;
+      }
+
+      const normalizedQuestions = response.questions.map((q: any) => {
+        let options = q.options;
+        if (options && !Array.isArray(options)) {
+          // Convert {A: "...", B: "..."} to ["...", "..."]
+          options = [options.A, options.B, options.C, options.D].filter((o: any) => o !== undefined);
+        }
+
+        let correctAnswer = q.correctAnswer;
+        if (q.answer && typeof q.answer === 'string') {
+          // Convert 'A' -> 0, 'B' -> 1, etc.
+          correctAnswer = q.answer.charCodeAt(0) - 65;
+        }
+
+        return { ...q, options, correctAnswer };
+      });
+
+      setExam({ ...response, questions: normalizedQuestions });
+      setTimeLeft(response.duration * 60);
+    } catch (error) {
+      showToast.error("Failed to load exam");
+      onBack();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchExam();
   }, [examId]);
+
+  const submitTest = useCallback(async (status: 'COMPLETED' | 'CHEATED' = 'COMPLETED') => {
+    if (hasSubmittedRef.current) return;
+    hasSubmittedRef.current = true;
+    setIsSubmitting(true);
+
+    let score = 0;
+    exam?.questions?.forEach((q: any, idx: number) => {
+      if (selectedAnswers[idx] === q.correctAnswer) {
+        score++;
+      }
+    });
+
+    try {
+      const token = auth.getToken();
+      await api.post(`/exams/${examId}/submit`, {
+        score,
+        total: exam?.totalQuestions || exam?.questions?.length || 0,
+        answers: selectedAnswers,
+        status: status
+      }, token || undefined);
+
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(() => {});
+      }
+      showToast.success("Exam submitted successfully!");
+      onBack();
+    } catch (error) {
+      console.error("Submission error:", error);
+      showToast.error("Error connecting to server");
+      hasSubmittedRef.current = false;
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [exam, examId, selectedAnswers, onBack]);
+
+  const handleCheatDetected = useCallback(async () => {
+    showToast.error("EXAM CANCELLED: Multiple security violations detected. Marking as CHEATED.");
+    await submitTest("CHEATED");
+  }, [submitTest]);
+
+  const handleAutoSubmit = useCallback(async () => {
+    showToast.info("Time is up! Submitting your exam automatically.");
+    await submitTest("COMPLETED");
+  }, [submitTest]);
 
   const enterFullScreen = async () => {
     try {
@@ -93,88 +175,6 @@ export function ExamInterface({ examId, onBack }: Props) {
         document.removeEventListener("fullscreenchange", handleFullscreenChange);
     };
   }, [testStarted, handleCheatDetected]);
-
-  const fetchExam = async () => {
-    try {
-      const token = auth.getToken();
-      const response = await api.get<any>(`/exams/${examId}`, token);
-      
-      if (!response || !response.questions) {
-        showToast.error("Exam questions not yet available. Please wait for the access window.");
-        onBack();
-        return;
-      }
-
-      const normalizedQuestions = response.questions.map((q: any) => {
-        let options = q.options;
-        if (options && !Array.isArray(options)) {
-          // Convert {A: "...", B: "..."} to ["...", "..."]
-          options = [options.A, options.B, options.C, options.D].filter(o => o !== undefined);
-        }
-
-        let correctAnswer = q.correctAnswer;
-        if (q.answer && typeof q.answer === 'string') {
-          // Convert 'A' -> 0, 'B' -> 1, etc.
-          correctAnswer = q.answer.charCodeAt(0) - 65;
-        }
-
-        return { ...q, options, correctAnswer };
-      });
-
-      setExam({ ...response, questions: normalizedQuestions });
-      setTimeLeft(response.duration * 60);
-    } catch (error) {
-      showToast.error("Failed to load exam");
-      onBack();
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const submitTest = useCallback(async (status: 'COMPLETED' | 'CHEATED' = 'COMPLETED') => {
-    if (hasSubmittedRef.current) return;
-    hasSubmittedRef.current = true;
-    setIsSubmitting(true);
-
-    let score = 0;
-    exam.questions.forEach((q: any, idx: number) => {
-      if (selectedAnswers[idx] === q.correctAnswer) {
-        score++;
-      }
-    });
-
-    try {
-      const token = auth.getToken();
-      await api.post(`/exams/${examId}/submit`, {
-        score,
-        total: exam.totalQuestions || exam.questions.length,
-        answers: selectedAnswers,
-        status: status
-      }, token);
-
-      if (document.fullscreenElement) {
-        document.exitFullscreen().catch(() => {});
-      }
-      showToast.success("Exam submitted successfully!");
-      onBack();
-    } catch (error) {
-      console.error("Submission error:", error);
-      showToast.error("Error connecting to server");
-      hasSubmittedRef.current = false;
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [exam, examId, selectedAnswers, onBack]);
-
-  const handleCheatDetected = useCallback(async () => {
-    showToast.error("EXAM CANCELLED: Multiple security violations detected. Marking as CHEATED.");
-    await submitTest("CHEATED");
-  }, [submitTest]);
-
-  const handleAutoSubmit = useCallback(async () => {
-    showToast.info("Time is up! Submitting your exam automatically.");
-    await submitTest("COMPLETED");
-  }, [submitTest]);
 
   useEffect(() => {
     if (exam && timeLeft > 0 && testStarted) {
