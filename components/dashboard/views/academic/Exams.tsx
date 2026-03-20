@@ -63,7 +63,7 @@ export function ExamSchedules() {
   const [newExam, setNewExam] = useState({
     title: "",
     batchId: "",
-    status: "PLANNED" as const
+    status: "PLANNED" as "DRAFT" | "PLANNED" | "SCHEDULED"
   });
 
   // Local state for editing questions/schedule
@@ -86,7 +86,7 @@ export function ExamSchedules() {
   const fetchExams = async () => {
     try {
       const token = auth.getToken();
-      const data = await api.get<Exam[]>('/exams', token);
+      const data = await api.get<Exam[]>('/exams', token || undefined);
       setExams(data);
     } catch (error) {
       console.error("Failed to fetch exams:", error);
@@ -98,7 +98,7 @@ export function ExamSchedules() {
   const fetchBatches = async () => {
     try {
       const token = auth.getToken();
-      const data = await api.get<Batch[]>('/batches', token);
+      const data = await api.get<Batch[]>('/batches', token || undefined);
       setBatches(data);
     } catch (error) {
       console.error("Failed to fetch batches:", error);
@@ -110,7 +110,7 @@ export function ExamSchedules() {
     setIsSaving(true);
     try {
       const token = auth.getToken();
-      await api.post('/exams', newExam, token);
+      await api.post('/exams', newExam, token || undefined);
       showToast.success("Exam entry created");
       setIsCreateModalOpen(false);
       setNewExam({ title: "", batchId: "", status: "PLANNED" });
@@ -160,7 +160,7 @@ export function ExamSchedules() {
         endTime: editFormData.endTime ? new Date(editFormData.endTime).toISOString() : null,
         totalQuestions: editFormData.questions.length
       };
-      await api.patch(`/exams/${editingExam.id}`, payload, token);
+      await api.patch(`/exams/${editingExam.id}`, payload, token || undefined);
       showToast.success("Exam updated successfully");
       setEditingExam(null);
       setEditFormData(null);
@@ -175,7 +175,7 @@ export function ExamSchedules() {
   const handleDeleteExam = async (id: string) => {
     try {
       const token = auth.getToken();
-      await api.delete(`/exams/${id}`, token);
+      await api.delete(`/exams/${id}`, token || undefined);
       showToast.success("Exam deleted");
       fetchExams();
     } catch (error) {
