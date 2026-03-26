@@ -78,6 +78,24 @@ class ApiClient {
     return this.request<T>(endpoint, { method: 'DELETE', token });
   }
 
+  async getBlob(endpoint: string, token?: string): Promise<Blob> {
+    const headers: any = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${this.baseUrl}${endpoint}`, {
+      method: 'GET',
+      headers,
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch blob');
+    }
+
+    return response.blob();
+  }
+
   async upload<T>(
     endpoint: string,
     file: File,

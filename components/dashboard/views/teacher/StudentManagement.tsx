@@ -5,6 +5,7 @@ import { SearchIcon, GraduationCapIcon, TrophyIcon, StarIcon, CheckCircle2Icon }
 import { showToast } from "@/lib/toast";
 import { api } from "@/lib/api";
 import { auth } from "@/lib/auth";
+import { AdmissionApprovalModal } from "@/components/dashboard/views/shared/AdmissionApprovalModal";
 
 const MEDALS = ["WOOD", "STONE", "IRON", "SILVER", "GOLD", "DIAMOND", "PLATINUM", "VIBRANIUM"];
 const GRADES = ["F", "D", "D_PLUS", "C", "C_PLUS", "B", "B_PLUS", "A", "A_PLUS", "E"];
@@ -14,6 +15,7 @@ export function TeacherStudentManagement() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [admissionModal, setAdmissionModal] = useState<{ isOpen: boolean; studentId: string; studentName: string }>({ isOpen: false, studentId: "", studentName: "" });
 
   useEffect(() => {
     fetchStudents();
@@ -57,11 +59,12 @@ export function TeacherStudentManagement() {
   );
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 font-urbanist">Student Management</h1>
-        <p className="text-gray-500 mt-1">Assign medals and grades to your students based on performance</p>
-      </div>
+    <>
+      <div className="p-8 max-w-7xl mx-auto space-y-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 font-urbanist">Student Management</h1>
+          <p className="text-gray-500 mt-1">Assign medals and grades to your students based on performance</p>
+        </div>
 
       <div className="relative max-w-md group">
         <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-gray-400 group-focus-within:text-yellow-500 transition-colors" />
@@ -140,20 +143,38 @@ export function TeacherStudentManagement() {
                         ))}
                       </select>
                     </td>
-                    <td className="px-6 py-4 text-right">
-                       {updatingId === student.id ? (
-                         <div className="size-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin ml-auto"></div>
-                       ) : (
-                         <CheckCircle2Icon className="size-5 text-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-                       )}
-                    </td>
+                     <td className="px-6 py-4 text-right">
+                       <div className="flex items-center justify-end gap-2">
+                         <button
+                           onClick={() => setAdmissionModal({ isOpen: true, studentId: student.id, studentName: student.name || "Student" })}
+                           className="p-2 bg-indigo-50 text-indigo-500 hover:bg-indigo-100 rounded-xl transition-all"
+                           title="View Admission"
+                         >
+                           <GraduationCapIcon className="size-4" />
+                         </button>
+                         {updatingId === student.id ? (
+                           <div className="size-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                         ) : (
+                           <CheckCircle2Icon className="size-5 text-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                         )}
+                       </div>
+                     </td>
                   </tr>
                 ))
               )}
             </tbody>
           </table>
         </div>
+        </div>
       </div>
-    </div>
+
+    <AdmissionApprovalModal
+      isOpen={admissionModal.isOpen}
+      studentId={admissionModal.studentId}
+      studentName={admissionModal.studentName}
+      onClose={() => setAdmissionModal({ isOpen: false, studentId: "", studentName: "" })}
+      onAction={fetchStudents}
+    />
+    </>
   );
 }
