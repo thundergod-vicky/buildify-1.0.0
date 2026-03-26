@@ -370,12 +370,22 @@ export interface PracticeTestResult {
   createdAt: string;
 }
 
+export interface OmrAnswer {
+  number: number;
+  answer: string;
+}
+
+export interface OmrAnswer {
+  number: number;
+  answer: string;
+}
+
 export interface OmrTemplate {
   id: string;
   name: string;
   description?: string;
   motherOmrUrl: string;
-  answers: unknown;
+  answers: OmrAnswer[];
   teacherId: string;
   createdAt: string;
   updatedAt: string;
@@ -389,6 +399,6 @@ export interface OmrResult {
   omrImageUrl: string;
   score: number;
   total: number;
-  answers: unknown;
+  answers: OmrAnswer[];
   createdAt: string;
 }
