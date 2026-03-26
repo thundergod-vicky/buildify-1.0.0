@@ -21,7 +21,6 @@
     "jspdf-autotable": "^5.0.7",
     "lenis": "^1.3.16",
     "lightningcss": "^1.32.0",
-    "lightningcss-win32-x64-msvc": "^1.32.0",
     "lucide-react": "^0.562.0",
     "motion": "^12.23.26",
     "next": "^16.1.1",
