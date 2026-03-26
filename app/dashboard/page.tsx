@@ -2,7 +2,10 @@
 
 import { useAuth } from "@/contexts/AuthContext";
 import { Role } from "@/types";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { admissionsApi } from "@/lib/admissions";
+import { auth } from "@/lib/auth";
 
 // Student Views
 import { StudentHome } from "@/components/dashboard/views/student/Home";
@@ -70,14 +73,39 @@ export default function DashboardPage() {
 function DashboardContent() {
     const { user, isLoading } = useAuth();
     const searchParams = useSearchParams();
+    const router = useRouter();
     const currentView = searchParams.get("view");
     const examId = searchParams.get("id");
+    const [admissionChecked, setAdmissionChecked] = useState(false);
+    const [hasAdmission, setHasAdmission] = useState(false);
 
     console.log("Current View:", currentView);
     console.log("User Role:", user?.role);
 
-    if (isLoading) return <div className="p-8">Syncing user session...</div>;
+    // For students: call /admissions/me to check if they have submitted admission
+    useEffect(() => {
+        if (isLoading || !user) return;
+        if (user.role !== Role.STUDENT) {
+            setHasAdmission(true);
+            setAdmissionChecked(true);
+            return;
+        }
+        const token = auth.getToken();
+        admissionsApi.getMyAdmission(token || undefined)
+            .then(() => { setHasAdmission(true); })
+            .catch(() => { setHasAdmission(false); })
+            .finally(() => { setAdmissionChecked(true); });
+    }, [user, isLoading]);
+
+    useEffect(() => {
+        if (admissionChecked && !hasAdmission) {
+            router.push('/admission-form');
+        }
+    }, [admissionChecked, hasAdmission, router]);
+
+    if (isLoading || !admissionChecked) return <div className="p-8">Syncing user session...</div>;
     if (!user) return <div className="p-8 text-red-500 font-bold underline cursor-pointer" onClick={() => window.location.href='/auth'}>Session expired. Please login again.</div>;
+    if (user.role === Role.STUDENT && !hasAdmission) return <div className="p-8">Redirecting to admission form...</div>;
 
     if (currentView === 'zoom-meeting') {
         return <ZoomMeeting />;

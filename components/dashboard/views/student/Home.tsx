@@ -56,6 +56,16 @@ export function StudentHome() {
 
     return (
         <div className="p-8 space-y-8">
+            {user?.role === 'STUDENT' && user?.admission?.status !== 'APPROVED' && (
+                <AnimatedContent>
+                    <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 p-4 rounded-2xl flex items-center justify-between">
+                        <p className="text-sm font-medium">
+                            Your account is waiting for approval. Please call @ 1234567890 to complete the admission process and approve your account.
+                        </p>
+                    </div>
+                </AnimatedContent>
+            )}
+
             {/* Welcome Banner */}
             <AnimatedContent distance={20}>
                 <div className="bg-gradient-to-r from-blue-600 to-sky-400 rounded-3xl p-8 text-white relative overflow-hidden">
