@@ -55,6 +55,7 @@ import { AccountsInvoices } from "@/components/dashboard/views/accounts/Invoices
 import { NotificationsView } from "@/components/dashboard/views/shared/Notifications";
 import { MessagesView } from "@/components/dashboard/views/shared/Messages";
 import { AdminSettings } from "@/components/dashboard/views/admin/Settings";
+import { BatchDetailsView } from "@/components/dashboard/views/shared/BatchDetails";
 
 import { ZoomMeeting } from "@/components/dashboard/views/academic/ZoomMeeting";
 import { Suspense } from "react";
@@ -72,6 +73,7 @@ function DashboardContent() {
     const searchParams = useSearchParams();
     const currentView = searchParams.get("view");
     const examId = searchParams.get("id");
+    const batchId = searchParams.get("batchId");
 
     console.log("Current View:", currentView);
     console.log("User Role:", user?.role);
@@ -94,6 +96,7 @@ function DashboardContent() {
             case 'notifications': return <NotificationsView />;
             case 'messages': return <MessagesView />;
             case 'batches': return <StudentBatches />;
+            case 'batch-details': return batchId ? <BatchDetailsView batchId={batchId} /> : <StudentBatches />;
             case 'exams': return <StudentExams />;
             case 'take-exam': return examId ? <ExamInterface examId={examId} onBack={() => window.location.href='/dashboard?view=exams'} /> : <StudentExams />;
             default: return <StudentHome />;
@@ -110,6 +113,7 @@ function DashboardContent() {
             case 'notifications': return <NotificationsView />;
             case 'messages': return <MessagesView />;
             case 'batches': return <TeacherBatches />;
+            case 'batch-details': return batchId ? <BatchDetailsView batchId={batchId} /> : <TeacherBatches />;
             case 'omr': return <OmrDashboard />;
             case 'schedule': return <TeacherSchedule />;
             case 'exams': return <ExamSchedules />;
@@ -138,6 +142,7 @@ function DashboardContent() {
             case 'notifications': return <NotificationsView />;
             case 'messages': return <MessagesView />;
             case 'manage-batches': return <AdminBatchManagement />;
+            case 'batch-details': return batchId ? <BatchDetailsView batchId={batchId} /> : <AdminBatchManagement />;
             case 'exams': return <ExamSchedules />;
             default: return <AdminHome />;
         }
@@ -153,6 +158,7 @@ function DashboardContent() {
             case 'students': return <TeacherStudentManagement />;
             case 'manage-courses': return <AdminCourseManagement />;
             case 'manage-batches': return <AdminBatchManagement />;
+            case 'batch-details': return batchId ? <BatchDetailsView batchId={batchId} /> : <AdminBatchManagement />;
             case 'settings': return <AdminSettings />;
             case 'messages': return <MessagesView />;
             case 'omr': return <OmrDashboard />;

@@ -356,3 +356,75 @@ export interface OmrResult {
     answers: any;
     createdAt: string;
 }
+
+export interface Subject {
+    id: string;
+    name: string;
+    batchId: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface SessionRecording {
+    id: string;
+    title: string;
+    url: string;
+    passcode?: string;
+    sessionId: string;
+}
+
+export interface SessionAttachment {
+    id: string;
+    title: string;
+    url: string;
+    type: string;
+    sessionId: string;
+}
+
+export interface ClassSession {
+    id: string;
+    title: string;
+    type: 'LECTURE' | 'PRACTICAL' | 'WORKSHOP';
+    teacherId: string;
+    batchId: string;
+    subjectId?: string;
+    date: string;
+    startTime: string;
+    endTime: string;
+    venue?: string;
+    isOnline: boolean;
+    meetingUrl?: string;
+    meetingId?: string;
+    recordingUrl?: string;
+    recordingPasscode?: string;
+    teacher?: {
+        id: string;
+        name: string;
+        profileImage?: string;
+    };
+    batch?: {
+        id: string;
+        name: string;
+    };
+    subject?: Subject;
+    recordings?: SessionRecording[];
+    attachments?: SessionAttachment[];
+}
+
+export interface Batch {
+    id: string;
+    name: string;
+    description?: string;
+    teachers?: User[];
+    students?: User[];
+    subjects?: Subject[];
+    sessions?: ClassSession[];
+    createdAt: string;
+    updatedAt: string;
+    _count?: {
+        students: number;
+        teachers: number;
+        subjects: number;
+        sessions: number;
+    };
+}

@@ -35,6 +35,7 @@ interface ClassSession {
   type: SessionType;
   teacher: Teacher;
   batch: Batch;
+  subject?: { id: string; name: string };
   date: string;
   startTime: string;
   endTime: string;
@@ -42,6 +43,8 @@ interface ClassSession {
   isOnline?: boolean;
   meetingUrl?: string;
   meetingId?: string;
+  recordingUrl?: string;
+  recordingPasscode?: string;
 }
 
 function CreateSessionModal({
@@ -55,7 +58,7 @@ function CreateSessionModal({
   onClose: () => void;
   onSuccess: () => void;
   teachers: Teacher[];
-  batches: Batch[];
+  batches: (Batch & { subjects?: { id: string; name: string }[] })[];
 }) {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -63,12 +66,51 @@ function CreateSessionModal({
     type: "LECTURE" as SessionType,
     teacherId: "",
     batchId: "",
+    subjectId: "",
     date: new Date().toISOString().split("T")[0],
     startTime: "09:00",
     endTime: "10:30",
     venue: "",
     isOnline: false,
   });
+
+  const [availableSubjects, setAvailableSubjects] = useState<{ id: string; name: string }[]>([]);
+  const [fetchingSubjects, setFetchingSubjects] = useState(false);
+
+  useEffect(() => {
+    async function updateSubjects() {
+      if (formData.batchId) {
+        setFetchingSubjects(true);
+        try {
+          // First check if we already have subjects in the batches list
+          let selectedBatch = batches.find((b) => b.id === formData.batchId);
+
+          // If subjects are missing, fetch the full batch details
+          if (!selectedBatch?.subjects || selectedBatch.subjects.length === 0) {
+            const token = auth.getToken() || "";
+            selectedBatch = await api.get<any>(
+              `/batches/${formData.batchId}`,
+              token,
+            );
+          }
+
+          setAvailableSubjects(selectedBatch?.subjects || []);
+          setFormData((prev) => ({ ...prev, subjectId: "" }));
+        } catch (e) {
+          console.error("Failed to fetch batch subjects:", e);
+          setAvailableSubjects([]);
+        } finally {
+          // Small delay for smoother UX
+          setTimeout(() => setFetchingSubjects(false), 300);
+        }
+      } else {
+        setAvailableSubjects([]);
+        setFetchingSubjects(false);
+      }
+    }
+
+    updateSubjects();
+  }, [formData.batchId, batches]);
 
   if (!isOpen) return null;
 
@@ -182,6 +224,34 @@ function CreateSessionModal({
                 ))}
               </select>
             </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 flex items-center gap-2">
+                Subject (Optional)
+                {fetchingSubjects && (
+                  <div className="size-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                )}
+              </label>
+              <select
+                value={formData.subjectId}
+                onChange={(e) =>
+                  setFormData({ ...formData, subjectId: e.target.value })
+                }
+                disabled={!formData.batchId || fetchingSubjects}
+                className="w-full p-4 bg-gray-50 border-2 border-transparent focus:border-blue-100 focus:bg-white rounded-2xl outline-none transition-all font-bold text-gray-900 disabled:opacity-50"
+              >
+                <option value="">
+                  {fetchingSubjects ? "Fetching subjects..." : "Select a subject..."}
+                </option>
+                {!fetchingSubjects && availableSubjects.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-6">
             <div className="space-y-2">
               <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">
                 Lead Faculty
@@ -333,7 +403,7 @@ export function ClassRoutine() {
 
       // Fetch batches
       try {
-        const batchRes = await api.get<Batch[]>("/batches", token);
+        const batchRes = await api.get<any[]>("/batches", token);
         setBatches(batchRes);
       } catch (e) {
         console.error("Failed to load batches:", e);
@@ -450,6 +520,11 @@ export function ClassRoutine() {
                   <h3 className="text-2xl font-black text-gray-900 font-urbanist">
                     {item.title}
                   </h3>
+                  {item.subject && (
+                    <p className="text-xs font-bold text-blue-600 uppercase tracking-widest">
+                      {item.subject.name}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -490,30 +565,103 @@ export function ClassRoutine() {
 
               <div className="flex items-center gap-4 relative z-10">
                 {item.meetingId && (
-                  <button
-                    onClick={() => {
-                      const role = user?.role === Role.TEACHER ? 1 : 0;
-                      const cleanId = item.meetingId?.replace(/[^0-9]/g, "");
-                      let pwd = "";
-                      if (item.meetingUrl) {
-                        try {
-                          const url = new URL(item.meetingUrl);
-                          pwd = url.searchParams.get("pwd") || "";
-                        } catch (e) {
-                          console.error(
-                            "Could not parse meeting URL for password",
-                            e,
-                          );
-                        }
-                      }
-                      router.push(
-                        `/dashboard?view=zoom-meeting&meetingId=${cleanId}&role=${role}&from=routine&password=${pwd}`,
+                  (() => {
+                    const sessionDate = new Date(item.date);
+                    const [endHours, endMinutes] = item.endTime
+                      .split(":")
+                      .map(Number);
+                    const sessionEnd = new Date(sessionDate);
+                    sessionEnd.setHours(endHours, endMinutes, 0, 0);
+                    const isPast = new Date() > sessionEnd;
+
+                    if (isPast) {
+                      return (
+                        <div className="flex flex-col gap-2">
+                          <button
+                            disabled={!item.meetingId && (!item.recordings || item.recordings.length === 0)}
+                            onClick={async () => {
+                              if (item.recordings && item.recordings.length > 0) {
+                                // If multiple, open the first for now, or we could show a list
+                                window.open(item.recordings[0].url, "_blank");
+                              } else if (item.meetingId) {
+                                // Try to sync recording/passcode if it's past
+                                const loadId = toast.loading("Syncing with Zoom...");
+                                try {
+                                  const res = await api.get<{ url: string; passcode: string; recordings: any[] }>(
+                                    `/class-sessions/${item.id}/recording`,
+                                    auth.getToken() || "",
+                                  );
+                                  if (res && res.recordings && res.recordings.length > 0) {
+                                    window.open(res.recordings[0].url, "_blank");
+                                    toast.update(loadId, { render: "Sync complete!", type: "success", isLoading: false, autoClose: 2000 });
+                                    fetchData(); // Refresh to show the URL and passcode
+                                  } else {
+                                    toast.update(loadId, { render: "Recording not ready. Check back later.", type: "info", isLoading: false, autoClose: 3000 });
+                                  }
+                                } catch (e) {
+                                  toast.update(loadId, { render: "Sync failed", type: "error", isLoading: false, autoClose: 2000 });
+                                }
+                              }
+                            }}
+                            className={`px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border whitespace-nowrap shadow-lg ${
+                              (item.recordings?.length ?? 0) > 0
+                                ? "bg-indigo-600 text-white hover:bg-indigo-700 border-indigo-600 shadow-indigo-100"
+                                : "bg-gray-100 text-gray-400 border-gray-200 shadow-none cursor-not-allowed"
+                            }`}
+                          >
+                            {(item.recordings?.length ?? 0) > 0
+                              ? `Watch Recording${item.recordings!.length > 1 ? ` (${item.recordings!.length})` : ""}`
+                              : "Recording Unavailable"}
+                          </button>
+                          {item.recordings && item.recordings.length > 0 && item.recordings[0].passcode && (
+                            <div className="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-xl text-[10px] font-bold border border-indigo-100">
+                              <span>Passcode: {item.recordings[0].passcode}</span>
+                              <button 
+                                onClick={() => {
+                                  navigator.clipboard.writeText(item.recordings![0].passcode!);
+                                  toast.info("Passcode copied");
+                                }}
+                                className="hover:text-indigo-900"
+                                title="Copy Passcode"
+                              >
+                                📋
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       );
-                    }}
-                    className="px-5 py-3 bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all border border-blue-600 whitespace-nowrap shadow-lg shadow-blue-100"
-                  >
-                    Join Zoom Classroom
-                  </button>
+                    }
+
+                    return (
+                      <button
+                        onClick={() => {
+                          const role = user?.role === Role.TEACHER ? 1 : 0;
+                          const cleanId = item.meetingId?.replace(
+                            /[^0-9]/g,
+                            "",
+                          );
+                          let pwd = "";
+                          if (item.meetingUrl) {
+                            try {
+                              const url = new URL(item.meetingUrl);
+                              pwd = url.searchParams.get("pwd") || "";
+                            } catch (e) {
+                              console.error(
+                                "Could not parse meeting URL for password",
+                                e,
+                              );
+                            }
+                          }
+                          router.push(
+                            `/dashboard?view=zoom-meeting&meetingId=${cleanId}&role=${role}&from=routine&password=${pwd}`,
+                          );
+                        }}
+                        className="px-5 py-3 bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all border border-blue-600 whitespace-nowrap shadow-lg shadow-blue-100"
+                      >
+                        Join Zoom Classroom
+                      </button>
+                    );
+                  })()
                 )}
                 <button
                   onClick={() => handleDelete(item.id)}

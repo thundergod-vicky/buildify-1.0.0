@@ -31,6 +31,8 @@ interface Event {
     isOnline?: boolean;
     meetingUrl?: string;
     meetingId?: string;
+  recordingUrl?: string;
+  recordingPasscode?: string;
 }
 
 export function Calendar({ mode = 'student' }: { mode?: 'student' | 'teacher' | 'operations' }) {
@@ -77,6 +79,8 @@ export function Calendar({ mode = 'student' }: { mode?: 'student' | 'teacher' | 
                     isOnline: r.isOnline as boolean,
                     meetingUrl: r.meetingUrl as string,
                     meetingId: r.meetingId as string,
+                    recordingUrl: r.recordingUrl as string,
+                    recordingPasscode: r.recordingPasscode as string,
                 }));
                 setEvents(mappedEvents);
             }).catch(console.error);
@@ -343,7 +347,35 @@ export function Calendar({ mode = 'student' }: { mode?: 'student' | 'teacher' | 
                                     </div>
                                 </div>
                                 <button
-                                    onClick={() => {
+                                    onClick={async () => {
+                                        const sessionDate = new Date(event.date);
+                                        const [endHours, endMinutes] = (event.time.split(' - ')[1] || '00:00').split(':').map(Number);
+                                        const sessionEnd = new Date(sessionDate);
+                                        sessionEnd.setHours(endHours, endMinutes, 0, 0);
+                                        const isPast = new Date() > sessionEnd;
+
+                                        if (isPast && event.type === 'CLASS') {
+                                            if (event.recordingUrl && (event.recordingPasscode || event.recordingPasscode === "")) {
+                                                window.open(event.recordingUrl, '_blank');
+                                            } else {
+                                                // Fetch recording/passcode if missing or no passcode synced yet
+                                                try {
+                                                    const { api } = await import("@/lib/api");
+                                                    const res = await api.get<{ url: string; passcode: string }>(`/class-sessions/${event.id}/recording`, auth.getToken() || "");
+                                                    if (res && res.url) {
+                                                        window.open(res.url, '_blank');
+                                                        // Refresh to show passcode UI
+                                                        window.location.reload();
+                                                    } else {
+                                                        alert("Recording is not yet available. Please check again in a few minutes.");
+                                                    }
+                                                } catch (e) {
+                                                    console.error("Failed to fetch recording", e);
+                                                }
+                                            }
+                                            return;
+                                        }
+
                                         if (event.meetingId) {
                                             const role = authUser?.role === Role.TEACHER ? 1 : 0;
                                             const cleanId = event.meetingId?.replace(/[^0-9]/g, '');
@@ -361,11 +393,57 @@ export function Calendar({ mode = 'student' }: { mode?: 'student' | 'teacher' | 
                                     }} 
                                     className={cn(
                                         "w-full mt-4 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg",
-                                        event.type === 'CLASS' ? "bg-blue-600 text-white hover:bg-blue-700 shadow-blue-200" : "bg-red-600 text-white hover:bg-red-700 shadow-red-200"
+                                        event.type === 'CLASS' ? 
+                                            ((() => {
+                                                const sessionDate = new Date(event.date);
+                                                const [endHours, endMinutes] = (event.time.split(' - ')[1] || '00:00').split(':').map(Number);
+                                                const sessionEnd = new Date(sessionDate);
+                                                sessionEnd.setHours(endHours, endMinutes, 0, 0);
+                                                const isPast = new Date() > sessionEnd;
+                                                return isPast ? (event.recordingUrl ? "bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-200" : "bg-gray-100 text-gray-400 cursor-not-allowed shadow-none") : "bg-blue-600 text-white hover:bg-blue-700 shadow-blue-200";
+                                            })())
+                                            : "bg-red-600 text-white hover:bg-red-700 shadow-red-200"
                                     )}
                                 >
-                                    {event.type === 'CLASS' ? (event.meetingId ? "Join Zoom Classroom" : mode === 'teacher' ? "Start Class" : mode === 'operations' ? "View Class" : "Join Class") : "Start Test"}
+                                    {(() => {
+                                        const sessionDate = new Date(event.date);
+                                        const [endHours, endMinutes] = (event.time.split(' - ')[1] || '00:00').split(':').map(Number);
+                                        const sessionEnd = new Date(sessionDate);
+                                        sessionEnd.setHours(endHours, endMinutes, 0, 0);
+                                        const isPast = new Date() > sessionEnd;
+
+                                        if (isPast && event.type === 'CLASS') {
+                                            return event.recordingUrl ? "Watch Recording" : "Recording Unavailable";
+                                        }
+
+                                        return event.type === 'CLASS' ? (event.meetingId ? "Join Zoom Classroom" : mode === 'teacher' ? "Start Class" : mode === 'operations' ? "View Class" : "Join Class") : "Start Test";
+                                    })()}
                                 </button>
+                                {(() => {
+                                    const sessionDate = new Date(event.date);
+                                    const [endHours, endMinutes] = (event.time.split(' - ')[1] || '00:00').split(':').map(Number);
+                                    const sessionEnd = new Date(sessionDate);
+                                    sessionEnd.setHours(endHours, endMinutes, 0, 0);
+                                    const isPast = new Date() > sessionEnd;
+
+                                    if (isPast && event.type === 'CLASS' && event.recordingUrl && event.recordingPasscode) {
+                                        return (
+                                            <div className="flex items-center gap-2 mt-2 px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-xl text-[10px] font-bold border border-indigo-100">
+                                                <span>Passcode: {event.recordingPasscode}</span>
+                                                <button 
+                                                    onClick={() => {
+                                                        navigator.clipboard.writeText(event.recordingPasscode!);
+                                                        alert("Passcode copied");
+                                                    }}
+                                                    className="hover:text-indigo-900"
+                                                >
+                                                    📋
+                                                </button>
+                                            </div>
+                                        );
+                                    }
+                                    return null;
+                                })()}
                             </motion.div>
                         ))
                     )}
