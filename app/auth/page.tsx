@@ -103,7 +103,7 @@ export default function AuthPage() {
     };
 
     return (
-        <main className="min-h-screen flex justify-center items-center px-4 py-8 bg-gradient-to-r from-gray-200 to-blue-100/50">
+        <main className="min-h-screen flex justify-center items-center px-4 py-8 bg-linear-to-r from-gray-200 to-blue-100/50">
             {/* Mobile: stacked layout with tab */}
             <div className="auth-mobile w-full max-w-md md:hidden">
                 <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
@@ -222,7 +222,7 @@ export default function AuthPage() {
                                         className="w-full py-3 pl-5 pr-12 bg-gray-100 rounded-lg border-0 outline-none text-base text-gray-800 font-medium"
                                     >
                                         <option value={Role.STUDENT}>Student</option>
-                                        <option value={Role.TEACHER}>Teacher</option>
+                                        {/* <option value={Role.TEACHER}>Teacher</option> */}
                                         <option value={Role.PARENT}>Parent</option>
                                     </select>
                                 </div>
@@ -264,7 +264,7 @@ export default function AuthPage() {
                 
                 {/* Login form */}
                 <div
-                    className={`form-box absolute right-0 top-0 w-1/2 h-full flex items-center text-gray-800 text-center p-8 md:p-10 z-[1] transition-[right] duration-[0.6s] ease-in-out delay-300 ${
+                    className={`form-box absolute right-0 top-0 w-1/2 h-full flex items-center text-gray-800 text-center p-6 md:p-8 z-1 transition-[right] duration-[0.6s] ease-in-out delay-300 ${
                         active ? "right-1/2 invisible pointer-events-none" : "right-0"
                     }`}
                 >
@@ -311,74 +311,74 @@ export default function AuthPage() {
 
                 {/* Register form */}
                 <div
-                    className={`form-box absolute top-0 w-1/2 h-full flex items-center text-gray-800 text-center p-8 md:p-10 z-[2] transition-[right] duration-[0.6s] ease-in-out delay-300 overflow-y-auto ${
+                    className={`form-box absolute top-0 w-1/2 h-full flex items-center text-gray-800 text-center p-6 md:p-7 z-2 transition-[right] duration-[0.6s] ease-in-out delay-300 overflow-y-auto ${
                         active ? "right-1/2 visible" : "right-0 invisible pointer-events-none"
                     }`}
                 >
                     <form onSubmit={handleRegister} className="w-full">
-                        <h1 className="text-3xl md:text-4xl font-bold font-urbanist mb-6">Registration</h1>
-                        <div className="relative my-4">
+                        <h1 className="text-2xl md:text-3xl font-bold font-urbanist mb-4">Registration</h1>
+                        <div className="relative mb-3">
                             <input
                                 type="text"
                                 placeholder="Full Name"
                                 required
                                 value={registerData.name}
                                 onChange={(e) => setRegisterData({ ...registerData, name: e.target.value })}
-                                className="w-full py-3 pl-5 pr-12 bg-gray-100 rounded-lg border-0 outline-none text-base text-gray-800 font-medium placeholder:text-gray-500"
+                                className="w-full py-2.5 pl-5 pr-12 bg-gray-100 rounded-lg border-0 outline-none text-base text-gray-800 font-medium placeholder:text-gray-500"
                             />
                             <User className="absolute right-4 top-1/2 -translate-y-1/2 size-5 text-gray-500" />
                         </div>
-                        <div className="relative my-4">
+                        <div className="relative mb-3">
                             <input
                                 type="email"
                                 placeholder="Email"
                                 required
                                 value={registerData.email}
                                 onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
-                                className="w-full py-3 pl-5 pr-12 bg-gray-100 rounded-lg border-0 outline-none text-base text-gray-800 font-medium placeholder:text-gray-500"
+                                className="w-full py-2.5 pl-5 pr-12 bg-gray-100 rounded-lg border-0 outline-none text-base text-gray-800 font-medium placeholder:text-gray-500"
                             />
                             <Mail className="absolute right-4 top-1/2 -translate-y-1/2 size-5 text-gray-500" />
                         </div>
-                        <div className="relative my-4">
+                        <div className="relative mb-3">
                             <input
                                 type="tel"
                                 placeholder="Phone (Optional)"
                                 value={registerData.phone}
                                 onChange={(e) => setRegisterData({ ...registerData, phone: e.target.value })}
-                                className="w-full py-3 pl-5 pr-12 bg-gray-100 rounded-lg border-0 outline-none text-base text-gray-800 font-medium placeholder:text-gray-500"
+                                className="w-full py-2.5 pl-5 pr-12 bg-gray-100 rounded-lg border-0 outline-none text-base text-gray-800 font-medium placeholder:text-gray-500"
                             />
                             <Phone className="absolute right-4 top-1/2 -translate-y-1/2 size-5 text-gray-500" />
                         </div>
-                        <div className="relative my-4">
+                        <div className="relative mb-3">
                             <select
                                 value={registerData.role}
                                 onChange={(e) => setRegisterData({ ...registerData, role: e.target.value as Role })}
-                                className="w-full py-3 pl-5 pr-12 bg-gray-100 rounded-lg border-0 outline-none text-base text-gray-800 font-medium"
+                                className="w-full py-2.5 pl-5 pr-12 bg-gray-100 rounded-lg border-0 outline-none text-base text-gray-800 font-medium focus:ring-0"
                             >
                                 <option value={Role.STUDENT}>Student</option>
                                 <option value={Role.TEACHER}>Teacher</option>
                                 <option value={Role.PARENT}>Parent</option>
                             </select>
                         </div>
-                        <div className="relative my-4">
+                        <div className="relative mb-3">
                             <input
                                 type="password"
                                 placeholder="Password"
                                 required
                                 value={registerData.password}
                                 onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
-                                className="w-full py-3 pl-5 pr-12 bg-gray-100 rounded-lg border-0 outline-none text-base text-gray-800 font-medium placeholder:text-gray-500"
+                                className="w-full py-2.5 pl-5 pr-12 bg-gray-100 rounded-lg border-0 outline-none text-base text-gray-800 font-medium placeholder:text-gray-500"
                             />
                             <Lock className="absolute right-4 top-1/2 -translate-y-1/2 size-5 text-gray-500" />
                         </div>
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full h-12 rounded-lg bg-blue-600 text-white font-semibold text-base shadow-md hover:bg-blue-600 transition-colors mt-2 disabled:opacity-50"
+                            className="w-full h-11 rounded-lg bg-blue-600 text-white font-semibold text-base shadow-md hover:bg-blue-600 transition-colors mt-1 disabled:opacity-50"
                         >
                             {loading ? 'Creating account...' : 'Register'}
                         </button>
-                        <p className="text-sm text-gray-500 mt-4 mb-3">or</p>
+                        <p className="text-xs text-gray-500 mt-2.5 mb-1.5">or</p>
                         <GoogleLoginButton />
                     </form>
                 </div>
@@ -386,11 +386,11 @@ export default function AuthPage() {
                 {/* Toggle overlay and panels */}
                 <div className="toggle-box absolute inset-0 pointer-events-none">
                     <div
-                        className="absolute h-full w-[300%] bg-blue-600 rounded-[150px] z-[2] transition-[left] duration-[1.8s] ease-in-out"
+                        className="absolute h-full w-[300%] bg-blue-600 rounded-[150px] z-2 transition-[left] duration-[1.8s] ease-in-out"
                         style={{ left: active ? "50%" : "-250%" }}
                     />
                     <div
-                        className="toggle-panel-left absolute left-0 top-0 w-1/2 h-full text-white flex flex-col justify-center items-center z-[3] transition-[left] duration-[0.6s] ease-in-out delay-300 pointer-events-auto"
+                        className="toggle-panel-left absolute left-0 top-0 w-1/2 h-full text-white flex flex-col justify-center items-center z-3 transition-[left] duration-[0.6s] ease-in-out delay-300 pointer-events-auto"
                         style={{ left: active ? "-50%" : "0" }}
                     >
                         <h1 className="text-3xl md:text-4xl font-bold font-urbanist mb-2">Hello, Welcome!</h1>
@@ -404,7 +404,7 @@ export default function AuthPage() {
                         </button>
                     </div>
                     <div
-                        className="toggle-panel-right absolute top-0 w-1/2 h-full text-white flex flex-col justify-center items-center z-[3] transition-[right] duration-[0.6s] ease-in-out pointer-events-auto"
+                        className="toggle-panel-right absolute top-0 w-1/2 h-full text-white flex flex-col justify-center items-center z-3 transition-[right] duration-[0.6s] ease-in-out pointer-events-auto"
                         style={{ right: active ? "0" : "-50%", transitionDelay: active ? "0.6s" : "0.3s" }}
                     >
                         <h1 className="text-3xl md:text-4xl font-bold font-urbanist mb-2">Welcome Back!</h1>
