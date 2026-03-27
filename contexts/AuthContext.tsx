@@ -52,8 +52,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (credentials: LoginDto) => {
     try {
       const response: AuthResponse = await authService.login(credentials);
-      setUser(response.user);
       connectSocket(response.access_token);
+      // Fetch the full profile immediately so admission/role data is complete
+      const fullProfile = await authService.getProfile();
+      setUser(fullProfile ?? response.user);
     } catch (error) {
       throw error;
     }
