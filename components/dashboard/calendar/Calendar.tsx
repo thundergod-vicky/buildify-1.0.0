@@ -33,6 +33,7 @@ interface Event {
     meetingId?: string;
   recordingUrl?: string;
   recordingPasscode?: string;
+  recordings?: any[];
 }
 
 export function Calendar({ mode = 'student' }: { mode?: 'student' | 'teacher' | 'operations' }) {
@@ -81,6 +82,7 @@ export function Calendar({ mode = 'student' }: { mode?: 'student' | 'teacher' | 
                     meetingId: r.meetingId as string,
                     recordingUrl: r.recordingUrl as string,
                     recordingPasscode: r.recordingPasscode as string,
+                    recordings: r.recordings as any[],
                 }));
                 setEvents(mappedEvents);
             }).catch(console.error);

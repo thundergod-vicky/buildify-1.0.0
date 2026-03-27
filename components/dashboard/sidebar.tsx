@@ -21,7 +21,7 @@ import {
   CameraIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Role } from "@/types";
+import { Role, User } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState, Suspense } from "react";
 import { ConfirmationModal } from "@/components/ui/confirmation-modal";
@@ -78,7 +78,7 @@ function SidebarContent() {
 
   let filteredItems = roleMenus[user?.role?.toUpperCase() as Role] ?? [allItems.home, allItems.settings];
 
-  if (user?.role === Role.STUDENT && user?.admission?.status !== 'APPROVED') {
+  if (user?.role === Role.STUDENT && (user as User)?.admission?.status !== 'APPROVED') {
     filteredItems = [allItems.home, allItems.courses, allItems.tests, allItems.settings];
   }
 

@@ -114,6 +114,56 @@ export interface ProfileSettings {
   hiddenTestResultIds?: string[];
 }
 
+export enum AdmissionStatus {
+  PENDING = "PENDING",
+  APPROVED = "APPROVED",
+  REJECTED = "REJECTED",
+}
+
+export enum Stream {
+  FOUNDATION = "FOUNDATION",
+  NEET = "NEET",
+  JEE = "JEE",
+  NONE = "NONE",
+}
+
+export enum Caste {
+  GENERAL = "GENERAL",
+  SC = "SC",
+  ST = "ST",
+  OBC = "OBC",
+  EWS = "EWS",
+}
+
+export interface Admission {
+  id: string;
+  studentId: string;
+  admissionDate?: Date;
+  formNumber: string;
+  enrollmentNumber?: string;
+  studentName: string;
+  fatherName: string;
+  motherName: string;
+  email: string;
+  address: string;
+  dateOfBirth: Date;
+  contactNumber: string;
+  alternateContact?: string;
+  studentClass: string;
+  stream: Stream;
+  course: string;
+  batchCode?: string;
+  schoolName: string;
+  board: string;
+  caste: Caste;
+  photoUrl?: string;
+  status: AdmissionStatus;
+  approvedById?: string;
+  approvedAt?: Date;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface User {
   id: string;
   email: string;
@@ -133,11 +183,87 @@ export interface User {
   studentOf?: ParentStudent[];
   parentRequests?: ParentRequest[];
   notifications?: Notification[];
+  admission?: Admission;
+  invoices?: Invoice[];
+  createdExams?: Exam[];
+  assignedExams?: Exam[];
+  examResults?: ExamResult[];
 }
 
 export enum CourseType {
   PUBLIC = "PUBLIC",
   PREMIUM = "PREMIUM",
+}
+
+
+export enum ExamStatus {
+  DRAFT = "DRAFT",
+  PLANNED = "PLANNED",
+  SCHEDULED = "SCHEDULED",
+}
+
+export interface Exam {
+  id: string;
+  title: string;
+  description?: string;
+  status: ExamStatus;
+  startTime?: string;
+  endTime?: string;
+  duration?: number;
+  questions?: Record<string, unknown>[];
+  totalQuestions: number;
+  batchId?: string;
+  creatorId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ExamResult {
+  id: string;
+  examId: string;
+  studentId: string;
+  score: number;
+  total: number;
+  answers?: Record<string, unknown>;
+  submittedAt: string;
+}
+
+export enum InvoiceStatus {
+  PENDING = "PENDING",
+  PAID = "PAID",
+  EMI = "EMI",
+  PARTIAL = "PARTIAL",
+  CANCELLED = "CANCELLED",
+}
+
+export interface BillingTemplate {
+  id: string;
+  name: string;
+  description?: string;
+  baseAmount: number;
+  taxRate: number;
+  tenure?: string;
+  batch?: string;
+  discount?: string;
+  items?: Record<string, unknown>[];
+  metadata?: Record<string, unknown>;
+}
+
+export interface Invoice {
+  id: string;
+  invoiceNumber: string;
+  studentId: string;
+  templateId?: string;
+  amount: number;
+  tax: number;
+  total: number;
+  status: InvoiceStatus;
+  paymentMethod?: string;
+  transactionId?: string;
+  metadata?: Record<string, unknown>;
+  items?: Record<string, unknown>[];
+  sentAt?: string;
+  pdfUrl?: string;
 }
 
 export interface CourseAssignment {
@@ -430,5 +556,7 @@ export interface Batch {
     teachers: number;
     subjects: number;
     sessions: number;
+    exams?: number;
   };
+  exams?: Exam[];
 }

@@ -5,7 +5,6 @@ import { useState, useEffect } from "react";
 import {
   ClockIcon,
   MapPinIcon,
-  MoreVerticalIcon,
   PlusIcon,
   CalendarIcon,
   GraduationCapIcon,
@@ -15,37 +14,7 @@ import { toast } from "react-toastify";
 import { auth } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { Role } from "@/types";
-
-type SessionType = "LECTURE" | "PRACTICAL" | "WORKSHOP";
-
-interface Teacher {
-  id: string;
-  name: string;
-}
-
-interface Batch {
-  id: string;
-  name: string;
-}
-
-interface ClassSession {
-  id: string;
-  title: string;
-  type: SessionType;
-  teacher: Teacher;
-  batch: Batch;
-  subject?: { id: string; name: string };
-  date: string;
-  startTime: string;
-  endTime: string;
-  venue?: string;
-  isOnline?: boolean;
-  meetingUrl?: string;
-  meetingId?: string;
-  recordingUrl?: string;
-  recordingPasscode?: string;
-}
+import { Role, ClassSession, Subject, Batch } from "@/types";
 
 function CreateSessionModal({
   isOpen,
@@ -57,13 +26,13 @@ function CreateSessionModal({
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  teachers: Teacher[];
-  batches: (Batch & { subjects?: { id: string; name: string }[] })[];
+  teachers: { id: string; name: string }[];
+  batches: (Batch & { subjects?: Subject[] })[];
 }) {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
-    type: "LECTURE" as SessionType,
+    type: "LECTURE" as any,
     teacherId: "",
     batchId: "",
     subjectId: "",
@@ -178,7 +147,7 @@ function CreateSessionModal({
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    type: e.target.value as SessionType,
+                  type: e.target.value as any,
                   })
                 }
                 className="w-full p-4 bg-gray-50 border-2 border-transparent focus:border-blue-100 focus:bg-white rounded-2xl outline-none transition-all font-bold text-gray-900"
@@ -354,7 +323,7 @@ function CreateSessionModal({
 
 export function ClassRoutine() {
   const [sessions, setSessions] = useState<ClassSession[]>([]);
-  const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [teachers, setTeachers] = useState<{ id: string; name: string }[]>([]);
   const [batches, setBatches] = useState<Batch[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -415,6 +384,7 @@ export function ClassRoutine() {
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDateFilter]);
 
   const handleDelete = async (id: string) => {
@@ -424,6 +394,7 @@ export function ClassRoutine() {
       toast.success("Session cancelled");
       fetchData();
     } catch (err: any) {
+      console.error(err);
       toast.error("Failed to cancel session");
     }
   };
