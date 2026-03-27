@@ -97,6 +97,18 @@ export function AdminUserManagement() {
   const [roleFilter, setRoleFilter] = useState<string>("ALL");
   const [sortBy, setSortBy] = useState<"name" | "createdAt" | "role">("name");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [passwordModal, setPasswordModal] = useState<{
+    isOpen: boolean;
+    userId: string;
+    userName: string;
+    newPassword: string;
+  }>({
+    isOpen: false,
+    userId: "",
+    userName: "",
+    newPassword: "",
+  });
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -223,6 +235,29 @@ export function AdminUserManagement() {
       showToast.error("Failed to create user");
     } finally {
       setIsCreatingUser(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!passwordModal.userId || !passwordModal.newPassword) return;
+    setIsResettingPassword(true);
+    try {
+      const token = auth.getToken();
+      if (!token) return;
+
+      await api.patch(
+        `/admin/users/${passwordModal.userId}`,
+        { password: passwordModal.newPassword },
+        token,
+      );
+
+      showToast.success(`Password updated for ${passwordModal.userName}`);
+      setPasswordModal({ ...passwordModal, isOpen: false, newPassword: "" });
+    } catch (error) {
+      console.error("Password reset failed:", error);
+      showToast.error("Failed to update password");
+    } finally {
+      setIsResettingPassword(false);
     }
   };
 
@@ -451,6 +486,7 @@ export function AdminUserManagement() {
                           setDeleteConfirm={setDeleteConfirm}
                           setDetailsModal={setDetailsModal}
                           setAdmissionModal={setAdmissionModal}
+                          setPasswordModal={setPasswordModal}
                         />
                       ))}
                     </React.Fragment>
@@ -474,6 +510,7 @@ export function AdminUserManagement() {
                     setDeleteConfirm={setDeleteConfirm}
                     setDetailsModal={setDetailsModal}
                     setAdmissionModal={setAdmissionModal}
+                    setPasswordModal={setPasswordModal}
                   />
                 ))
               )}
@@ -799,6 +836,79 @@ export function AdminUserManagement() {
           onClose={() => setAdmissionModal({ ...admissionModal, isOpen: false })}
           onAction={() => fetchUsers()}
         />
+
+        {/* Reset Password Modal */}
+        <AnimatePresence>
+          {passwordModal.isOpen && (
+            <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                className="bg-white rounded-[2.5rem] w-full max-w-md shadow-2xl overflow-hidden border border-slate-100"
+              >
+                <div className="px-10 py-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
+                  <div>
+                    <h2 className="text-xl font-black text-slate-900 tracking-tight">
+                      Reset Password
+                    </h2>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
+                      Target: {passwordModal.userName}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setPasswordModal({ ...passwordModal, isOpen: false })}
+                    className="p-3 bg-white border border-slate-100 rounded-2xl text-slate-400 hover:text-rose-500 transition-all shadow-sm"
+                  >
+                    <XIcon className="size-5" />
+                  </button>
+                </div>
+
+                <div className="p-10 space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">
+                      New Password
+                    </label>
+                    <div className="relative group">
+                      <Lock className="absolute left-5 top-1/2 -translate-y-1/2 size-4 text-slate-300 group-focus-within:text-indigo-400 transition-colors" />
+                      <input
+                        value={passwordModal.newPassword}
+                        onChange={(e) =>
+                          setPasswordModal({ ...passwordModal, newPassword: e.target.value })
+                        }
+                        type="text"
+                        className="w-full pl-12 pr-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl outline-none focus:border-indigo-500 focus:bg-white transition-all font-bold text-sm text-slate-700 shadow-inner"
+                        placeholder="Enter new password..."
+                        autoFocus
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="px-10 py-8 bg-slate-50/50 border-t border-slate-50 flex justify-end gap-4 mt-4">
+                  <button
+                    onClick={() => setPasswordModal({ ...passwordModal, isOpen: false })}
+                    className="px-6 py-3 bg-white border border-slate-200 text-slate-500 rounded-xl text-xs font-bold hover:bg-slate-100 transition-all shadow-sm"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleResetPassword}
+                    disabled={isResettingPassword || !passwordModal.newPassword}
+                    className="px-8 py-3 bg-slate-900 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 flex items-center gap-2 disabled:opacity-50"
+                  >
+                    {isResettingPassword ? (
+                      <Loader2Icon className="size-4 animate-spin" />
+                    ) : (
+                      <SaveIcon className="size-4" />
+                    )}
+                    Update Password
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
@@ -819,6 +929,7 @@ function UserRow({
   setDeleteConfirm,
   setDetailsModal,
   setAdmissionModal,
+  setPasswordModal,
 }: {
   user: UserWithCounts;
   currentUser: User | null;
@@ -848,6 +959,12 @@ function UserRow({
     isOpen: boolean;
     userId: string;
     userName: string;
+  }) => void;
+  setPasswordModal: (modal: {
+    isOpen: boolean;
+    userId: string;
+    userName: string;
+    newPassword: string;
   }) => void;
 }) {
   return (
@@ -1037,8 +1154,25 @@ function UserRow({
                 <button
                   onClick={() => setEditingUser(user)}
                   className="p-3 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-blue-600 hover:border-blue-100 hover:bg-blue-50 transition-all shadow-sm"
+                  title="Edit User Particulars"
                 >
                   <UserCogIcon className="size-4" />
+                </button>
+              )}
+              {currentUser?.role === Role.ADMIN && (
+                <button
+                  onClick={() =>
+                    setPasswordModal({
+                      isOpen: true,
+                      userId: user.id,
+                      userName: user.name || "User",
+                      newPassword: "",
+                    })
+                  }
+                  className="p-3 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-amber-600 hover:border-amber-100 hover:bg-amber-50 transition-all shadow-sm"
+                  title="Reset User Password"
+                >
+                  <Lock className="size-4" />
                 </button>
               )}
               {user.role === Role.STUDENT && (
