@@ -369,7 +369,11 @@ export interface SessionRecording {
     id: string;
     title: string;
     url: string;
+    s3Key?: string;
     passcode?: string;
+    fileType?: string;
+    status?: string;
+    durationSecs?: number;
     sessionId: string;
 }
 

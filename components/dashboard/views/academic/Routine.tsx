@@ -581,53 +581,75 @@ export function ClassRoutine() {
                             disabled={!item.meetingId && (!item.recordings || item.recordings.length === 0)}
                             onClick={async () => {
                               if (item.recordings && item.recordings.length > 0) {
-                                // If multiple, open the first for now, or we could show a list
-                                window.open(item.recordings[0].url, "_blank");
+                                // Fetch stream URL from CloudFront
+                                const readyRec = item.recordings.find(r => r.status === 'ready');
+                                if (readyRec) {
+                                  const loadId = toast.loading("Loading recording...");
+                                  try {
+                                    const streamRes = await api.get<{ url: string; status: string }>(
+                                      `/recordings/${readyRec.id}/stream`,
+                                      auth.getToken() || "",
+                                    );
+                                    if (streamRes.status === 'processing') {
+                                      toast.update(loadId, { render: "Recording is still processing...", type: "info", isLoading: false, autoClose: 3000 });
+                                    } else if (streamRes.url) {
+                                      window.open(streamRes.url, "_blank");
+                                      toast.update(loadId, { render: "Opening recording", type: "success", isLoading: false, autoClose: 1000 });
+                                    }
+                                  } catch {
+                                    toast.update(loadId, { render: "Failed to load recording", type: "error", isLoading: false, autoClose: 2000 });
+                                  }
+                                } else if (item.recordings.find(r => r.status === 'processing')) {
+                                  toast.info("Recording is still being processed. Check back shortly.");
+                                } else {
+                                  // Legacy: open direct URL
+                                  window.open(item.recordings[0].url, "_blank");
+                                }
                               } else if (item.meetingId) {
-                                // Try to sync recording/passcode if it's past
+                                // Try to sync recording if it's past
                                 const loadId = toast.loading("Syncing with Zoom...");
                                 try {
-                                  const res = await api.get<{ url: string; passcode: string; recordings: any[] }>(
+                                  const res = await api.get<{ url: string; passcode: string; recordings: any[]; source: string }>(
                                     `/class-sessions/${item.id}/recording`,
                                     auth.getToken() || "",
                                   );
                                   if (res && res.recordings && res.recordings.length > 0) {
-                                    window.open(res.recordings[0].url, "_blank");
+                                    if (res.source === 's3') {
+                                      // Fetch signed stream URL
+                                      const streamRes = await api.get<{ url: string; status: string }>(
+                                        `/recordings/${res.recordings[0].id}/stream`,
+                                        auth.getToken() || "",
+                                      );
+                                      if (streamRes.url) {
+                                        window.open(streamRes.url, "_blank");
+                                      }
+                                    } else {
+                                      window.open(res.recordings[0].url, "_blank");
+                                    }
                                     toast.update(loadId, { render: "Sync complete!", type: "success", isLoading: false, autoClose: 2000 });
-                                    fetchData(); // Refresh to show the URL and passcode
+                                    fetchData();
                                   } else {
                                     toast.update(loadId, { render: "Recording not ready. Check back later.", type: "info", isLoading: false, autoClose: 3000 });
                                   }
-                                } catch (e) {
+                                } catch {
                                   toast.update(loadId, { render: "Sync failed", type: "error", isLoading: false, autoClose: 2000 });
                                 }
                               }
                             }}
                             className={`px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border whitespace-nowrap shadow-lg ${
                               (item.recordings?.length ?? 0) > 0
-                                ? "bg-indigo-600 text-white hover:bg-indigo-700 border-indigo-600 shadow-indigo-100"
+                                ? (item.recordings?.some(r => r.status === 'processing')
+                                    ? "bg-amber-500 text-white hover:bg-amber-600 border-amber-500 shadow-amber-100"
+                                    : "bg-indigo-600 text-white hover:bg-indigo-700 border-indigo-600 shadow-indigo-100")
                                 : "bg-gray-100 text-gray-400 border-gray-200 shadow-none cursor-not-allowed"
                             }`}
                           >
-                            {(item.recordings?.length ?? 0) > 0
-                              ? `Watch Recording${item.recordings!.length > 1 ? ` (${item.recordings!.length})` : ""}`
-                              : "Recording Unavailable"}
+                            {(() => {
+                              if ((item.recordings?.length ?? 0) === 0) return "Recording Unavailable";
+                              if (item.recordings?.some(r => r.status === 'processing')) return "Processing...";
+                              return `Watch Recording${item.recordings!.length > 1 ? ` (${item.recordings!.length})` : ""}`;
+                            })()}
                           </button>
-                          {item.recordings && item.recordings.length > 0 && item.recordings[0].passcode && (
-                            <div className="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-xl text-[10px] font-bold border border-indigo-100">
-                              <span>Passcode: {item.recordings[0].passcode}</span>
-                              <button 
-                                onClick={() => {
-                                  navigator.clipboard.writeText(item.recordings![0].passcode!);
-                                  toast.info("Passcode copied");
-                                }}
-                                className="hover:text-indigo-900"
-                                title="Copy Passcode"
-                              >
-                                📋
-                              </button>
-                            </div>
-                          )}
                         </div>
                       );
                     }

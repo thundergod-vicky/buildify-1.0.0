@@ -22,7 +22,7 @@ import { api } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { toast } from "react-toastify";
 import { useAuth } from "@/contexts/AuthContext";
-import { Role, Batch, ClassSession } from "@/types";
+import { Role, Batch, ClassSession, SessionRecording } from "@/types";
 import { cn } from "@/lib/utils";
 
 export function BatchDetailsView({ batchId }: { batchId: string }) {
@@ -444,41 +444,14 @@ function ClassItem({
                     No recordings uploaded for this session.
                   </p>
                 ) : (
-                  session.recordings?.map((rec) => (
-                    <div
+                  session.recordings?.filter(r => r.status !== 'deleted').map((rec) => (
+                    <RecordingItem
                       key={rec.id}
-                      className="flex items-center justify-between p-3 bg-white border border-gray-100 rounded-xl group/item"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="size-8 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center">
-                          <VideoIcon className="size-4" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold text-gray-700">
-                            {rec.title}
-                          </p>
-                          {rec.passcode && (
-                            <p className="text-[10px] text-gray-400">
-                              Passcode: {rec.passcode}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <a
-                          href={rec.url}
-                          target="_blank"
-                          className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
-                        >
-                          <ExternalLinkIcon className="size-4" />
-                        </a>
-                        {(isManagementRole || isTeacher) && (
-                          <button className="p-2 text-gray-400 hover:text-red-600 transition-colors">
-                            <Trash2Icon className="size-4" />
-                          </button>
-                        )}
-                      </div>
-                    </div>
+                      rec={rec}
+                      isManagementRole={isManagementRole}
+                      isTeacher={isTeacher}
+                      onRefresh={onRefresh}
+                    />
                   ))
                 )}
               </div>
@@ -594,6 +567,120 @@ function ClassItem({
             </div>
           </div>
         </div>
+      )}
+    </div>
+  );
+}
+
+function RecordingItem({
+  rec,
+  isManagementRole,
+  isTeacher,
+  onRefresh,
+}: {
+  rec: SessionRecording;
+  isManagementRole: boolean;
+  isTeacher: boolean;
+  onRefresh: () => void;
+}) {
+  const [streamUrl, setStreamUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handlePlay = async () => {
+    if (streamUrl) {
+      setStreamUrl(null); // Toggle off
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await api.get<{ url: string; fileType: string; duration: number; status: string }>(
+        `/recordings/${rec.id}/stream`,
+        auth.getToken()!,
+      );
+      if (res.status === 'processing') {
+        toast.info("Recording is still being processed. Please check back in a few minutes.");
+      } else if (res.url) {
+        setStreamUrl(res.url);
+      }
+    } catch (err: any) {
+      toast.error("Failed to load recording");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!confirm("Delete this recording? This cannot be undone.")) return;
+    try {
+      await api.delete(`/recordings/${rec.id}`, auth.getToken()!);
+      toast.success("Recording deleted");
+      onRefresh();
+    } catch (err: any) {
+      toast.error("Failed to delete recording");
+    }
+  };
+
+  if (rec.status === 'processing') {
+    return (
+      <div className="flex items-center gap-3 p-3 bg-amber-50 border border-amber-100 rounded-xl">
+        <div className="size-8 bg-amber-100 text-amber-600 rounded-lg flex items-center justify-center">
+          <ClockIcon className="size-4 animate-spin" />
+        </div>
+        <div>
+          <p className="text-sm font-bold text-amber-700">{rec.title}</p>
+          <p className="text-[10px] text-amber-500 font-medium">Processing — will be ready shortly</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between p-3 bg-white border border-gray-100 rounded-xl group/item">
+        <div className="flex items-center gap-3">
+          <div className="size-8 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center">
+            <VideoIcon className="size-4" />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-gray-700">{rec.title}</p>
+            {rec.durationSecs && (
+              <p className="text-[10px] text-gray-400">
+                {Math.round(rec.durationSecs / 60)} min
+              </p>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handlePlay}
+            disabled={loading}
+            className="p-2 text-gray-400 hover:text-blue-600 transition-colors disabled:opacity-50"
+            title={streamUrl ? "Close player" : "Play recording"}
+          >
+            {loading ? (
+              <ClockIcon className="size-4 animate-spin" />
+            ) : (
+              <ExternalLinkIcon className="size-4" />
+            )}
+          </button>
+          {(isManagementRole || isTeacher) && (
+            <button
+              onClick={handleDelete}
+              className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+            >
+              <Trash2Icon className="size-4" />
+            </button>
+          )}
+        </div>
+      </div>
+      {streamUrl && (
+        <video
+          controls
+          autoPlay
+          src={streamUrl}
+          className="w-full rounded-xl border border-gray-100 shadow-sm"
+          style={{ maxHeight: 400 }}
+        />
       )}
     </div>
   );

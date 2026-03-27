@@ -355,23 +355,28 @@ export function Calendar({ mode = 'student' }: { mode?: 'student' | 'teacher' | 
                                         const isPast = new Date() > sessionEnd;
 
                                         if (isPast && event.type === 'CLASS') {
-                                            if (event.recordingUrl && (event.recordingPasscode || event.recordingPasscode === "")) {
-                                                window.open(event.recordingUrl, '_blank');
-                                            } else {
-                                                // Fetch recording/passcode if missing or no passcode synced yet
-                                                try {
-                                                    const { api } = await import("@/lib/api");
-                                                    const res = await api.get<{ url: string; passcode: string }>(`/class-sessions/${event.id}/recording`, auth.getToken() || "");
-                                                    if (res && res.url) {
-                                                        window.open(res.url, '_blank');
-                                                        // Refresh to show passcode UI
-                                                        window.location.reload();
+                                            // Try to fetch stream URL through the sync endpoint
+                                            try {
+                                                const { api } = await import("@/lib/api");
+                                                const res = await api.get<{ recordings: any[]; source: string }>(`/class-sessions/${event.id}/recording`, auth.getToken() || "");
+                                                if (res && res.recordings && res.recordings.length > 0) {
+                                                    // Get CloudFront stream URL
+                                                    const streamRes = await api.get<{ url: string; status: string }>(
+                                                        `/recordings/${res.recordings[0].id}/stream`,
+                                                        auth.getToken() || "",
+                                                    );
+                                                    if (streamRes.status === 'processing') {
+                                                        alert("Recording is still being processed. Please check back in a few minutes.");
+                                                    } else if (streamRes.url) {
+                                                        window.open(streamRes.url, '_blank');
                                                     } else {
-                                                        alert("Recording is not yet available. Please check again in a few minutes.");
+                                                        alert("Recording is not yet available.");
                                                     }
-                                                } catch (e) {
-                                                    console.error("Failed to fetch recording", e);
+                                                } else {
+                                                    alert("Recording is not yet available. Please check again in a few minutes.");
                                                 }
+                                            } catch (e) {
+                                                console.error("Failed to fetch recording", e);
                                             }
                                             return;
                                         }
@@ -400,7 +405,7 @@ export function Calendar({ mode = 'student' }: { mode?: 'student' | 'teacher' | 
                                                 const sessionEnd = new Date(sessionDate);
                                                 sessionEnd.setHours(endHours, endMinutes, 0, 0);
                                                 const isPast = new Date() > sessionEnd;
-                                                return isPast ? (event.recordingUrl ? "bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-200" : "bg-gray-100 text-gray-400 cursor-not-allowed shadow-none") : "bg-blue-600 text-white hover:bg-blue-700 shadow-blue-200";
+                                                return isPast ? "bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-200" : "bg-blue-600 text-white hover:bg-blue-700 shadow-blue-200";
                                             })())
                                             : "bg-red-600 text-white hover:bg-red-700 shadow-red-200"
                                     )}
@@ -413,37 +418,12 @@ export function Calendar({ mode = 'student' }: { mode?: 'student' | 'teacher' | 
                                         const isPast = new Date() > sessionEnd;
 
                                         if (isPast && event.type === 'CLASS') {
-                                            return event.recordingUrl ? "Watch Recording" : "Recording Unavailable";
+                                            return "Watch Recording";
                                         }
 
                                         return event.type === 'CLASS' ? (event.meetingId ? "Join Zoom Classroom" : mode === 'teacher' ? "Start Class" : mode === 'operations' ? "View Class" : "Join Class") : "Start Test";
                                     })()}
                                 </button>
-                                {(() => {
-                                    const sessionDate = new Date(event.date);
-                                    const [endHours, endMinutes] = (event.time.split(' - ')[1] || '00:00').split(':').map(Number);
-                                    const sessionEnd = new Date(sessionDate);
-                                    sessionEnd.setHours(endHours, endMinutes, 0, 0);
-                                    const isPast = new Date() > sessionEnd;
-
-                                    if (isPast && event.type === 'CLASS' && event.recordingUrl && event.recordingPasscode) {
-                                        return (
-                                            <div className="flex items-center gap-2 mt-2 px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-xl text-[10px] font-bold border border-indigo-100">
-                                                <span>Passcode: {event.recordingPasscode}</span>
-                                                <button 
-                                                    onClick={() => {
-                                                        navigator.clipboard.writeText(event.recordingPasscode!);
-                                                        alert("Passcode copied");
-                                                    }}
-                                                    className="hover:text-indigo-900"
-                                                >
-                                                    📋
-                                                </button>
-                                            </div>
-                                        );
-                                    }
-                                    return null;
-                                })()}
                             </motion.div>
                         ))
                     )}
