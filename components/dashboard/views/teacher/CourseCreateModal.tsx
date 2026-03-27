@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { XIcon, Loader2Icon, UserIcon } from 'lucide-react';
+import { XIcon, Loader2Icon, UserIcon, LayersIcon, BookOpenIcon } from 'lucide-react';
 import { coursesApi } from '@/lib/courses';
 import { CourseType, Role } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
@@ -16,26 +16,60 @@ export function CourseCreateModal({ isOpen, onClose, onSuccess }: CourseCreateMo
     const { user } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
     const [teachers, setTeachers] = useState<any[]>([]);
+    const [batches, setBatches] = useState<any[]>([]);
+    const [subjects, setSubjects] = useState<any[]>([]);
     const [formData, setFormData] = useState({
         title: '',
         description: '',
         courseType: CourseType.PUBLIC as CourseType,
         teacherId: '',
+        batchId: '',
+        subjectId: '',
     });
 
     const isAdminOrOps = user?.role === Role.ADMIN || user?.role === Role.ACADEMIC_OPERATIONS;
 
     useEffect(() => {
-        if (isOpen && isAdminOrOps) {
-            fetchTeachers();
+        if (isOpen) {
+            if (isAdminOrOps) fetchTeachers();
+            fetchBatches();
         }
-    }, [isOpen]);
+    }, [isOpen, isAdminOrOps]);
+
+    useEffect(() => {
+        if (formData.batchId) {
+            fetchSubjects(formData.batchId);
+        } else {
+            setSubjects([]);
+            setFormData(prev => ({ ...prev, subjectId: '' }));
+        }
+    }, [formData.batchId]);
+
+    const fetchBatches = async () => {
+        try {
+            const token = auth.getToken();
+            const data = await api.get<any[]>('/batches', token || undefined);
+            setBatches(data);
+        } catch (error) {
+            console.error('Failed to fetch batches:', error);
+        }
+    };
+
+    const fetchSubjects = async (batchId: string) => {
+        try {
+            const token = auth.getToken();
+            const data = await api.get<any[]>(`/batches/${batchId}/subjects`, token || undefined);
+            setSubjects(data);
+        } catch (error) {
+            console.error('Failed to fetch subjects:', error);
+        }
+    };
 
     const fetchTeachers = async () => {
         try {
             const token = auth.getToken();
-            const data = await api.get<any[]>('/users', token || undefined); // Assuming /users has a way to filter or just take all and filter in frontend
-            setTeachers(data.filter(u => u.role === Role.TEACHER));
+            const data = await api.get<any[]>('/users/teachers', token || undefined);
+            setTeachers(data);
         } catch (error) {
             console.error('Failed to fetch teachers:', error);
         }
@@ -100,15 +134,57 @@ export function CourseCreateModal({ isOpen, onClose, onSuccess }: CourseCreateMo
                         </div>
                     )}
 
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700">Description</label>
-                        <textarea
-                            rows={4}
-                            value={formData.description}
-                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-none"
-                            placeholder="Describe what this course is about..."
-                        />
+                    <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-700">
+                                    Batch Code {formData.courseType === CourseType.PREMIUM && <span className="text-red-500">*</span>}
+                                </label>
+                                <div className="relative group">
+                                    <LayersIcon className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-gray-400 group-focus-within:text-indigo-500 transition-colors" />
+                                    <select
+                                        required={formData.courseType === CourseType.PREMIUM}
+                                        value={formData.batchId}
+                                        onChange={(e) => setFormData({ ...formData, batchId: e.target.value, subjectId: '' })}
+                                        className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 appearance-none transition-all"
+                                    >
+                                        <option value="">{formData.courseType === CourseType.PREMIUM ? 'Select Batch (Required)' : 'Select Batch (Optional)'}</option>
+                                        {batches.map((b) => (
+                                            <option key={b.id} value={b.id}>{b.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-700">Subject (Inside Batch)</label>
+                                <div className="relative group">
+                                    <BookOpenIcon className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-gray-400 group-focus-within:text-indigo-500 transition-colors" />
+                                    <select
+                                        value={formData.subjectId}
+                                        onChange={(e) => setFormData({ ...formData, subjectId: e.target.value })}
+                                        disabled={!formData.batchId}
+                                        className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 appearance-none transition-all disabled:bg-gray-50 disabled:text-gray-400"
+                                    >
+                                        <option value="">Select Subject...</option>
+                                        {subjects.map((s) => (
+                                            <option key={s.id} value={s.id}>{s.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">Description</label>
+                            <textarea
+                                rows={3}
+                                value={formData.description}
+                                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-none"
+                                placeholder="Describe what this course is about..."
+                            />
+                        </div>
                     </div>
 
                     <div className="space-y-3">
