@@ -76,7 +76,11 @@ function SidebarContent() {
     [Role.ACCOUNTS]:            [allItems.home, allItems.revenue, allItems.studentDetails, allItems.invoices, allItems.settings],
   };
 
-  const filteredItems = roleMenus[user?.role?.toUpperCase() as Role] ?? [allItems.home, allItems.settings];
+  let filteredItems = roleMenus[user?.role?.toUpperCase() as Role] ?? [allItems.home, allItems.settings];
+
+  if (user?.role === Role.STUDENT && user?.admission?.status !== 'APPROVED') {
+    filteredItems = [allItems.home, allItems.courses, allItems.tests, allItems.settings];
+  }
 
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 

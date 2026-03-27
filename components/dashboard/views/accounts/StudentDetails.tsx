@@ -18,7 +18,8 @@ import {
     DownloadIcon,
     Settings2Icon,
     HistoryIcon,
-    AlertCircleIcon
+    AlertCircleIcon,
+    GraduationCapIcon
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { auth } from "@/lib/auth";
@@ -27,6 +28,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { InvoicePreviewModal } from "./InvoicePreviewModal";
 import { generateInvoicePdf, InvoiceData } from "@/lib/pdfGenerator";
 import { InvoiceView } from "./InvoiceView";
+import { AdmissionApprovalModal } from "@/components/dashboard/views/shared/AdmissionApprovalModal";
 
 interface StudentSummary {
     id: string;
@@ -71,6 +73,7 @@ export function StudentDetails() {
     const [isLoadingHistory, setIsLoadingHistory] = useState(false);
     const [selectedStudentIds, setSelectedStudentIds] = useState<Set<string>>(new Set());
     const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
+    const [admissionModal, setAdmissionModal] = useState<{ isOpen: boolean; studentId: string; studentName: string }>({ isOpen: false, studentId: "", studentName: "" });
 
     // Payment Form State
     const [isManualEntry, setIsManualEntry] = useState(false);
@@ -643,6 +646,13 @@ export function StudentDetails() {
                                                 >
                                                     <ArrowRightIcon className="size-5" />
                                                 </button>
+                                                <button
+                                                    onClick={() => setAdmissionModal({ isOpen: true, studentId: s.id, studentName: s.name })}
+                                                    className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
+                                                    title="View Admission"
+                                                >
+                                                    <GraduationCapIcon className="size-5" />
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
@@ -1088,6 +1098,14 @@ export function StudentDetails() {
                 isOpen={!!previewInvoiceData}
                 data={previewInvoiceData}
                 onClose={() => setPreviewInvoiceData(null)}
+            />
+
+            <AdmissionApprovalModal
+                isOpen={admissionModal.isOpen}
+                studentId={admissionModal.studentId}
+                studentName={admissionModal.studentName}
+                onClose={() => setAdmissionModal({ isOpen: false, studentId: "", studentName: "" })}
+                onAction={fetchSummaries}
             />
         </div>
     );

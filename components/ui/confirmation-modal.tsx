@@ -13,6 +13,7 @@ interface ConfirmationModalProps {
     confirmText?: string;
     cancelText?: string;
     variant?: "danger" | "warning" | "info";
+    children?: React.ReactNode;
 }
 
 export function ConfirmationModal({
@@ -24,6 +25,7 @@ export function ConfirmationModal({
     confirmText = "Confirm",
     cancelText = "Cancel",
     variant = "danger",
+    children,
 }: ConfirmationModalProps) {
     const [mounted, setMounted] = useState(false);
 
@@ -63,7 +65,8 @@ export function ConfirmationModal({
                     <p className="text-gray-600 mb-8 leading-relaxed">
                         {message}
                     </p>
-                    <div className="flex items-center justify-end gap-3">
+                    {children}
+                    <div className="flex items-center justify-end gap-3 mt-8">
                         <button
                             onClick={onClose}
                             className="px-5 py-2.5 rounded-xl text-gray-700 font-semibold hover:bg-gray-100 transition-colors"

@@ -337,7 +337,14 @@ export default function Topbar() {
                         </div>
                         <div className="text-left hidden md:block">
                             <p className="text-sm font-semibold text-gray-900 leading-none">{user?.name || "User"}</p>
-                            <p className="text-xs text-gray-500 mt-1">{displayRole || "Student"}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                                <p className="text-xs text-gray-500">{displayRole || "Student"}</p>
+                                {user?.role === Role.STUDENT && user?.admission?.status !== 'APPROVED' && (
+                                    <span className="bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase">
+                                        Free
+                                    </span>
+                                )}
+                            </div>
                         </div>
                         <ChevronDownIcon className={`size-4 text-gray-400 group-hover:text-gray-900 transition-transform duration-200 ${isMenuOpen ? 'rotate-180 text-gray-900' : ''}`} />
                     </button>
