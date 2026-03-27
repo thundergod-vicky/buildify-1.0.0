@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ClockIcon, MapPinIcon, MoreVerticalIcon, PlusIcon, CalendarIcon, GraduationCapIcon } from "lucide-react";
+import { ClockIcon, MapPinIcon, MoreVerticalIcon, PlusIcon, CalendarIcon, GraduationCapIcon, SearchIcon, XIcon } from "lucide-react";
 import { api } from "@/lib/api";
 import { toast } from "react-toastify";
 import { auth } from "@/lib/auth";
@@ -217,6 +217,7 @@ export function ClassRoutine() {
   const [batches, setBatches] = useState<Batch[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
   const { user } = useAuth();
 
@@ -283,6 +284,16 @@ export function ClassRoutine() {
       }
   };
 
+  const filteredSessions = sessions.filter((s) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      s.title.toLowerCase().includes(q) ||
+      s.teacher?.name?.toLowerCase().includes(q) ||
+      s.batch?.name?.toLowerCase().includes(q)
+    );
+  });
+
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -297,6 +308,7 @@ export function ClassRoutine() {
         </div>
       </div>
 
+      {/* Date Tabs */}
       <div className="bg-white/50 backdrop-blur-md p-1.5 rounded-[1.5rem] border border-gray-100 shadow-sm flex gap-1.5 overflow-x-auto w-full minimal-scrollbar">
           {weekDays.map((d) => {
               const dateStr = d.toISOString().split('T')[0];
@@ -315,21 +327,59 @@ export function ClassRoutine() {
           })}
       </div>
 
+      {/* Search Bar */}
+      <div className="relative group">
+        <SearchIcon className="absolute left-5 top-1/2 -translate-y-1/2 size-5 text-gray-300 group-focus-within:text-blue-500 transition-colors" />
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search by session title, teacher, or batch..."
+          className="w-full pl-14 pr-12 py-4 bg-white border border-gray-100 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all shadow-sm font-medium text-gray-700 placeholder:text-gray-300"
+        />
+        {searchQuery && (
+          <button
+            onClick={() => setSearchQuery("")}
+            className="absolute right-5 top-1/2 -translate-y-1/2 p-1 rounded-full text-gray-300 hover:text-gray-600 hover:bg-gray-100 transition-all"
+          >
+            <XIcon className="size-4" />
+          </button>
+        )}
+      </div>
+
       <div className="grid grid-cols-1 gap-6">
         {loading ? (
              <div className="p-20 flex flex-col items-center justify-center gap-6">
                  <div className="spinner scale-75 opacity-80"></div>
                  <div className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 animate-pulse">Syncing Matrix...</div>
              </div>
-        ) : sessions.length === 0 ? (
+        ) : filteredSessions.length === 0 ? (
             <div className="p-20 text-center bg-white rounded-[3rem] border border-gray-100 border-dashed">
                 <div className="size-20 bg-gray-50 mx-auto rounded-full flex items-center justify-center mb-4">
-                    <CalendarIcon className="size-8 text-gray-300" />
+                    {searchQuery ? (
+                      <SearchIcon className="size-8 text-gray-300" />
+                    ) : (
+                      <CalendarIcon className="size-8 text-gray-300" />
+                    )}
                 </div>
-                <h3 className="text-xl font-black text-gray-900 font-urbanist mb-2">No sessions scheduled</h3>
-                <p className="text-gray-400 font-medium">There are no classes scheduled for this date.</p>
+                <h3 className="text-xl font-black text-gray-900 font-urbanist mb-2">
+                  {searchQuery ? `No results for "${searchQuery}"` : "No sessions scheduled"}
+                </h3>
+                <p className="text-gray-400 font-medium">
+                  {searchQuery
+                    ? "Try searching by teacher name or batch instead."
+                    : "There are no classes scheduled for this date."}
+                </p>
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="mt-6 px-6 py-2.5 bg-gray-100 text-gray-600 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-gray-200 transition-all"
+                  >
+                    Clear Search
+                  </button>
+                )}
             </div>
-        ) : sessions.map((item) => (
+        ) : filteredSessions.map((item) => (
           <div key={item.id} className="bg-white p-8 rounded-[3rem] border border-gray-100 shadow-lg shadow-gray-100/50 flex flex-col lg:flex-row lg:items-center justify-between gap-8 hover:scale-[1.01] hover:shadow-2xl hover:shadow-blue-100 transition-all duration-500 group relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full blur-3xl -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
             
