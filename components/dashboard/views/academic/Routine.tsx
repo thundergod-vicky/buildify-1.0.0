@@ -43,7 +43,9 @@ function CreateSessionModal({
     isOnline: false,
   });
 
-  const [availableSubjects, setAvailableSubjects] = useState<{ id: string; name: string }[]>([]);
+  const [availableSubjects, setAvailableSubjects] = useState<
+    { id: string; name: string }[]
+  >([]);
   const [fetchingSubjects, setFetchingSubjects] = useState(false);
 
   useEffect(() => {
@@ -147,7 +149,7 @@ function CreateSessionModal({
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                  type: e.target.value as any,
+                    type: e.target.value as any,
                   })
                 }
                 className="w-full p-4 bg-gray-50 border-2 border-transparent focus:border-blue-100 focus:bg-white rounded-2xl outline-none transition-all font-bold text-gray-900"
@@ -209,13 +211,16 @@ function CreateSessionModal({
                 className="w-full p-4 bg-gray-50 border-2 border-transparent focus:border-blue-100 focus:bg-white rounded-2xl outline-none transition-all font-bold text-gray-900 disabled:opacity-50"
               >
                 <option value="">
-                  {fetchingSubjects ? "Fetching subjects..." : "Select a subject..."}
+                  {fetchingSubjects
+                    ? "Fetching subjects..."
+                    : "Select a subject..."}
                 </option>
-                {!fetchingSubjects && availableSubjects.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
-                  </option>
-                ))}
+                {!fetchingSubjects &&
+                  availableSubjects.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
               </select>
             </div>
           </div>
@@ -535,7 +540,7 @@ export function ClassRoutine() {
               </div>
 
               <div className="flex items-center gap-4 relative z-10">
-                {item.meetingId && (
+                {item.meetingId &&
                   (() => {
                     const sessionDate = new Date(item.date);
                     const [endHours, endMinutes] = item.endTime
@@ -549,45 +554,94 @@ export function ClassRoutine() {
                       return (
                         <div className="flex flex-col gap-2">
                           <button
-                            disabled={!item.meetingId && (!item.recordings || item.recordings.length === 0)}
+                            disabled={
+                              !item.meetingId &&
+                              (!item.recordings || item.recordings.length === 0)
+                            }
                             onClick={async () => {
-                              if (item.recordings && item.recordings.length > 0) {
+                              if (
+                                item.recordings &&
+                                item.recordings.length > 0
+                              ) {
                                 // Fetch stream URL from CloudFront
-                                const readyRec = item.recordings.find(r => r.status === 'ready');
+                                const readyRec = item.recordings.find(
+                                  (r) => r.status === "ready",
+                                );
                                 if (readyRec) {
-                                  const loadId = toast.loading("Loading recording...");
+                                  const loadId = toast.loading(
+                                    "Loading recording...",
+                                  );
                                   try {
-                                    const streamRes = await api.get<{ url: string; status: string }>(
+                                    const streamRes = await api.get<{
+                                      url: string;
+                                      status: string;
+                                    }>(
                                       `/recordings/${readyRec.id}/stream`,
                                       auth.getToken() || "",
                                     );
-                                    if (streamRes.status === 'processing') {
-                                      toast.update(loadId, { render: "Recording is still processing...", type: "info", isLoading: false, autoClose: 3000 });
+                                    if (streamRes.status === "processing") {
+                                      toast.update(loadId, {
+                                        render:
+                                          "Recording is still processing...",
+                                        type: "info",
+                                        isLoading: false,
+                                        autoClose: 3000,
+                                      });
                                     } else if (streamRes.url) {
                                       window.open(streamRes.url, "_blank");
-                                      toast.update(loadId, { render: "Opening recording", type: "success", isLoading: false, autoClose: 1000 });
+                                      toast.update(loadId, {
+                                        render: "Opening recording",
+                                        type: "success",
+                                        isLoading: false,
+                                        autoClose: 1000,
+                                      });
                                     }
                                   } catch {
-                                    toast.update(loadId, { render: "Failed to load recording", type: "error", isLoading: false, autoClose: 2000 });
+                                    toast.update(loadId, {
+                                      render: "Failed to load recording",
+                                      type: "error",
+                                      isLoading: false,
+                                      autoClose: 2000,
+                                    });
                                   }
-                                } else if (item.recordings.find(r => r.status === 'processing')) {
-                                  toast.info("Recording is still being processed. Check back shortly.");
+                                } else if (
+                                  item.recordings.find(
+                                    (r) => r.status === "processing",
+                                  )
+                                ) {
+                                  toast.info(
+                                    "Recording is still being processed. Check back shortly.",
+                                  );
                                 } else {
                                   // Legacy: open direct URL
                                   window.open(item.recordings[0].url, "_blank");
                                 }
                               } else if (item.meetingId) {
                                 // Try to sync recording if it's past
-                                const loadId = toast.loading("Syncing with Zoom...");
+                                const loadId = toast.loading(
+                                  "Syncing with Zoom...",
+                                );
                                 try {
-                                  const res = await api.get<{ url: string; passcode: string; recordings: any[]; source: string }>(
+                                  const res = await api.get<{
+                                    url: string;
+                                    passcode: string;
+                                    recordings: any[];
+                                    source: string;
+                                  }>(
                                     `/class-sessions/${item.id}/recording`,
                                     auth.getToken() || "",
                                   );
-                                  if (res && res.recordings && res.recordings.length > 0) {
-                                    if (res.source === 's3') {
+                                  if (
+                                    res &&
+                                    res.recordings &&
+                                    res.recordings.length > 0
+                                  ) {
+                                    if (res.source === "s3") {
                                       // Fetch signed stream URL
-                                      const streamRes = await api.get<{ url: string; status: string }>(
+                                      const streamRes = await api.get<{
+                                        url: string;
+                                        status: string;
+                                      }>(
                                         `/recordings/${res.recordings[0].id}/stream`,
                                         auth.getToken() || "",
                                       );
@@ -595,29 +649,56 @@ export function ClassRoutine() {
                                         window.open(streamRes.url, "_blank");
                                       }
                                     } else {
-                                      window.open(res.recordings[0].url, "_blank");
+                                      window.open(
+                                        res.recordings[0].url,
+                                        "_blank",
+                                      );
                                     }
-                                    toast.update(loadId, { render: "Sync complete!", type: "success", isLoading: false, autoClose: 2000 });
+                                    toast.update(loadId, {
+                                      render: "Sync complete!",
+                                      type: "success",
+                                      isLoading: false,
+                                      autoClose: 2000,
+                                    });
                                     fetchData();
                                   } else {
-                                    toast.update(loadId, { render: "Recording not ready. Check back later.", type: "info", isLoading: false, autoClose: 3000 });
+                                    toast.update(loadId, {
+                                      render:
+                                        "Recording not ready. Check back later.",
+                                      type: "info",
+                                      isLoading: false,
+                                      autoClose: 3000,
+                                    });
                                   }
                                 } catch {
-                                  toast.update(loadId, { render: "Sync failed", type: "error", isLoading: false, autoClose: 2000 });
+                                  toast.update(loadId, {
+                                    render: "Sync failed",
+                                    type: "error",
+                                    isLoading: false,
+                                    autoClose: 2000,
+                                  });
                                 }
                               }
                             }}
                             className={`px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border whitespace-nowrap shadow-lg ${
                               (item.recordings?.length ?? 0) > 0
-                                ? (item.recordings?.some(r => r.status === 'processing')
-                                    ? "bg-amber-500 text-white hover:bg-amber-600 border-amber-500 shadow-amber-100"
-                                    : "bg-indigo-600 text-white hover:bg-indigo-700 border-indigo-600 shadow-indigo-100")
+                                ? item.recordings?.some(
+                                    (r) => r.status === "processing",
+                                  )
+                                  ? "bg-amber-500 text-white hover:bg-amber-600 border-amber-500 shadow-amber-100"
+                                  : "bg-indigo-600 text-white hover:bg-indigo-700 border-indigo-600 shadow-indigo-100"
                                 : "bg-gray-100 text-gray-400 border-gray-200 shadow-none cursor-not-allowed"
                             }`}
                           >
                             {(() => {
-                              if ((item.recordings?.length ?? 0) === 0) return "Recording Unavailable";
-                              if (item.recordings?.some(r => r.status === 'processing')) return "Processing...";
+                              if ((item.recordings?.length ?? 0) === 0)
+                                return "Recording Unavailable";
+                              if (
+                                item.recordings?.some(
+                                  (r) => r.status === "processing",
+                                )
+                              )
+                                return "Processing...";
                               return `Watch Recording${item.recordings!.length > 1 ? ` (${item.recordings!.length})` : ""}`;
                             })()}
                           </button>
@@ -654,8 +735,7 @@ export function ClassRoutine() {
                         Join Zoom Classroom
                       </button>
                     );
-                  })()
-                )}
+                  })()}
                 <button
                   onClick={() => handleDelete(item.id)}
                   className="px-5 py-3 bg-red-50 text-red-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-red-100 transition-all border border-red-100"
