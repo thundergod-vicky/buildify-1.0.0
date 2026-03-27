@@ -1159,7 +1159,11 @@ function UserRow({
                   <UserCogIcon className="size-4" />
                 </button>
               )}
-              {currentUser?.role === Role.ADMIN && (
+              {(currentUser?.role === Role.ADMIN ||
+                (currentUser?.role === Role.ACADEMIC_OPERATIONS &&
+                  (user.role === Role.TEACHER ||
+                    user.role === Role.STUDENT ||
+                    user.role === Role.PARENT))) && (
                 <button
                   onClick={() =>
                     setPasswordModal({
