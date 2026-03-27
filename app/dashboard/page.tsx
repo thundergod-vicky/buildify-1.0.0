@@ -58,147 +58,254 @@ import { AccountsInvoices } from "@/components/dashboard/views/accounts/Invoices
 import { NotificationsView } from "@/components/dashboard/views/shared/Notifications";
 import { MessagesView } from "@/components/dashboard/views/shared/Messages";
 import { AdminSettings } from "@/components/dashboard/views/admin/Settings";
+import { BatchDetailsView } from "@/components/dashboard/views/shared/BatchDetails";
 
 import { ZoomMeeting } from "@/components/dashboard/views/academic/ZoomMeeting";
 import { Suspense } from "react";
 
 export default function DashboardPage() {
-    return (
-        <Suspense fallback={<div className="p-8">Loading Dashboard...</div>}>
-            <DashboardContent />
-        </Suspense>
-    );
+  return (
+    <Suspense fallback={<div className="p-8">Loading Dashboard...</div>}>
+      <DashboardContent />
+    </Suspense>
+  );
 }
 
 function DashboardContent() {
-    const { user, isLoading } = useAuth();
-    const searchParams = useSearchParams();
-    const router = useRouter();
-    const currentView = searchParams.get("view");
-    const examId = searchParams.get("id");
-    const [admissionChecked, setAdmissionChecked] = useState(false);
-    const [hasAdmission, setHasAdmission] = useState(false);
+  const { user, isLoading } = useAuth();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const currentView = searchParams.get("view");
+  const examId = searchParams.get("id");
+  const batchId = searchParams.get("batchId");
+  const [admissionChecked, setAdmissionChecked] = useState(false);
+  const [hasAdmission, setHasAdmission] = useState(false);
 
-    console.log("Current View:", currentView);
-    console.log("User Role:", user?.role);
+  console.log("Current View:", currentView);
+  console.log("User Role:", user?.role);
 
-    // For students: call /admissions/me to check if they have submitted admission
-    useEffect(() => {
-        if (isLoading || !user) return;
-        if (user.role !== Role.STUDENT) {
-            setHasAdmission(true);
-            setAdmissionChecked(true);
-            return;
-        }
-        const token = auth.getToken();
-        admissionsApi.getMyAdmission(token || undefined)
-            .then(() => { setHasAdmission(true); })
-            .catch(() => { setHasAdmission(false); })
-            .finally(() => { setAdmissionChecked(true); });
-    }, [user, isLoading]);
-
-    useEffect(() => {
-        if (admissionChecked && !hasAdmission) {
-            router.push('/admission-form');
-        }
-    }, [admissionChecked, hasAdmission, router]);
-
-    if (isLoading || !admissionChecked) return <div className="p-8">Syncing user session...</div>;
-    if (!user) return <div className="p-8 text-red-500 font-bold underline cursor-pointer" onClick={() => window.location.href='/auth'}>Session expired. Please login again.</div>;
-    if (user.role === Role.STUDENT && !hasAdmission) return <div className="p-8">Redirecting to admission form...</div>;
-
-    if (currentView === 'zoom-meeting') {
-        return <ZoomMeeting />;
+  // For students: call /admissions/me to check if they have submitted admission
+  useEffect(() => {
+    if (isLoading || !user) return;
+    if (user.role !== Role.STUDENT) {
+      setHasAdmission(true);
+      setAdmissionChecked(true);
+      return;
     }
+    const token = auth.getToken();
+    admissionsApi
+      .getMyAdmission(token || undefined)
+      .then(() => {
+        setHasAdmission(true);
+      })
+      .catch(() => {
+        setHasAdmission(false);
+      })
+      .finally(() => {
+        setAdmissionChecked(true);
+      });
+  }, [user, isLoading]);
 
-    // Student
-    if (user.role === Role.STUDENT) {
-        switch (currentView) {
-            case 'courses': return <StudentCourses />;
-            case 'tests': return <StudentTests />;
-            case 'performance': return <StudentPerformance />;
-            case 'schedule': return <StudentSchedule />;
-            case 'settings': return <StudentSettings />;
-            case 'notifications': return <NotificationsView />;
-            case 'messages': return <MessagesView />;
-            case 'batches': return <StudentBatches />;
-            case 'exams': return <StudentExams />;
-            case 'take-exam': return examId ? <ExamInterface examId={examId} onBack={() => window.location.href='/dashboard?view=exams'} /> : <StudentExams />;
-            default: return <StudentHome />;
-        }
+  useEffect(() => {
+    if (admissionChecked && !hasAdmission) {
+      router.push("/admission-form");
     }
+  }, [admissionChecked, hasAdmission, router]);
 
-    // Teacher
-    if (user.role === Role.TEACHER) {
-        switch (currentView) {
-            case 'courses': return <TeacherCourses />;
-            case 'tests': return <TeacherTests />;
-            case 'students': return <TeacherStudentManagement />;
-            case 'settings': return <TeacherSettings />;
-            case 'notifications': return <NotificationsView />;
-            case 'messages': return <MessagesView />;
-            case 'batches': return <TeacherBatches />;
-            case 'omr': return <OmrDashboard />;
-            case 'schedule': return <TeacherSchedule />;
-            case 'exams': return <ExamSchedules />;
-            default: return <TeacherHome />;
-        }
+  if (isLoading || !admissionChecked)
+    return <div className="p-8">Syncing user session...</div>;
+  if (!user)
+    return (
+      <div
+        className="p-8 text-red-500 font-bold underline cursor-pointer"
+        onClick={() => (window.location.href = "/auth")}
+      >
+        Session expired. Please login again.
+      </div>
+    );
+  if (user.role === Role.STUDENT && !hasAdmission)
+    return <div className="p-8">Redirecting to admission form...</div>;
+
+  if (currentView === "zoom-meeting") {
+    return <ZoomMeeting />;
+  }
+
+  // Student
+  if (user.role === Role.STUDENT) {
+    switch (currentView) {
+      case "courses":
+        return <StudentCourses />;
+      case "tests":
+        return <StudentTests />;
+      case "performance":
+        return <StudentPerformance />;
+      case "schedule":
+        return <StudentSchedule />;
+      case "settings":
+        return <StudentSettings />;
+      case "notifications":
+        return <NotificationsView />;
+      case "messages":
+        return <MessagesView />;
+      case "batches":
+        return <StudentBatches />;
+      case "batch-details":
+        return batchId ? (
+          <BatchDetailsView batchId={batchId} />
+        ) : (
+          <StudentBatches />
+        );
+      case "exams":
+        return <StudentExams />;
+      case "take-exam":
+        return examId ? (
+          <ExamInterface
+            examId={examId}
+            onBack={() => (window.location.href = "/dashboard?view=exams")}
+          />
+        ) : (
+          <StudentExams />
+        );
+      default:
+        return <StudentHome />;
     }
+  }
 
-    if (user.role === Role.PARENT) {
-        switch (currentView) {
-            case 'performance': return <ParentPerformance />;
-            case 'settings': return <ParentSettings />;
-            case 'notifications': return <NotificationsView />;
-            case 'messages': return <MessagesView />;
-            default: return <ParentHome />;
-        }
+  // Teacher
+  if (user.role === Role.TEACHER) {
+    switch (currentView) {
+      case "courses":
+        return <TeacherCourses />;
+      case "tests":
+        return <TeacherTests />;
+      case "students":
+        return <TeacherStudentManagement />;
+      case "settings":
+        return <TeacherSettings />;
+      case "notifications":
+        return <NotificationsView />;
+      case "messages":
+        return <MessagesView />;
+      case "batches":
+        return <TeacherBatches />;
+      case "batch-details":
+        return batchId ? (
+          <BatchDetailsView batchId={batchId} />
+        ) : (
+          <TeacherBatches />
+        );
+      case "omr":
+        return <OmrDashboard />;
+      case "schedule":
+        return <TeacherSchedule />;
+      case "exams":
+        return <ExamSchedules />;
+      default:
+        return <TeacherHome />;
     }
+  }
 
-    if (user.role === Role.ADMIN) {
-         switch (currentView) {
-            case 'users': return <AdminUserManagement />;
-            case 'manage-courses': return <AdminCourseManagement />;
-            case 'practice-tests': return <AdminPracticeTestManagement />;
-            case 'revenue': return <div className="p-8">Revenue & Payments View (Coming Soon)</div>;
-            case 'requests': return <AdminRequests />;
-            case 'settings': return <AdminSettings />;
-            case 'notifications': return <NotificationsView />;
-            case 'messages': return <MessagesView />;
-            case 'manage-batches': return <AdminBatchManagement />;
-            case 'exams': return <ExamSchedules />;
-            default: return <AdminHome />;
-        }
+  if (user.role === Role.PARENT) {
+    switch (currentView) {
+      case "performance":
+        return <ParentPerformance />;
+      case "settings":
+        return <ParentSettings />;
+      case "notifications":
+        return <NotificationsView />;
+      case "messages":
+        return <MessagesView />;
+      default:
+        return <ParentHome />;
     }
+  }
 
-    if (user.role === Role.ACADEMIC_OPERATIONS) {
-        switch (currentView) {
-            case 'routine': return <ClassRoutine />;
-            case 'schedule': return <AcademicSchedule />;
-            case 'exams': return <ExamSchedules />;
-            case 'users': return <AdminUserManagement />;
-            case 'requests': return <AdminRequests />;
-            case 'students': return <TeacherStudentManagement />;
-            case 'manage-courses': return <AdminCourseManagement />;
-            case 'manage-batches': return <AdminBatchManagement />;
-            case 'settings': return <AdminSettings />;
-            case 'messages': return <MessagesView />;
-            case 'omr': return <OmrDashboard />;
-            default: return <AcademicHome />;
-        }
+  if (user.role === Role.ADMIN) {
+    switch (currentView) {
+      case "users":
+        return <AdminUserManagement />;
+      case "manage-courses":
+        return <AdminCourseManagement />;
+      case "practice-tests":
+        return <AdminPracticeTestManagement />;
+      case "revenue":
+        return <div className="p-8">Revenue & Payments View (Coming Soon)</div>;
+      case "requests":
+        return <AdminRequests />;
+      case "settings":
+        return <AdminSettings />;
+      case "notifications":
+        return <NotificationsView />;
+      case "messages":
+        return <MessagesView />;
+      case "manage-batches":
+        return <AdminBatchManagement />;
+      case "batch-details":
+        return batchId ? (
+          <BatchDetailsView batchId={batchId} />
+        ) : (
+          <AdminBatchManagement />
+        );
+      case "exams":
+        return <ExamSchedules />;
+      default:
+        return <AdminHome />;
     }
+  }
 
-    if (user.role === Role.ACCOUNTS) {
-        switch (currentView) {
-            case 'revenue': return <AccountsRevenue />;
-            case 'student-details': return <StudentDetails />;
-            case 'billing': return <BillingTemplate />;
-            case 'invoices': return <AccountsInvoices />;
-            case 'settings': return <AdminSettings />;
-            case 'messages': return <MessagesView />;
-            default: return <AccountsHome />;
-        }
+  if (user.role === Role.ACADEMIC_OPERATIONS) {
+    switch (currentView) {
+      case "routine":
+        return <ClassRoutine />;
+      case "schedule":
+        return <AcademicSchedule />;
+      case "exams":
+        return <ExamSchedules />;
+      case "users":
+        return <AdminUserManagement />;
+      case "requests":
+        return <AdminRequests />;
+      case "students":
+        return <TeacherStudentManagement />;
+      case "manage-courses":
+        return <AdminCourseManagement />;
+      case "manage-batches":
+        return <AdminBatchManagement />;
+      case "batch-details":
+        return batchId ? (
+          <BatchDetailsView batchId={batchId} />
+        ) : (
+          <AdminBatchManagement />
+        );
+      case "settings":
+        return <AdminSettings />;
+      case "messages":
+        return <MessagesView />;
+      case "omr":
+        return <OmrDashboard />;
+      default:
+        return <AcademicHome />;
     }
+  }
 
-    return <div className="p-8">Unknown Role</div>;
+  if (user.role === Role.ACCOUNTS) {
+    switch (currentView) {
+      case "revenue":
+        return <AccountsRevenue />;
+      case "student-details":
+        return <StudentDetails />;
+      case "billing":
+        return <BillingTemplate />;
+      case "invoices":
+        return <AccountsInvoices />;
+      case "settings":
+        return <AdminSettings />;
+      case "messages":
+        return <MessagesView />;
+      default:
+        return <AccountsHome />;
+    }
+  }
+
+  return <div className="p-8">Unknown Role</div>;
 }

@@ -31,6 +31,9 @@ interface Event {
     isOnline?: boolean;
     meetingUrl?: string;
     meetingId?: string;
+  recordingUrl?: string;
+  recordingPasscode?: string;
+  recordings?: any[];
 }
 
 export function Calendar({ mode = 'student' }: { mode?: 'student' | 'teacher' | 'operations' }) {
@@ -77,6 +80,9 @@ export function Calendar({ mode = 'student' }: { mode?: 'student' | 'teacher' | 
                     isOnline: r.isOnline as boolean,
                     meetingUrl: r.meetingUrl as string,
                     meetingId: r.meetingId as string,
+                    recordingUrl: r.recordingUrl as string,
+                    recordingPasscode: r.recordingPasscode as string,
+                    recordings: r.recordings as any[],
                 }));
                 setEvents(mappedEvents);
             }).catch(console.error);
@@ -343,7 +349,40 @@ export function Calendar({ mode = 'student' }: { mode?: 'student' | 'teacher' | 
                                     </div>
                                 </div>
                                 <button
-                                    onClick={() => {
+                                    onClick={async () => {
+                                        const sessionDate = new Date(event.date);
+                                        const [endHours, endMinutes] = (event.time.split(' - ')[1] || '00:00').split(':').map(Number);
+                                        const sessionEnd = new Date(sessionDate);
+                                        sessionEnd.setHours(endHours, endMinutes, 0, 0);
+                                        const isPast = new Date() > sessionEnd;
+
+                                        if (isPast && event.type === 'CLASS') {
+                                            // Try to fetch stream URL through the sync endpoint
+                                            try {
+                                                const { api } = await import("@/lib/api");
+                                                const res = await api.get<{ recordings: any[]; source: string }>(`/class-sessions/${event.id}/recording`, auth.getToken() || "");
+                                                if (res && res.recordings && res.recordings.length > 0) {
+                                                    // Get CloudFront stream URL
+                                                    const streamRes = await api.get<{ url: string; status: string }>(
+                                                        `/recordings/${res.recordings[0].id}/stream`,
+                                                        auth.getToken() || "",
+                                                    );
+                                                    if (streamRes.status === 'processing') {
+                                                        alert("Recording is still being processed. Please check back in a few minutes.");
+                                                    } else if (streamRes.url) {
+                                                        window.open(streamRes.url, '_blank');
+                                                    } else {
+                                                        alert("Recording is not yet available.");
+                                                    }
+                                                } else {
+                                                    alert("Recording is not yet available. Please check again in a few minutes.");
+                                                }
+                                            } catch (e) {
+                                                console.error("Failed to fetch recording", e);
+                                            }
+                                            return;
+                                        }
+
                                         if (event.meetingId) {
                                             const role = authUser?.role === Role.TEACHER ? 1 : 0;
                                             const cleanId = event.meetingId?.replace(/[^0-9]/g, '');
@@ -361,10 +400,31 @@ export function Calendar({ mode = 'student' }: { mode?: 'student' | 'teacher' | 
                                     }} 
                                     className={cn(
                                         "w-full mt-4 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg",
-                                        event.type === 'CLASS' ? "bg-blue-600 text-white hover:bg-blue-700 shadow-blue-200" : "bg-red-600 text-white hover:bg-red-700 shadow-red-200"
+                                        event.type === 'CLASS' ? 
+                                            ((() => {
+                                                const sessionDate = new Date(event.date);
+                                                const [endHours, endMinutes] = (event.time.split(' - ')[1] || '00:00').split(':').map(Number);
+                                                const sessionEnd = new Date(sessionDate);
+                                                sessionEnd.setHours(endHours, endMinutes, 0, 0);
+                                                const isPast = new Date() > sessionEnd;
+                                                return isPast ? "bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-200" : "bg-blue-600 text-white hover:bg-blue-700 shadow-blue-200";
+                                            })())
+                                            : "bg-red-600 text-white hover:bg-red-700 shadow-red-200"
                                     )}
                                 >
-                                    {event.type === 'CLASS' ? (event.meetingId ? "Join Zoom Classroom" : mode === 'teacher' ? "Start Class" : mode === 'operations' ? "View Class" : "Join Class") : "Start Test"}
+                                    {(() => {
+                                        const sessionDate = new Date(event.date);
+                                        const [endHours, endMinutes] = (event.time.split(' - ')[1] || '00:00').split(':').map(Number);
+                                        const sessionEnd = new Date(sessionDate);
+                                        sessionEnd.setHours(endHours, endMinutes, 0, 0);
+                                        const isPast = new Date() > sessionEnd;
+
+                                        if (isPast && event.type === 'CLASS') {
+                                            return "Watch Recording";
+                                        }
+
+                                        return event.type === 'CLASS' ? (event.meetingId ? "Join Zoom Classroom" : mode === 'teacher' ? "Start Class" : mode === 'operations' ? "View Class" : "Join Class") : "Start Test";
+                                    })()}
                                 </button>
                             </motion.div>
                         ))

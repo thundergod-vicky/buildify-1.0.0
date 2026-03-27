@@ -103,16 +103,23 @@ export function TeacherBatches() {
           {selectedBatch ? (
             <AnimatedContent key={selectedBatch.id}>
               <div className="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm">
-                <div className="flex items-center justify-between mb-8">
                   <div>
                     <h2 className="text-2xl font-bold text-gray-900">{selectedBatch.name}</h2>
                     <p className="text-gray-500">{selectedBatch.description || "Class Batch"}</p>
                   </div>
-                  <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-xl text-sm font-bold">
-                    <UsersIcon className="size-4" />
-                    {batchDetails?.students?.length || 0} Students
+                  <div className="flex items-center gap-3">
+                    <button 
+                      onClick={() => window.location.href = `/dashboard?view=batch-details&batchId=${selectedBatch.id}`}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-100/50 hover:bg-blue-700 transition-all flex items-center gap-2"
+                    >
+                      <LayersIcon className="size-4" />
+                      View Detailed Profile
+                    </button>
+                    <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-xl text-sm font-bold">
+                      <UsersIcon className="size-4" />
+                      {batchDetails?.students?.length || 0} Students
+                    </div>
                   </div>
-                </div>
 
                 <div className="space-y-4">
                   <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Enrolled Students</h3>

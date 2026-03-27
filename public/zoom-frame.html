@@ -145,6 +145,7 @@
                 setStatus('Joining Meeting Room...');
                 await window.__zoomClient.join({
                     signature: config.signature,
+                    sdkKey: config.sdkKey,
                     meetingNumber: config.meetingNumber.toString(),
                     userName: config.userName || 'Class Participant',
                     userEmail: config.userEmail || '',

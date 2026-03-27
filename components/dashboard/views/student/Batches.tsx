@@ -65,6 +65,13 @@ export function StudentBatches() {
                     <p className="text-sm font-bold text-gray-900">{batch.teacher?.name || "Unassigned"}</p>
                   </div>
                 </div>
+
+                <button 
+                  onClick={() => window.location.href = `/dashboard?view=batch-details&batchId=${batch.id}`}
+                  className="w-full mt-4 py-3 bg-blue-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg shadow-blue-100/50"
+                >
+                  View Batch Details
+                </button>
               </div>
             </AnimatedContent>
           ))

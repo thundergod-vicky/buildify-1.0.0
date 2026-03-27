@@ -120,10 +120,25 @@ export enum AdmissionStatus {
   REJECTED = "REJECTED",
 }
 
+export enum Stream {
+  FOUNDATION = "FOUNDATION",
+  NEET = "NEET",
+  JEE = "JEE",
+  NONE = "NONE",
+}
+
+export enum Caste {
+  GENERAL = "GENERAL",
+  SC = "SC",
+  ST = "ST",
+  OBC = "OBC",
+  EWS = "EWS",
+}
+
 export interface Admission {
   id: string;
   studentId: string;
-  status: AdmissionStatus;
+  admissionDate?: Date;
   formNumber: string;
   enrollmentNumber?: string;
   studentName: string;
@@ -135,18 +150,18 @@ export interface Admission {
   contactNumber: string;
   alternateContact?: string;
   studentClass: string;
-  stream: string;
+  stream: Stream;
   course: string;
   batchCode?: string;
   schoolName: string;
   board: string;
-  caste: string;
+  caste: Caste;
   photoUrl?: string;
+  status: AdmissionStatus;
   approvedById?: string;
   approvedAt?: Date;
-  admissionDate?: Date;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface User {
@@ -169,11 +184,86 @@ export interface User {
   parentRequests?: ParentRequest[];
   notifications?: Notification[];
   admission?: Admission;
+  invoices?: Invoice[];
+  createdExams?: Exam[];
+  assignedExams?: Exam[];
+  examResults?: ExamResult[];
 }
 
 export enum CourseType {
   PUBLIC = "PUBLIC",
   PREMIUM = "PREMIUM",
+}
+
+
+export enum ExamStatus {
+  DRAFT = "DRAFT",
+  PLANNED = "PLANNED",
+  SCHEDULED = "SCHEDULED",
+}
+
+export interface Exam {
+  id: string;
+  title: string;
+  description?: string;
+  status: ExamStatus;
+  startTime?: string;
+  endTime?: string;
+  duration?: number;
+  questions?: Record<string, unknown>[];
+  totalQuestions: number;
+  batchId?: string;
+  creatorId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ExamResult {
+  id: string;
+  examId: string;
+  studentId: string;
+  score: number;
+  total: number;
+  answers?: Record<string, unknown>;
+  submittedAt: string;
+}
+
+export enum InvoiceStatus {
+  PENDING = "PENDING",
+  PAID = "PAID",
+  EMI = "EMI",
+  PARTIAL = "PARTIAL",
+  CANCELLED = "CANCELLED",
+}
+
+export interface BillingTemplate {
+  id: string;
+  name: string;
+  description?: string;
+  baseAmount: number;
+  taxRate: number;
+  tenure?: string;
+  batch?: string;
+  discount?: string;
+  items?: Record<string, unknown>[];
+  metadata?: Record<string, unknown>;
+}
+
+export interface Invoice {
+  id: string;
+  invoiceNumber: string;
+  studentId: string;
+  templateId?: string;
+  amount: number;
+  tax: number;
+  total: number;
+  status: InvoiceStatus;
+  paymentMethod?: string;
+  transactionId?: string;
+  metadata?: Record<string, unknown>;
+  items?: Record<string, unknown>[];
+  sentAt?: string;
+  pdfUrl?: string;
 }
 
 export interface CourseAssignment {
@@ -370,22 +460,12 @@ export interface PracticeTestResult {
   createdAt: string;
 }
 
-export interface OmrAnswer {
-  number: number;
-  answer: string;
-}
-
-export interface OmrAnswer {
-  number: number;
-  answer: string;
-}
-
 export interface OmrTemplate {
   id: string;
   name: string;
   description?: string;
   motherOmrUrl: string;
-  answers: OmrAnswer[];
+  answers: unknown;
   teacherId: string;
   createdAt: string;
   updatedAt: string;
@@ -399,6 +479,84 @@ export interface OmrResult {
   omrImageUrl: string;
   score: number;
   total: number;
-  answers: OmrAnswer[];
+  answers: unknown;
   createdAt: string;
+}
+
+export interface Subject {
+  id: string;
+  name: string;
+  batchId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SessionRecording {
+  id: string;
+  title: string;
+  url: string;
+  s3Key?: string;
+  passcode?: string;
+  fileType?: string;
+  status?: string;
+  durationSecs?: number;
+  sessionId: string;
+}
+
+export interface SessionAttachment {
+  id: string;
+  title: string;
+  url: string;
+  type: string;
+  sessionId: string;
+}
+
+export interface ClassSession {
+  id: string;
+  title: string;
+  type: "LECTURE" | "PRACTICAL" | "WORKSHOP";
+  teacherId: string;
+  batchId: string;
+  subjectId?: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  venue?: string;
+  isOnline: boolean;
+  meetingUrl?: string;
+  meetingId?: string;
+  recordingUrl?: string;
+  recordingPasscode?: string;
+  teacher?: {
+    id: string;
+    name: string;
+    profileImage?: string;
+  };
+  batch?: {
+    id: string;
+    name: string;
+  };
+  subject?: Subject;
+  recordings?: SessionRecording[];
+  attachments?: SessionAttachment[];
+}
+
+export interface Batch {
+  id: string;
+  name: string;
+  description?: string;
+  teachers?: User[];
+  students?: User[];
+  subjects?: Subject[];
+  sessions?: ClassSession[];
+  createdAt: string;
+  updatedAt: string;
+  _count?: {
+    students: number;
+    teachers: number;
+    subjects: number;
+    sessions: number;
+    exams?: number;
+  };
+  exams?: Exam[];
 }
