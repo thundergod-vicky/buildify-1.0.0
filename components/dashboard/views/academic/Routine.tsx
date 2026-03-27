@@ -195,6 +195,22 @@ export function ClassRoutine() {
                       {item.subject.name}
                     </p>
                   )}
+                  {item.isOnline && (item.meetingId || item.meetingUrl) && (
+                    <div className="mt-2 p-2 bg-blue-50/50 rounded-xl border border-blue-100/50 w-fit">
+                      <div className="flex items-center gap-3 text-[9px] font-bold">
+                        <div className="flex items-center gap-1 text-blue-600">
+                          <span className="text-gray-400 font-black uppercase tracking-widest mr-1">ID:</span>
+                          {item.meetingId || "See Link"}
+                        </div>
+                        {item.meetingPasscode && (
+                          <div className="flex items-center gap-1 text-blue-600">
+                            <span className="text-gray-400 font-black uppercase tracking-widest mr-1">Passcode:</span>
+                            {item.meetingPasscode}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -232,23 +248,6 @@ export function ClassRoutine() {
                   </div>
                 </div>
               </div>
-
-              {item.isOnline && (item.meetingId || item.meetingUrl) && (
-                <div className="absolute bottom-6 left-[18.5rem] p-2 bg-blue-50/50 rounded-xl border border-blue-100/50 w-fit hidden lg:block">
-                  <div className="flex items-center gap-3 text-[9px] font-bold">
-                    <div className="flex items-center gap-1 text-blue-600">
-                      <span className="text-gray-400 font-black uppercase tracking-widest mr-1">ID:</span>
-                      {item.meetingId || "See Link"}
-                    </div>
-                    {item.meetingPasscode && (
-                      <div className="flex items-center gap-1 text-blue-600">
-                        <span className="text-gray-400 font-black uppercase tracking-widest mr-1">Passcode:</span>
-                        {item.meetingPasscode}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
 
               <div className="flex items-center gap-4 relative z-10">
                 {item.isOnline &&

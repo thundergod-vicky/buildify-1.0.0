@@ -228,8 +228,14 @@ export function BatchDetailsView({ batchId }: { batchId: string }) {
                             No classes scheduled for this subject yet.
                           </p>
                         ) : (
-                          batch.sessions
-                            ?.filter((s) => s.subjectId === subject.id)
+                          [...(batch.sessions || [])]
+                            .filter((s) => s.subjectId === subject.id)
+                            .sort((a, b) => {
+                              const dateA = new Date(a.date).getTime();
+                              const dateB = new Date(b.date).getTime();
+                              if (dateA !== dateB) return dateB - dateA;
+                              return b.startTime.localeCompare(a.startTime);
+                            })
                             .map((session) => (
                               <ClassItem
                                 key={session.id}
@@ -264,15 +270,23 @@ export function BatchDetailsView({ batchId }: { batchId: string }) {
                 </p>
               </div>
             ) : (
-              batch.sessions?.map((session) => (
-                <ClassItem
-                  key={session.id}
-                  session={session}
-                  isManagementRole={isManagementRole}
-                  isTeacher={isTeacher && session.teacherId === user?.id}
-                  onRefresh={fetchBatch}
-                />
-              ))
+              [...(batch.sessions || [])]
+                .sort((a, b) => {
+                  const dateA = new Date(a.date).getTime();
+                  const dateB = new Date(b.date).getTime();
+                  if (dateA !== dateB) return dateB - dateA;
+                  // If same date, sort by start time descending
+                  return b.startTime.localeCompare(a.startTime);
+                })
+                .map((session) => (
+                  <ClassItem
+                    key={session.id}
+                    session={session}
+                    isManagementRole={isManagementRole}
+                    isTeacher={isTeacher && session.teacherId === user?.id}
+                    onRefresh={fetchBatch}
+                  />
+                ))
             )}
           </div>
         )}
