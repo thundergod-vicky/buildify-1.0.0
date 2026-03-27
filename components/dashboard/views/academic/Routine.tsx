@@ -12,327 +12,18 @@ import {
 import { api } from "@/lib/api";
 import { toast } from "react-toastify";
 import { auth } from "@/lib/auth";
-import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { Role, ClassSession, Subject, Batch } from "@/types";
+import { Role, ClassSession, Batch } from "@/types";
 
-function CreateSessionModal({
-  isOpen,
-  onClose,
-  onSuccess,
-  teachers,
-  batches,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  onSuccess: () => void;
-  teachers: { id: string; name: string }[];
-  batches: (Batch & { subjects?: Subject[] })[];
-}) {
-  const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    title: "",
-    type: "LECTURE" as any,
-    teacherId: "",
-    batchId: "",
-    subjectId: "",
-    date: new Date().toISOString().split("T")[0],
-    startTime: "09:00",
-    endTime: "10:30",
-    venue: "",
-    isOnline: false,
-  });
-
-  const [availableSubjects, setAvailableSubjects] = useState<
-    { id: string; name: string }[]
-  >([]);
-  const [fetchingSubjects, setFetchingSubjects] = useState(false);
-
-  useEffect(() => {
-    async function updateSubjects() {
-      if (formData.batchId) {
-        setFetchingSubjects(true);
-        try {
-          // First check if we already have subjects in the batches list
-          let selectedBatch = batches.find((b) => b.id === formData.batchId);
-
-          // If subjects are missing, fetch the full batch details
-          if (!selectedBatch?.subjects || selectedBatch.subjects.length === 0) {
-            const token = auth.getToken() || "";
-            selectedBatch = await api.get<any>(
-              `/batches/${formData.batchId}`,
-              token,
-            );
-          }
-
-          setAvailableSubjects(selectedBatch?.subjects || []);
-          setFormData((prev) => ({ ...prev, subjectId: "" }));
-        } catch (e) {
-          console.error("Failed to fetch batch subjects:", e);
-          setAvailableSubjects([]);
-        } finally {
-          // Small delay for smoother UX
-          setTimeout(() => setFetchingSubjects(false), 300);
-        }
-      } else {
-        setAvailableSubjects([]);
-        setFetchingSubjects(false);
-      }
-    }
-
-    updateSubjects();
-  }, [formData.batchId, batches]);
-
-  if (!isOpen) return null;
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      await api.post("/class-sessions", formData, auth.getToken() || "");
-      toast.success("Session created and notifications sent!");
-      onSuccess();
-      onClose();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to create session");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm animate-in fade-in">
-      <div className="bg-white rounded-[2rem] w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
-        <div className="p-8 border-b border-gray-100 flex items-center justify-between">
-          <div>
-            <h3 className="text-2xl font-black text-gray-900 font-urbanist">
-              Schedule Class
-            </h3>
-            <p className="text-gray-500 font-medium text-sm mt-1">
-              Assignments will trigger alerts to faculty and batch students
-            </p>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-900 transition-colors"
-          >
-            ✕
-          </button>
-        </div>
-
-        <form
-          onSubmit={handleSubmit}
-          className="p-8 overflow-y-auto minimal-scrollbar space-y-6"
-        >
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-              Session Title
-            </label>
-            <input
-              required
-              value={formData.title}
-              onChange={(e) =>
-                setFormData({ ...formData, title: e.target.value })
-              }
-              className="w-full p-4 bg-gray-50 border-2 border-transparent focus:border-blue-100 focus:bg-white rounded-2xl outline-none transition-all font-bold text-gray-900"
-              placeholder="e.g. Advanced Mathematics Part 3"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-                Session Type
-              </label>
-              <select
-                value={formData.type}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    type: e.target.value as any,
-                  })
-                }
-                className="w-full p-4 bg-gray-50 border-2 border-transparent focus:border-blue-100 focus:bg-white rounded-2xl outline-none transition-all font-bold text-gray-900"
-              >
-                <option value="LECTURE">Lecture</option>
-                <option value="PRACTICAL">Practical</option>
-                <option value="WORKSHOP">Workshop</option>
-              </select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-                Venue / Platform
-              </label>
-              <input
-                value={formData.venue}
-                onChange={(e) =>
-                  setFormData({ ...formData, venue: e.target.value })
-                }
-                className="w-full p-4 bg-gray-50 border-2 border-transparent focus:border-blue-100 focus:bg-white rounded-2xl outline-none transition-all font-bold text-gray-900"
-                placeholder="e.g. Room 302 or Zoom Link"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-                Target Batch
-              </label>
-              <select
-                required
-                value={formData.batchId}
-                onChange={(e) =>
-                  setFormData({ ...formData, batchId: e.target.value })
-                }
-                className="w-full p-4 bg-gray-50 border-2 border-transparent focus:border-blue-100 focus:bg-white rounded-2xl outline-none transition-all font-bold text-gray-900"
-              >
-                <option value="">Select a batch...</option>
-                {batches.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 flex items-center gap-2">
-                Subject (Optional)
-                {fetchingSubjects && (
-                  <div className="size-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                )}
-              </label>
-              <select
-                value={formData.subjectId}
-                onChange={(e) =>
-                  setFormData({ ...formData, subjectId: e.target.value })
-                }
-                disabled={!formData.batchId || fetchingSubjects}
-                className="w-full p-4 bg-gray-50 border-2 border-transparent focus:border-blue-100 focus:bg-white rounded-2xl outline-none transition-all font-bold text-gray-900 disabled:opacity-50"
-              >
-                <option value="">
-                  {fetchingSubjects
-                    ? "Fetching subjects..."
-                    : "Select a subject..."}
-                </option>
-                {!fetchingSubjects &&
-                  availableSubjects.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name}
-                    </option>
-                  ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-                Lead Faculty
-              </label>
-              <select
-                required
-                value={formData.teacherId}
-                onChange={(e) =>
-                  setFormData({ ...formData, teacherId: e.target.value })
-                }
-                className="w-full p-4 bg-gray-50 border-2 border-transparent focus:border-blue-100 focus:bg-white rounded-2xl outline-none transition-all font-bold text-gray-900"
-              >
-                <option value="">Select a teacher...</option>
-                {teachers.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 bg-blue-50/50 p-4 rounded-2xl border border-blue-100">
-            <input
-              type="checkbox"
-              id="isOnline"
-              checked={formData.isOnline}
-              onChange={(e) =>
-                setFormData({ ...formData, isOnline: e.target.checked })
-              }
-              className="size-5 rounded text-blue-600 focus:ring-blue-500 border-gray-300"
-            />
-            <label
-              htmlFor="isOnline"
-              className="text-sm font-black text-gray-900 cursor-pointer"
-            >
-              Generate Zoom Meeting Link automatically
-            </label>
-          </div>
-
-          <div className="grid grid-cols-3 gap-6">
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-                Date
-              </label>
-              <input
-                required
-                type="date"
-                value={formData.date}
-                onChange={(e) =>
-                  setFormData({ ...formData, date: e.target.value })
-                }
-                className="w-full p-4 bg-gray-50 border-2 border-transparent focus:border-blue-100 focus:bg-white rounded-2xl outline-none transition-all font-bold text-gray-900"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-                Start Time
-              </label>
-              <input
-                required
-                type="time"
-                value={formData.startTime}
-                onChange={(e) =>
-                  setFormData({ ...formData, startTime: e.target.value })
-                }
-                className="w-full p-4 bg-gray-50 border-2 border-transparent focus:border-blue-100 focus:bg-white rounded-2xl outline-none transition-all font-bold text-gray-900"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-                End Time
-              </label>
-              <input
-                required
-                type="time"
-                value={formData.endTime}
-                onChange={(e) =>
-                  setFormData({ ...formData, endTime: e.target.value })
-                }
-                className="w-full p-4 bg-gray-50 border-2 border-transparent focus:border-blue-100 focus:bg-white rounded-2xl outline-none transition-all font-bold text-gray-900"
-              />
-            </div>
-          </div>
-
-          <div className="pt-6">
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-5 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-[0.2em] text-xs hover:bg-blue-700 transition-colors shadow-xl shadow-blue-200 disabled:opacity-50"
-            >
-              {loading ? "Committing..." : "Commit & Notify Schedule"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
+import { CreateSessionModal } from "./CreateSessionModal";
 
 export function ClassRoutine() {
   const [sessions, setSessions] = useState<ClassSession[]>([]);
   const [teachers, setTeachers] = useState<{ id: string; name: string }[]>([]);
   const [batches, setBatches] = useState<Batch[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingSession, setEditingSession] = useState<ClassSession | null>(null);
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
   const { user } = useAuth();
 
   // For routine viewing, filter by the next 7 days in tabs
@@ -419,7 +110,10 @@ export function ClassRoutine() {
           user?.role === Role.ACADEMIC_OPERATIONS) && (
           <div className="flex gap-3">
             <button
-              onClick={() => setIsModalOpen(true)}
+              onClick={() => {
+                setEditingSession(null);
+                setIsModalOpen(true);
+              }}
               className="px-8 py-4 bg-gray-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-black flex items-center gap-2 transition-all shadow-xl shadow-gray-200"
             >
               <PlusIcon className="size-4" /> Schedule New
@@ -534,13 +228,30 @@ export function ClassRoutine() {
                     <div className="size-6 bg-rose-50 rounded-lg flex items-center justify-center">
                       <MapPinIcon className="size-3 text-rose-500" />
                     </div>
-                    {item.venue || "TBA"}
+                    {item.venue || (item.isOnline ? "Zoom Classroom" : "TBA")}
                   </div>
                 </div>
               </div>
 
+              {item.isOnline && (item.meetingId || item.meetingUrl) && (
+                <div className="absolute bottom-6 left-[18.5rem] p-2 bg-blue-50/50 rounded-xl border border-blue-100/50 w-fit hidden lg:block">
+                  <div className="flex items-center gap-3 text-[9px] font-bold">
+                    <div className="flex items-center gap-1 text-blue-600">
+                      <span className="text-gray-400 font-black uppercase tracking-widest mr-1">ID:</span>
+                      {item.meetingId || "See Link"}
+                    </div>
+                    {item.meetingPasscode && (
+                      <div className="flex items-center gap-1 text-blue-600">
+                        <span className="text-gray-400 font-black uppercase tracking-widest mr-1">Passcode:</span>
+                        {item.meetingPasscode}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               <div className="flex items-center gap-4 relative z-10">
-                {item.meetingId &&
+                {item.isOnline &&
                   (() => {
                     const sessionDate = new Date(item.date);
                     const [endHours, endMinutes] = item.endTime
@@ -709,26 +420,16 @@ export function ClassRoutine() {
                     return (
                       <button
                         onClick={() => {
-                          const role = user?.role === Role.TEACHER ? 1 : 0;
-                          const cleanId = item.meetingId?.replace(
-                            /[^0-9]/g,
-                            "",
-                          );
-                          let pwd = "";
                           if (item.meetingUrl) {
-                            try {
-                              const url = new URL(item.meetingUrl);
-                              pwd = url.searchParams.get("pwd") || "";
-                            } catch (e) {
-                              console.error(
-                                "Could not parse meeting URL for password",
-                                e,
-                              );
-                            }
+                            window.open(item.meetingUrl, "_blank");
+                          } else if (item.meetingId) {
+                            const cleanId = item.meetingId.replace(/[^0-9]/g, "");
+                            const pwd = item.meetingPasscode || "";
+                            const zoomUrl = `https://zoom.us/j/${cleanId}?pwd=${pwd}`;
+                            window.open(zoomUrl, "_blank");
+                          } else {
+                            toast.error("No Zoom details provided for this session.");
                           }
-                          router.push(
-                            `/dashboard?view=zoom-meeting&meetingId=${cleanId}&role=${role}&from=routine&password=${pwd}`,
-                          );
                         }}
                         className="px-5 py-3 bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all border border-blue-600 whitespace-nowrap shadow-lg shadow-blue-100"
                       >
@@ -736,12 +437,26 @@ export function ClassRoutine() {
                       </button>
                     );
                   })()}
-                <button
-                  onClick={() => handleDelete(item.id)}
-                  className="px-5 py-3 bg-red-50 text-red-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-red-100 transition-all border border-red-100"
-                >
-                  Cancel
-                </button>
+                {(user?.role === Role.ADMIN ||
+                  user?.role === Role.ACADEMIC_OPERATIONS) && (
+                  <>
+                    <button
+                      onClick={() => {
+                        setEditingSession(item);
+                        setIsModalOpen(true);
+                      }}
+                      className="px-5 py-3 bg-gray-50 text-gray-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-100 transition-all border border-gray-100"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(item.id)}
+                      className="px-5 py-3 bg-red-50 text-red-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-red-100 transition-all border border-red-100"
+                    >
+                      Cancel
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           ))
@@ -750,11 +465,16 @@ export function ClassRoutine() {
 
       <CreateSessionModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingSession(null);
+        }}
         onSuccess={fetchData}
         teachers={teachers}
         batches={batches}
+        editingSession={editingSession}
       />
     </div>
   );
 }
+

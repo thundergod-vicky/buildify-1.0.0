@@ -26,6 +26,20 @@ export function CourseCreateModal({ isOpen, onClose, onSuccess }: CourseCreateMo
     const isAdminOrOps = user?.role === Role.ADMIN || user?.role === Role.ACADEMIC_OPERATIONS;
 
     useEffect(() => {
+        if (isOpen) {
+            document.documentElement.classList.add("lock-scroll");
+            document.body.classList.add("lock-scroll");
+        } else {
+            document.documentElement.classList.remove("lock-scroll");
+            document.body.classList.remove("lock-scroll");
+        }
+        return () => {
+            document.documentElement.classList.remove("lock-scroll");
+            document.body.classList.remove("lock-scroll");
+        };
+    }, [isOpen]);
+
+    useEffect(() => {
         if (isOpen && isAdminOrOps) {
             fetchTeachers();
         }
@@ -58,7 +72,10 @@ export function CourseCreateModal({ isOpen, onClose, onSuccess }: CourseCreateMo
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <div 
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+            onWheel={(e) => e.stopPropagation()}
+        >
             <div className="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
                 <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
                     <h2 className="text-xl font-bold text-gray-900">Create New Course</h2>

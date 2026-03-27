@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { XIcon, Loader2Icon, FileTextIcon, VideoIcon, UploadCloudIcon } from 'lucide-react';
 import { coursesApi } from '@/lib/courses';
 import { showToast } from '@/lib/toast';
@@ -15,6 +15,28 @@ export function LessonUploadModal({ isOpen, onClose, chapterId, onSuccess }: Les
     const [file, setFile] = useState<File | null>(null);
     const [title, setTitle] = useState('');
     const [uploadProgress, setUploadProgress] = useState(0); // Mock progress for now
+
+    useEffect(() => {
+        if (isOpen) {
+            document.documentElement.classList.add("lock-scroll");
+            document.body.classList.add("lock-scroll");
+        } else {
+            document.documentElement.classList.remove("lock-scroll");
+            document.body.classList.remove("lock-scroll");
+        }
+        return () => {
+            document.documentElement.classList.remove("lock-scroll");
+            document.body.classList.remove("lock-scroll");
+        };
+    }, [isOpen]);
+
+    useEffect(() => {
+        if (!isOpen) {
+            setFile(null);
+            setTitle('');
+            setUploadProgress(0);
+        }
+    }, [isOpen]);
 
     if (!isOpen) return null;
 
@@ -62,7 +84,10 @@ export function LessonUploadModal({ isOpen, onClose, chapterId, onSuccess }: Les
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <div 
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+            onWheel={(e) => e.stopPropagation()}
+        >
             <div className="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
                 <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
                     <h2 className="text-xl font-bold text-gray-900">Upload Content</h2>

@@ -296,7 +296,6 @@ function ClassItem({
   isTeacher: boolean;
   onRefresh: () => void;
 }) {
-  const router = useRouter();
   const { user } = useAuth();
   const [showArtifacts, setShowArtifacts] = useState(false);
 
@@ -345,6 +344,22 @@ function ClassItem({
                 {session.venue || (session.isOnline ? "Zoom Classroom" : "TBA")}
               </div>
             </div>
+            {session.isOnline && (session.meetingId || session.meetingUrl) && (
+              <div className="mt-2 p-2 bg-blue-50/50 rounded-xl border border-blue-100/50 w-fit">
+                <div className="flex items-center gap-4 text-[10px] font-bold">
+                  <div className="flex items-center gap-1 text-blue-600">
+                    <span className="text-gray-400 font-black uppercase tracking-widest mr-1">ID:</span>
+                    {session.meetingId || "See Link"}
+                  </div>
+                  {session.meetingPasscode && (
+                    <div className="flex items-center gap-1 text-blue-600">
+                      <span className="text-gray-400 font-black uppercase tracking-widest mr-1">Passcode:</span>
+                      {session.meetingPasscode}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -352,23 +367,16 @@ function ClassItem({
           {session.isOnline && !isPast && (
             <button
               onClick={() => {
-                const role = user?.role === Role.TEACHER ? 1 : 0;
-                const cleanId = session.meetingId?.replace(/[^0-9]/g, "");
-                let pwd = "";
                 if (session.meetingUrl) {
-                  try {
-                    const url = new URL(session.meetingUrl);
-                    pwd = url.searchParams.get("pwd") || "";
-                  } catch (e) {
-                    console.error(
-                      "Could not parse meeting URL for password",
-                      e,
-                    );
-                  }
+                  window.open(session.meetingUrl, "_blank");
+                } else if (session.meetingId) {
+                  const cleanId = session.meetingId.replace(/[^0-9]/g, "");
+                  const pwd = session.meetingPasscode || "";
+                  const zoomUrl = `https://zoom.us/j/${cleanId}?pwd=${pwd}`;
+                  window.open(zoomUrl, "_blank");
+                } else {
+                  toast.error("No Zoom details provided for this session.");
                 }
-                router.push(
-                  `/dashboard?view=zoom-meeting&meetingId=${cleanId}&role=${role}&from=batch-details&batchId=${session.batchId}&password=${pwd}`,
-                );
               }}
               className="px-6 py-2.5 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg shadow-blue-100"
             >

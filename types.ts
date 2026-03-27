@@ -525,6 +525,7 @@ export interface ClassSession {
   isOnline: boolean;
   meetingUrl?: string;
   meetingId?: string;
+  meetingPasscode?: string;
   recordingUrl?: string;
   recordingPasscode?: string;
   teacher?: {
