@@ -102,6 +102,11 @@ export default function AuthPage() {
         }
     };
 
+    const handleForgotPassword = (e: React.MouseEvent) => {
+        e.preventDefault();
+        alert("Please call Operations @ 1234567890 to change your password.");
+    };
+
     return (
         <main className="min-h-screen flex justify-center items-center px-4 py-8 bg-linear-to-r from-gray-200 to-blue-100/50">
             {/* Mobile: stacked layout with tab */}
@@ -166,9 +171,12 @@ export default function AuthPage() {
                                     <Lock className="absolute right-4 top-1/2 -translate-y-1/2 size-5 text-gray-500" />
                                 </div>
                                 <div className="-mt-1 mb-3 text-left">
-                                    <Link href="#" className="text-sm text-gray-600 hover:text-yellow-500">
+                                    <button 
+                                        onClick={handleForgotPassword}
+                                        className="text-sm text-gray-600 hover:text-yellow-500"
+                                    >
                                         Forgot Password?
-                                    </Link>
+                                    </button>
                                 </div>
                                 <button
                                     type="submit"
@@ -293,9 +301,12 @@ export default function AuthPage() {
                             <Lock className="absolute right-4 top-1/2 -translate-y-1/2 size-5 text-gray-500" />
                         </div>
                         <div className="-mt-2 mb-4 text-left">
-                            <Link href="#" className="text-sm text-gray-600 hover:text-yellow-500">
+                            <button 
+                                onClick={handleForgotPassword}
+                                className="text-sm text-gray-600 hover:text-yellow-500"
+                            >
                                 Forgot Password?
-                            </Link>
+                            </button>
                         </div>
                         <button
                             type="submit"
