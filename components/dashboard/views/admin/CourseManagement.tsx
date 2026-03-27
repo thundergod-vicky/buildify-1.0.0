@@ -6,6 +6,7 @@ import { showToast } from "@/lib/toast";
 import { ConfirmationModal } from "@/components/ui/confirmation-modal";
 import { api } from "@/lib/api";
 import { auth } from "@/lib/auth";
+import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
 
 import { CourseCreateModal } from "../teacher/CourseCreateModal";
@@ -21,10 +22,27 @@ export function AdminCourseManagement() {
     courseId: string;
     courseTitle: string;
   }>({ isOpen: false, courseId: "", courseTitle: "" });
+  
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState<any>(null);
+  const [teachers, setTeachers] = useState<any[]>([]);
+  const { user: currentUser } = useAuth();
 
   useEffect(() => {
     fetchCourses();
+    fetchTeachers();
   }, []);
+
+  const fetchTeachers = async () => {
+    try {
+      const token = auth.getToken();
+      if (!token) return;
+      const allUsers = await api.get<any[]>('/admin/users', token);
+      setTeachers(allUsers.filter(u => u.role === 'TEACHER'));
+    } catch (error) {
+      console.error("Failed to fetch teachers:", error);
+    }
+  };
 
   const fetchCourses = async () => {
     try {
@@ -55,6 +73,20 @@ export function AdminCourseManagement() {
       showToast.error("Error connecting to server");
     } finally {
       setDeletingId(null);
+    }
+  };
+  const assignTeacher = async (courseId: string, teacherId: string) => {
+    try {
+      const token = auth.getToken();
+      if (!token) return;
+
+      await api.patch(`/admin/courses/${courseId}`, { teacherId }, token);
+      showToast.success("Teacher assigned successfully");
+      setIsAssignModalOpen(false);
+      fetchCourses();
+    } catch (error) {
+      console.error("Assignment failed:", error);
+      showToast.error("Failed to assign teacher");
     }
   };
 
@@ -148,10 +180,12 @@ export function AdminCourseManagement() {
                             <div className="text-sm font-black text-purple-600">{course._count?.chapters || 0}</div>
                             <div className="text-[9px] text-gray-400 uppercase font-bold tracking-tighter">Chapters</div>
                         </div>
-                        <div className="p-3 bg-blue-50/50 rounded-xl text-center">
-                            <div className="text-sm font-black text-blue-600">₹0</div>
-                            <div className="text-[9px] text-gray-400 uppercase font-bold tracking-tighter">Revenue</div>
-                        </div>
+                        {currentUser?.role !== 'ACADEMIC_OPERATIONS' && (
+                          <div className="p-3 bg-blue-50/50 rounded-xl text-center">
+                              <div className="text-sm font-black text-blue-600">₹0</div>
+                              <div className="text-[9px] text-gray-400 uppercase font-bold tracking-tighter">Revenue</div>
+                          </div>
+                        )}
                     </div>
                 </div>
 
@@ -165,28 +199,34 @@ export function AdminCourseManagement() {
                             <EyeIcon className="size-5" />
                         </Link>
                         <button 
+                            onClick={() => {
+                              setSelectedCourse(course);
+                              setIsAssignModalOpen(true);
+                            }}
                             className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all"
-                            title="Manage Content"
+                            title="Assign Teacher"
                         >
-                            <LayersIcon className="size-5" />
+                            <UsersIcon className="size-5" />
                         </button>
                     </div>
-                    <button 
-                        onClick={() => setConfirmModal({
-                          isOpen: true,
-                          courseId: course.id,
-                          courseTitle: course.title
-                        })}
-                        disabled={deletingId === course.id}
-                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                        title="Delete Course Permanently"
-                    >
-                        {deletingId === course.id ? (
-                            <div className="size-5 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
-                        ) : (
-                            <Trash2Icon className="size-5" />
-                        )}
-                    </button>
+                    {currentUser?.role !== 'ACADEMIC_OPERATIONS' && (
+                      <button 
+                          onClick={() => setConfirmModal({
+                            isOpen: true,
+                            courseId: course.id,
+                            courseTitle: course.title
+                          })}
+                          disabled={deletingId === course.id}
+                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                          title="Delete Course Permanently"
+                      >
+                          {deletingId === course.id ? (
+                              <div className="size-5 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+                          ) : (
+                              <Trash2Icon className="size-5" />
+                          )}
+                      </button>
+                    )}
                 </div>
             </div>
           ))}
@@ -215,6 +255,30 @@ export function AdminCourseManagement() {
             confirmText="Delete Permanently"
             variant="danger"
         />
+
+        {/* Assign Teacher Modal */}
+        <ConfirmationModal
+            isOpen={isAssignModalOpen}
+            onClose={() => setIsAssignModalOpen(false)}
+            onConfirm={() => {}} // Not used as we have a select inside
+            title="Update Course Teacher"
+            message={`Select a teacher to assign to "${selectedCourse?.title}"`}
+            confirmText="Close"
+            variant="info"
+        >
+          <div className="mt-4 space-y-4">
+            <select 
+              className="w-full p-3 bg-white border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-purple-500/20"
+              onChange={(e) => assignTeacher(selectedCourse?.id, e.target.value)}
+              defaultValue={selectedCourse?.teacherId}
+            >
+              <option value="">Select a Teacher</option>
+              {teachers.map(t => (
+                <option key={t.id} value={t.id}>{t.name} ({t.email})</option>
+              ))}
+            </select>
+          </div>
+        </ConfirmationModal>
     </div>
   );
 }

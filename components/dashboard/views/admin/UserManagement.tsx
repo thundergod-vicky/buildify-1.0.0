@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   SearchIcon,
   UserCogIcon,
@@ -15,6 +15,8 @@ import {
   Loader2Icon,
   Lock,
   GraduationCapIcon,
+  SortAscIcon,
+  SortDescIcon,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { showToast } from "@/lib/toast";
@@ -23,7 +25,7 @@ import { User, Role } from "@/types";
 import { api } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { useAuth } from "@/contexts/AuthContext";
-import { AdmissionApprovalModal } from "@/components/dashboard/views/shared/AdmissionApprovalModal";
+import { UserDetailsModal } from "./UserDetailsModal";
 
 // Define UserWithCounts interface based on the instruction and context
 interface UserWithCounts extends User {
@@ -72,15 +74,19 @@ export function AdminUserManagement() {
     userId: string;
     userName: string;
   }>({ isOpen: false, userId: "", userName: "" });
-  const [admissionModal, setAdmissionModal] = useState<{
+  const [detailsModal, setDetailsModal] = useState<{
     isOpen: boolean;
-    studentId: string;
-    studentName: string;
+    userId: string;
+    userName: string;
   }>({
     isOpen: false,
-    studentId: "",
-    studentName: "",
+    userId: "",
+    userName: "",
   });
+  const [isGrouped, setIsGrouped] = useState(false);
+  const [roleFilter, setRoleFilter] = useState<string>("ALL");
+  const [sortBy, setSortBy] = useState<"name" | "createdAt" | "role">("name");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   useEffect(() => {
     fetchUsers();
@@ -210,21 +216,40 @@ export function AdminUserManagement() {
     }
   };
 
-  const filteredUsers = users.filter((u) => {
-    const matchesSearch =
-      u.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      u.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      u.enrollmentId?.toLowerCase().includes(searchQuery.toLowerCase());
+  const processedUsers = users
+    .filter((u) => {
+      // 1. Search Query Filter
+      const matchesSearch =
+        u.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        u.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        u.enrollmentId?.toLowerCase().includes(searchQuery.toLowerCase());
 
-    if (!matchesSearch) return false;
+      if (!matchesSearch) return false;
 
-    // Security: Operations should not see/manage Admin accounts
-    if (currentUser?.role === Role.ACADEMIC_OPERATIONS) {
-      return u.role !== Role.ADMIN;
-    }
+      // 2. Role Filter (Tabs)
+      if (roleFilter !== "ALL" && u.role !== roleFilter) return false;
 
-    return true;
-  });
+      // 3. Security: Operations should not see/manage Admin accounts
+      if (currentUser?.role === Role.ACADEMIC_OPERATIONS) {
+        return u.role !== Role.ADMIN;
+      }
+
+      return true;
+    })
+    .sort((a, b) => {
+      // 4. Sorting Logic
+      let comparison = 0;
+      if (sortBy === "name") {
+        comparison = (a.name || "").localeCompare(b.name || "");
+      } else if (sortBy === "role") {
+        comparison = a.role.localeCompare(b.role);
+      } else if (sortBy === "createdAt") {
+        comparison =
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      }
+
+      return sortOrder === "asc" ? comparison : -comparison;
+    });
 
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-8">
@@ -237,27 +262,102 @@ export function AdminUserManagement() {
         </p>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-        <div className="relative w-full max-w-md group">
-          <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-gray-400 group-focus-within:text-indigo-500 transition-colors" />
-          <input
-            type="text"
-            placeholder="Search by name or email..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 bg-white border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-sm"
-          />
+      <div className="flex flex-col gap-6">
+        {/* Search and Action Row */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+          <div className="relative w-full max-w-md group">
+            <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-gray-400 group-focus-within:text-indigo-500 transition-colors" />
+            <input
+              type="text"
+              placeholder="Search by name, email or ID..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-12 pr-4 py-3 bg-white border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-sm"
+            />
+          </div>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              className="flex-1 sm:flex-none px-6 py-3 bg-indigo-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-100 hover:bg-indigo-700 active:scale-95 transition-all flex items-center justify-center gap-2"
+            >
+              <UsersIcon className="size-4" />
+              Add User
+            </button>
+            <div className="px-4 py-3 bg-white border border-gray-100 text-gray-700 rounded-xl text-sm font-bold shadow-sm flex items-center whitespace-nowrap">
+              {processedUsers.length} Results
+            </div>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setIsAddModalOpen(true)}
-            className="px-6 py-3 bg-indigo-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all flex items-center gap-2"
-          >
-            <UsersIcon className="size-4" />
-            Add New User
-          </button>
-          <div className="px-4 py-3 bg-indigo-50 text-indigo-700 rounded-lg text-sm font-bold border border-indigo-100 flex items-center">
-            {filteredUsers.length} Total Users
+
+        {/* Filter and Sort Row */}
+        <div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center bg-gray-50/50 p-2 rounded-[2rem] border border-gray-100">
+          {/* Quick Filter Tabs */}
+          <div className="flex p-1 bg-white rounded-[1.5rem] shadow-sm border border-gray-100 overflow-x-auto no-scrollbar max-w-full">
+            {[
+              { id: "ALL", label: "All Users", icon: UsersIcon },
+              { id: "STUDENT", label: "Students", icon: GraduationCapIcon },
+              { id: "TEACHER", label: "Teachers", icon: UserCogIcon },
+              { id: "PARENT", label: "Parents", icon: UsersIcon },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setRoleFilter(tab.id)}
+                className={`flex items-center gap-2 px-6 py-2.5 rounded-2xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${
+                  roleFilter === tab.id
+                    ? "bg-indigo-600 text-white shadow-lg shadow-indigo-100 scale-105 z-10"
+                    : "text-gray-400 hover:text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                <tab.icon className="size-3.5" />
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Sort Controls */}
+          <div className="flex items-center gap-2 px-4 w-full lg:w-auto">
+            <div className="flex items-center gap-3 bg-white p-1 rounded-2xl border border-gray-100 shadow-sm flex-1 lg:flex-none">
+              <div className="pl-3 py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest border-r border-gray-50 pr-4">
+                Sort By
+              </div>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as "name" | "createdAt" | "role")}
+                className="bg-transparent text-xs font-bold text-gray-700 py-2 pr-4 pl-2 outline-none cursor-pointer appearance-none"
+              >
+                <option value="name">Name</option>
+                <option value="createdAt">Date Joined</option>
+                <option value="role">Account Type</option>
+              </select>
+              <button
+                onClick={() =>
+                  setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                }
+                className="p-2 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-100 transition-colors shadow-sm"
+                title={
+                  sortOrder === "asc" ? "Sort Descending" : "Sort Ascending"
+                }
+              >
+                {sortOrder === "asc" ? (
+                  <SortAscIcon className="size-4" />
+                ) : (
+                  <SortDescIcon className="size-4" />
+                )}
+              </button>
+            </div>
+
+            {/* Grouping Toggle */}
+            <button
+              onClick={() => setIsGrouped(!isGrouped)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
+                isGrouped
+                  ? "bg-indigo-600 text-white border-indigo-600 shadow-md"
+                  : "bg-white text-gray-600 border-gray-100 hover:bg-gray-50 shadow-sm"
+              }`}
+            >
+              <UsersIcon className="size-3.5" />
+              {isGrouped ? "Ungroup" : "Group by Role"}
+            </button>
           </div>
         </div>
       </div>
@@ -293,7 +393,7 @@ export function AdminUserManagement() {
                     </td>
                   </tr>
                 ))
-              ) : filteredUsers.length === 0 ? (
+              ) : processedUsers.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-32 text-center">
                     <div className="flex flex-col items-center gap-2">
@@ -301,209 +401,68 @@ export function AdminUserManagement() {
                         <UsersIcon className="size-8" />
                       </div>
                       <p className="text-gray-500 font-medium">
-                        No users match your search criteria
+                        No users match your criteria
                       </p>
                     </div>
                   </td>
                 </tr>
-              ) : (
-                filteredUsers.map((user) => (
-                  <tr
-                    key={user.id}
-                    className="hover:bg-gray-50/30 transition-colors group"
-                  >
-                    <td className="px-6 py-5">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`size-10 rounded-full flex items-center justify-center font-bold text-sm ${
-                            user.role === "ADMIN"
-                              ? "bg-indigo-100 text-indigo-700"
-                              : user.role === "TEACHER"
-                                ? "bg-purple-100 text-purple-700"
-                                : user.role === "PARENT"
-                                  ? "bg-blue-100 text-blue-700"
-                                  : user.role === "ACADEMIC_OPERATIONS"
-                                    ? "bg-orange-100 text-orange-700"
-                                    : user.role === "ACCOUNTS"
-                                      ? "bg-emerald-100 text-emerald-700"
-                                      : "bg-blue-100 text-blue-700"
-                          }`}
+              ) : isGrouped ? (
+                // Grouped View
+                ROLES.map((role) => {
+                  const roleUsers = processedUsers.filter((u) => u.role === role);
+                  if (roleUsers.length === 0) return null;
+
+                  return (
+                    <React.Fragment key={role}>
+                      <tr className="bg-gray-50/80">
+                        <td
+                          colSpan={5}
+                          className="px-6 py-3 text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] border-y border-gray-100/50"
                         >
-                          {user.name?.[0]?.toUpperCase() || "U"}
-                        </div>
-                        <div>
-                          <div className="font-bold text-gray-900 flex items-center gap-1.5">
-                            {user.name || "Unnamed User"}
-                            {user.role === "ADMIN" && (
-                              <ShieldCheckIcon className="size-3.5 text-indigo-600" />
-                            )}
+                          <div className="flex items-center gap-2">
+                            <ShieldCheckIcon className="size-3" />
+                            {role}s ({roleUsers.length})
                           </div>
-                          <div className="text-xs text-gray-500 flex items-center gap-3 mt-0.5">
-                            <span className="flex items-center gap-1">
-                              <MailIcon className="size-3" /> {user.email}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <CalendarIcon className="size-3" /> Joined{" "}
-                              {new Date(user.createdAt).toLocaleDateString()}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-5 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        {editingId === user.id ? (
-                          <div className="flex items-center gap-2 bg-gray-50 p-1.5 rounded-2xl border border-blue-100 shadow-inner">
-                            <input
-                              type="text"
-                              value={editIdValue}
-                              onChange={(e) =>
-                                setEditIdValue(
-                                  e.target.value.replace(/\s+/g, ""),
-                                )
-                              }
-                              className="w-32 px-4 py-2 text-xs font-black font-mono bg-white border border-blue-50 rounded-xl outline-none focus:ring-2 focus:ring-blue-100 transition-all shadow-sm"
-                              autoFocus
-                            />
-                            <button
-                              onClick={() => updateEnrollmentId(user.id)}
-                              disabled={updatingId === user.id}
-                              className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all disabled:opacity-50"
-                            >
-                              <SaveIcon className="size-4" />
-                            </button>
-                            <button
-                              onClick={() => setEditingId(null)}
-                              className="p-2 text-rose-400 hover:bg-rose-50 rounded-xl transition-all"
-                            >
-                              <XIcon className="size-4" />
-                            </button>
-                          </div>
-                        ) : (
-                          <div
-                            className="flex items-center gap-3 cursor-pointer group/id"
-                            onClick={() => {
-                              setEditingId(user.id);
-                              setEditIdValue(user.enrollmentId || "");
-                            }}
-                          >
-                            <div className="inline-flex flex-col bg-gray-50 px-4 py-2 rounded-2xl border border-gray-100 shadow-sm group-hover/id:border-blue-200 group-hover/id:bg-white transition-all duration-300">
-                              <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">
-                                Enrollment
-                              </span>
-                              <span className="text-xs font-black text-gray-700 font-mono tracking-tighter">
-                                {user.enrollmentId || "PENDING"}
-                              </span>
-                            </div>
-                            <div className="size-8 rounded-xl flex items-center justify-center bg-gray-50 text-gray-300 opacity-0 group-hover/id:opacity-100 transition-all hover:bg-white hover:text-blue-600 hover:shadow-sm">
-                              <UserCogIcon className="size-4" />
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-5 whitespace-nowrap">
-                      <select
-                        value={user.role}
-                        onChange={(e) =>
-                          setConfirmModal({
-                            isOpen: true,
-                            userId: user.id,
-                            newRole: e.target.value,
-                          })
-                        }
-                        disabled={updatingId === user.id}
-                        className={`px-4 py-2 rounded-[1.25rem] text-[10px] font-black uppercase tracking-[0.12em] border outline-none transition-all cursor-pointer shadow-sm hover:shadow-md ${
-                          user.role === "ADMIN"
-                            ? "bg-indigo-50 border-indigo-200 text-indigo-700"
-                            : user.role === "TEACHER"
-                              ? "bg-purple-50 border-purple-200 text-purple-700"
-                              : user.role === "PARENT"
-                                ? "bg-blue-50 border-blue-200 text-blue-700"
-                                : user.role === "ACADEMIC_OPERATIONS"
-                                  ? "bg-orange-50 border-orange-200 text-orange-700"
-                                  : user.role === "ACCOUNTS"
-                                    ? "bg-emerald-50 border-emerald-200 text-emerald-700"
-                                    : "bg-blue-50 border-blue-200 text-blue-700"
-                        }`}
-                      >
-                        {ROLES.filter(
-                          (r) =>
-                            currentUser?.role !== Role.ACADEMIC_OPERATIONS ||
-                            r !== "ADMIN",
-                        ).map((role) => (
-                          <option key={role} value={role}>
-                            {role}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-                    <td className="px-6 py-5 whitespace-nowrap">
-                      <div className="flex gap-10">
-                        <div className="flex flex-col">
-                          <span className="text-xs font-black text-gray-900 leading-none mb-1">
-                            {user._count?.enrollments || 0}
-                          </span>
-                          <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-none">
-                            Enrollments
-                          </span>
-                        </div>
-                        <div className="flex flex-col border-l border-gray-100 pl-8">
-                          <span className="text-xs font-black text-gray-900 leading-none mb-1">
-                            {user._count?.teachingCourses || 0}
-                          </span>
-                          <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-none">
-                            Courses
-                          </span>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-5 whitespace-nowrap text-right">
-                      <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                        {updatingId === user.id ? (
-                          <div className="size-10 flex items-center justify-center">
-                            <div className="size-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                          </div>
-                        ) : (
-                          <>
-                            {user.role === "STUDENT" && (
-                              <button
-                                onClick={() =>
-                                  setAdmissionModal({
-                                    isOpen: true,
-                                    studentId: user.id,
-                                    studentName: user.name || "Student",
-                                  })
-                                }
-                                className="p-3 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-indigo-600 hover:border-indigo-100 hover:bg-indigo-50 transition-all shadow-sm"
-                                title="View Admission"
-                              >
-                                <GraduationCapIcon className="size-4" />
-                              </button>
-                            )}
-                            <button
-                              onClick={() => setEditingUser(user)}
-                              className="p-3 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-blue-600 hover:border-blue-100 hover:bg-blue-50 transition-all shadow-sm"
-                            >
-                              <UserCogIcon className="size-4" />
-                            </button>
-                            <button
-                              onClick={() =>
-                                setDeleteConfirm({
-                                  isOpen: true,
-                                  userId: user.id,
-                                  userName: user.name || "this user",
-                                })
-                              }
-                              className="p-3 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-rose-600 hover:border-rose-100 hover:bg-rose-50 transition-all shadow-sm"
-                            >
-                              <Trash2Icon className="size-4" />
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
+                        </td>
+                      </tr>
+                      {roleUsers.map((user) => (
+                        <UserRow
+                          key={user.id}
+                          user={user}
+                          currentUser={currentUser}
+                          updatingId={updatingId}
+                          editingId={editingId}
+                          editIdValue={editIdValue}
+                          setEditingId={setEditingId}
+                          setEditIdValue={setEditIdValue}
+                          updateEnrollmentId={updateEnrollmentId}
+                          setConfirmModal={setConfirmModal}
+                          setEditingUser={setEditingUser}
+                          setDeleteConfirm={setDeleteConfirm}
+                          setDetailsModal={setDetailsModal}
+                        />
+                      ))}
+                    </React.Fragment>
+                  );
+                })
+              ) : (
+                // Flat View
+                processedUsers.map((user) => (
+                  <UserRow
+                    key={user.id}
+                    user={user}
+                    currentUser={currentUser}
+                    updatingId={updatingId}
+                    editingId={editingId}
+                    editIdValue={editIdValue}
+                    setEditingId={setEditingId}
+                    setEditIdValue={setEditIdValue}
+                    updateEnrollmentId={updateEnrollmentId}
+                    setConfirmModal={setConfirmModal}
+                    setEditingUser={setEditingUser}
+                    setDeleteConfirm={setDeleteConfirm}
+                    setDetailsModal={setDetailsModal}
+                  />
                 ))
               )}
             </tbody>
@@ -757,11 +716,12 @@ export function AdminUserManagement() {
                       }
                       className="w-full px-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl outline-none focus:border-indigo-500 focus:bg-white transition-all font-bold text-sm text-slate-700 shadow-inner appearance-none cursor-pointer"
                     >
-                      {ROLES.filter(
-                        (r) =>
-                          currentUser?.role !== Role.ACADEMIC_OPERATIONS ||
-                          r !== "ADMIN",
-                      ).map((role) => (
+                      {ROLES.filter((r) => {
+                        if (currentUser?.role === Role.ACADEMIC_OPERATIONS) {
+                          return r === "STUDENT" || r === "PARENT";
+                        }
+                        return r !== "ADMIN";
+                      }).map((role) => (
                         <option key={role} value={role}>
                           {role}
                         </option>
@@ -813,16 +773,267 @@ export function AdminUserManagement() {
           )}
         </AnimatePresence>
 
-        <AdmissionApprovalModal
-          isOpen={admissionModal.isOpen}
-          studentId={admissionModal.studentId}
-          studentName={admissionModal.studentName}
+        <UserDetailsModal
+          isOpen={detailsModal.isOpen}
+          userId={detailsModal.userId}
           onClose={() =>
-            setAdmissionModal({ isOpen: false, studentId: "", studentName: "" })
+            setDetailsModal({ isOpen: false, userId: "", userName: "" })
           }
-          onAction={fetchUsers}
         />
       </div>
     </div>
+  );
+}
+
+// Extract row to its own component for better organization in grouped mode
+function UserRow({
+  user,
+  currentUser,
+  updatingId,
+  editingId,
+  editIdValue,
+  setEditingId,
+  setEditIdValue,
+  updateEnrollmentId,
+  setConfirmModal,
+  setEditingUser,
+  setDeleteConfirm,
+  setDetailsModal,
+}: {
+  user: UserWithCounts;
+  currentUser: User | null;
+  updatingId: string | null;
+  editingId: string | null;
+  editIdValue: string;
+  setEditingId: (id: string | null) => void;
+  setEditIdValue: (val: string) => void;
+  updateEnrollmentId: (id: string) => void;
+  setConfirmModal: (modal: {
+    isOpen: boolean;
+    userId: string;
+    newRole: string;
+  }) => void;
+  setEditingUser: (user: UserWithCounts | null) => void;
+  setDeleteConfirm: (modal: {
+    isOpen: boolean;
+    userId: string;
+    userName: string;
+  }) => void;
+  setDetailsModal: (modal: {
+    isOpen: boolean;
+    userId: string;
+    userName: string;
+  }) => void;
+}) {
+  return (
+    <tr
+      key={user.id}
+      className="hover:bg-gray-50/30 transition-colors group"
+    >
+      <td className="px-6 py-5">
+        <div className="flex items-center gap-3">
+          <div
+            className={`size-10 rounded-full flex items-center justify-center font-bold text-sm ${
+              user.role === "ADMIN"
+                ? "bg-indigo-100 text-indigo-700"
+                : user.role === "TEACHER"
+                  ? "bg-purple-100 text-purple-700"
+                  : user.role === "PARENT"
+                    ? "bg-blue-100 text-blue-700"
+                    : user.role === "ACADEMIC_OPERATIONS"
+                      ? "bg-orange-100 text-orange-700"
+                      : user.role === "ACCOUNTS"
+                        ? "bg-emerald-100 text-emerald-700"
+                        : "bg-blue-100 text-blue-700"
+            }`}
+          >
+            {user.name?.[0]?.toUpperCase() || "U"}
+          </div>
+          <div>
+            <div className="font-bold text-gray-900 flex items-center gap-1.5">
+              {user.name || "Unnamed User"}
+              {user.role === "ADMIN" && (
+                <ShieldCheckIcon className="size-3.5 text-indigo-600" />
+              )}
+            </div>
+            <div className="text-xs text-gray-500 flex items-center gap-3 mt-0.5">
+              <span className="flex items-center gap-1">
+                <MailIcon className="size-3" /> {user.email}
+              </span>
+              <span className="flex items-center gap-1">
+                <CalendarIcon className="size-3" /> Joined{" "}
+                {new Date(user.createdAt).toLocaleDateString()}
+              </span>
+            </div>
+          </div>
+        </div>
+      </td>
+      <td className="px-6 py-5 whitespace-nowrap">
+        <div className="flex items-center gap-2">
+          {editingId === user.id ? (
+            <div className="flex items-center gap-2 bg-gray-50 p-1.5 rounded-2xl border border-blue-100 shadow-inner">
+              <input
+                type="text"
+                value={editIdValue}
+                onChange={(e) =>
+                  setEditIdValue(
+                    e.target.value.replace(/\s+/g, ""),
+                  )
+                }
+                className="w-32 px-4 py-2 text-xs font-black font-mono bg-white border border-blue-50 rounded-xl outline-none focus:ring-2 focus:ring-blue-100 transition-all shadow-sm"
+                autoFocus
+              />
+              <button
+                onClick={() => updateEnrollmentId(user.id)}
+                disabled={updatingId === user.id}
+                className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all disabled:opacity-50"
+              >
+                <SaveIcon className="size-4" />
+              </button>
+              <button
+                onClick={() => setEditingId(null)}
+                className="p-2 text-rose-400 hover:bg-rose-50 rounded-xl transition-all"
+              >
+                <XIcon className="size-4" />
+              </button>
+            </div>
+          ) : (
+            <div
+              className="flex items-center gap-3 cursor-pointer group/id"
+              onClick={() => {
+                if (currentUser?.role === Role.ACADEMIC_OPERATIONS && user.role !== Role.STUDENT && user.role !== Role.PARENT) {
+                  showToast.error("Operations can only manage student/parent IDs");
+                  return;
+                }
+                setEditingId(user.id);
+                setEditIdValue(user.enrollmentId || "");
+              }}
+            >
+              <div className="inline-flex flex-col bg-gray-50 px-4 py-2 rounded-2xl border border-gray-100 shadow-sm group-hover/id:border-blue-200 group-hover/id:bg-white transition-all duration-300">
+                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">
+                  Enrollment
+                </span>
+                <span className="text-xs font-black text-gray-700 font-mono tracking-tighter">
+                  {user.enrollmentId || "PENDING"}
+                </span>
+              </div>
+              <div className="size-8 rounded-xl flex items-center justify-center bg-gray-50 text-gray-300 opacity-0 group-hover/id:opacity-100 transition-all hover:bg-white hover:text-blue-600 hover:shadow-sm">
+                <UserCogIcon className="size-4" />
+              </div>
+            </div>
+          )}
+        </div>
+      </td>
+      <td className="px-6 py-5 whitespace-nowrap">
+        <select
+          value={user.role}
+          onChange={(e) =>
+            setConfirmModal({
+              isOpen: true,
+              userId: user.id,
+              newRole: e.target.value,
+            })
+          }
+          disabled={updatingId === user.id || currentUser?.role === Role.ACADEMIC_OPERATIONS}
+          className={`px-4 py-2 rounded-[1.25rem] text-[10px] font-black uppercase tracking-[0.12em] border outline-none transition-all cursor-pointer shadow-sm hover:shadow-md ${
+            user.role === "ADMIN"
+              ? "bg-indigo-50 border-indigo-200 text-indigo-700"
+              : user.role === "TEACHER"
+                ? "bg-purple-50 border-purple-200 text-purple-700"
+                : user.role === "PARENT"
+                  ? "bg-blue-50 border-blue-200 text-blue-700"
+                  : user.role === "ACADEMIC_OPERATIONS"
+                    ? "bg-orange-50 border-orange-200 text-orange-700"
+                    : user.role === "ACCOUNTS"
+                      ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                      : "bg-blue-50 border-blue-200 text-blue-700"
+          }`}
+        >
+          {[
+            "STUDENT",
+            "TEACHER",
+            "PARENT",
+            "ADMIN",
+            "ACADEMIC_OPERATIONS",
+            "ACCOUNTS",
+          ].filter(
+            (r) =>
+              currentUser?.role !== "ACADEMIC_OPERATIONS" ||
+              r !== "ADMIN",
+          ).map((role) => (
+            <option key={role} value={role}>
+              {role}
+            </option>
+          ))}
+        </select>
+      </td>
+      <td className="px-6 py-5 whitespace-nowrap">
+        <div className="flex gap-10">
+          <div className="flex flex-col">
+            <span className="text-xs font-black text-gray-900 leading-none mb-1">
+              {user._count?.enrollments || 0}
+            </span>
+            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-none">
+              Enrollments
+            </span>
+          </div>
+          <div className="flex flex-col border-l border-gray-100 pl-8">
+            <span className="text-xs font-black text-gray-900 leading-none mb-1">
+              {user._count?.teachingCourses || 0}
+            </span>
+            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-none">
+              Courses
+            </span>
+          </div>
+        </div>
+      </td>
+      <td className="px-6 py-5 whitespace-nowrap text-right">
+        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
+          {updatingId === user.id ? (
+            <div className="size-10 flex items-center justify-center">
+              <div className="size-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : (
+            <>
+              <button
+                onClick={() =>
+                  setDetailsModal({
+                    isOpen: true,
+                    userId: user.id,
+                    userName: user.name || "User",
+                  })
+                }
+                className="p-3 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-indigo-600 hover:border-indigo-100 hover:bg-indigo-50 transition-all shadow-sm"
+                title="View Full Profile"
+              >
+                <GraduationCapIcon className="size-4" />
+              </button>
+              {(currentUser?.role !== Role.ACADEMIC_OPERATIONS || (user.role === Role.STUDENT || user.role === Role.PARENT)) && (
+                <button
+                  onClick={() => setEditingUser(user)}
+                  className="p-3 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-blue-600 hover:border-blue-100 hover:bg-blue-50 transition-all shadow-sm"
+                >
+                  <UserCogIcon className="size-4" />
+                </button>
+              )}
+              {currentUser?.role !== Role.ACADEMIC_OPERATIONS && (
+                <button
+                  onClick={() =>
+                    setDeleteConfirm({
+                      isOpen: true,
+                      userId: user.id,
+                      userName: user.name || "this user",
+                    })
+                  }
+                  className="p-3 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-rose-600 hover:border-rose-100 hover:bg-rose-50 transition-all shadow-sm"
+                >
+                  <Trash2Icon className="size-4" />
+                </button>
+              )}
+            </>
+          )}
+        </div>
+      </td>
+    </tr>
   );
 }
