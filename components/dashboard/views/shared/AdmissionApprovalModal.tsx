@@ -15,10 +15,14 @@ import {
   CalendarIcon,
   HashIcon,
   ImageIcon,
+  PencilIcon,
+  SaveIcon,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { showToast } from "@/lib/toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { Role } from "@/types";
 
 interface Admission {
   id: string;
@@ -52,7 +56,7 @@ interface Props {
   studentName: string;
   isOpen: boolean;
   onClose: () => void;
-  onAction: () => void; // callback to refresh parent list
+  onAction: () => void;
 }
 
 const Field = ({ label, value, icon: Icon }: { label: string; value?: string | null; icon?: React.ElementType }) => (
@@ -65,15 +69,53 @@ const Field = ({ label, value, icon: Icon }: { label: string; value?: string | n
   </div>
 );
 
+const EditField = ({
+  label,
+  name,
+  value,
+  onChange,
+  icon: Icon,
+  type = "text",
+  className = "",
+}: {
+  label: string;
+  name: string;
+  value: string;
+  onChange: (name: string, value: string) => void;
+  icon?: React.ElementType;
+  type?: string;
+  className?: string;
+}) => (
+  <div className={`space-y-1 ${className}`}>
+    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+      {Icon && <Icon className="size-3" />}
+      {label}
+    </p>
+    <input
+      type={type}
+      value={value}
+      onChange={(e) => onChange(name, e.target.value)}
+      className="w-full px-3 py-2 text-sm font-semibold text-slate-800 bg-indigo-50/50 border border-indigo-100 rounded-xl outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 transition-all"
+    />
+  </div>
+);
+
 export function AdmissionApprovalModal({ studentId, studentName, isOpen, onClose, onAction }: Props) {
+  const { user: currentUser } = useAuth();
   const [admission, setAdmission] = useState<Admission | null>(null);
   const [photoBlobUrl, setPhotoBlobUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isActing, setIsActing] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState<Partial<Admission>>({});
+
+  const canEdit =
+    currentUser?.role === Role.ADMIN || currentUser?.role === Role.ACADEMIC_OPERATIONS;
 
   useEffect(() => {
     if (!isOpen || !studentId) {
       setAdmission(null);
+      setIsEditing(false);
       if (photoBlobUrl) {
         URL.revokeObjectURL(photoBlobUrl);
         setPhotoBlobUrl(null);
@@ -87,6 +129,7 @@ export function AdmissionApprovalModal({ studentId, studentName, isOpen, onClose
       .get<Admission>(`/admissions/student/${studentId}`, token)
       .then(async (data) => {
         setAdmission(data);
+        setEditData(data);
         if (data && data.photoUrl) {
           try {
             const blob = await api.getBlob(`/admissions/photo/${data.id}`, token);
@@ -99,14 +142,31 @@ export function AdmissionApprovalModal({ studentId, studentName, isOpen, onClose
       })
       .catch(() => setAdmission(null))
       .finally(() => setIsLoading(false));
-
-    return () => {
-      if (photoBlobUrl) {
-        URL.revokeObjectURL(photoBlobUrl);
-        setPhotoBlobUrl(null);
-      }
-    };
   }, [isOpen, studentId]);
+
+  const handleFieldChange = (name: string, value: string) => {
+    setEditData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSave = async () => {
+    if (!admission) return;
+    setIsActing(true);
+    const token = auth.getToken() || "";
+    try {
+      await api.patch(`/admissions/${admission.id}`, editData, token);
+      showToast.success("Admission details updated successfully");
+      setIsEditing(false);
+      // Re-fetch to show updated data
+      const updated = await api.get<Admission>(`/admissions/student/${studentId}`, token);
+      setAdmission(updated);
+      setEditData(updated);
+      onAction();
+    } catch {
+      showToast.error("Failed to update admission details");
+    } finally {
+      setIsActing(false);
+    }
+  };
 
   const handleAction = async (action: "approve" | "reject") => {
     if (!admission) return;
@@ -130,6 +190,10 @@ export function AdmissionApprovalModal({ studentId, studentName, isOpen, onClose
     REJECTED: "bg-rose-50 text-rose-700 border-rose-200",
   };
 
+  const dob = editData.dateOfBirth
+    ? new Date(editData.dateOfBirth).toISOString().split("T")[0]
+    : "";
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -146,9 +210,28 @@ export function AdmissionApprovalModal({ studentId, studentName, isOpen, onClose
                 <h2 className="text-xl font-black text-slate-900">Admission Application</h2>
                 <p className="text-xs text-slate-400 font-semibold mt-0.5">{studentName}</p>
               </div>
-              <button onClick={onClose} className="p-2.5 hover:bg-slate-100 rounded-xl text-slate-400 transition-all">
-                <XIcon className="size-5" />
-              </button>
+              <div className="flex items-center gap-2">
+                {canEdit && admission && !isLoading && (
+                  isEditing ? (
+                    <button
+                      onClick={() => { setIsEditing(false); setEditData(admission); }}
+                      className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-slate-500 bg-slate-100 rounded-xl hover:bg-slate-200 transition-all"
+                    >
+                      <XIcon className="size-3.5" /> Discard
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setIsEditing(true)}
+                      className="flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-indigo-600 bg-indigo-50 rounded-xl hover:bg-indigo-100 transition-all border border-indigo-100"
+                    >
+                      <PencilIcon className="size-3.5" /> Edit
+                    </button>
+                  )
+                )}
+                <button onClick={onClose} className="p-2.5 hover:bg-slate-100 rounded-xl text-slate-400 transition-all">
+                  <XIcon className="size-5" />
+                </button>
+              </div>
             </div>
 
             {/* Body */}
@@ -174,6 +257,15 @@ export function AdmissionApprovalModal({ studentId, studentName, isOpen, onClose
                     </span>
                   </div>
 
+                  {isEditing && (
+                    <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-100 rounded-2xl">
+                      <PencilIcon className="size-4 text-amber-500 shrink-0" />
+                      <p className="text-xs font-bold text-amber-700">
+                        Edit mode — modify any field below and click Save Changes to persist.
+                      </p>
+                    </div>
+                  )}
+
                   {/* Photo + IDs */}
                   <div className="flex gap-6 items-start">
                     <div className="shrink-0 w-24 h-28 rounded-2xl overflow-hidden border border-slate-200 bg-slate-50 flex items-center justify-center">
@@ -187,10 +279,21 @@ export function AdmissionApprovalModal({ studentId, studentName, isOpen, onClose
                       )}
                     </div>
                     <div className="grid grid-cols-2 gap-4 flex-1">
-                      <Field label="Form Number" value={admission.formNumber} icon={HashIcon} />
-                      <Field label="Enrollment No." value={admission.enrollmentNumber} icon={HashIcon} />
-                      <Field label="Admission Date" value={new Date(admission.admissionDate).toLocaleDateString()} icon={CalendarIcon} />
-                      <Field label="Date of Birth" value={new Date(admission.dateOfBirth).toLocaleDateString()} icon={CalendarIcon} />
+                      {isEditing ? (
+                        <>
+                          <EditField label="Form Number" name="formNumber" value={editData.formNumber || ""} onChange={handleFieldChange} icon={HashIcon} />
+                          <EditField label="Enrollment No." name="enrollmentNumber" value={editData.enrollmentNumber || ""} onChange={handleFieldChange} icon={HashIcon} />
+                          <EditField label="Date of Birth" name="dateOfBirth" value={dob} onChange={handleFieldChange} icon={CalendarIcon} type="date" />
+                          <Field label="Admission Date" value={new Date(admission.admissionDate).toLocaleDateString()} icon={CalendarIcon} />
+                        </>
+                      ) : (
+                        <>
+                          <Field label="Form Number" value={admission.formNumber} icon={HashIcon} />
+                          <Field label="Enrollment No." value={admission.enrollmentNumber} icon={HashIcon} />
+                          <Field label="Admission Date" value={new Date(admission.admissionDate).toLocaleDateString()} icon={CalendarIcon} />
+                          <Field label="Date of Birth" value={new Date(admission.dateOfBirth).toLocaleDateString()} icon={CalendarIcon} />
+                        </>
+                      )}
                     </div>
                   </div>
 
@@ -198,16 +301,31 @@ export function AdmissionApprovalModal({ studentId, studentName, isOpen, onClose
                   <div>
                     <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Personal Details</p>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
-                      <Field label="Student Name" value={admission.studentName} icon={UserIcon} />
-                      <Field label="Father's Name" value={admission.fatherName} icon={UserIcon} />
-                      <Field label="Mother's Name" value={admission.motherName} icon={UserIcon} />
-                      <Field label="Email" value={admission.email} icon={MailIcon} />
-                      <Field label="Contact" value={admission.contactNumber} icon={PhoneIcon} />
-                      <Field label="Alt. Contact" value={admission.alternateContact} icon={PhoneIcon} />
-                      <div className="col-span-full">
-                        <Field label="Address" value={admission.address} icon={HomeIcon} />
-                      </div>
-                      <Field label="Caste" value={admission.caste} />
+                      {isEditing ? (
+                        <>
+                          <EditField label="Student Name" name="studentName" value={editData.studentName || ""} onChange={handleFieldChange} icon={UserIcon} />
+                          <EditField label="Father's Name" name="fatherName" value={editData.fatherName || ""} onChange={handleFieldChange} icon={UserIcon} />
+                          <EditField label="Mother's Name" name="motherName" value={editData.motherName || ""} onChange={handleFieldChange} icon={UserIcon} />
+                          <EditField label="Email" name="email" value={editData.email || ""} onChange={handleFieldChange} icon={MailIcon} />
+                          <EditField label="Contact" name="contactNumber" value={editData.contactNumber || ""} onChange={handleFieldChange} icon={PhoneIcon} />
+                          <EditField label="Alt. Contact" name="alternateContact" value={editData.alternateContact || ""} onChange={handleFieldChange} icon={PhoneIcon} />
+                          <EditField label="Address" name="address" value={editData.address || ""} onChange={handleFieldChange} icon={HomeIcon} className="col-span-full" />
+                          <EditField label="Caste" name="caste" value={editData.caste || ""} onChange={handleFieldChange} />
+                        </>
+                      ) : (
+                        <>
+                          <Field label="Student Name" value={admission.studentName} icon={UserIcon} />
+                          <Field label="Father's Name" value={admission.fatherName} icon={UserIcon} />
+                          <Field label="Mother's Name" value={admission.motherName} icon={UserIcon} />
+                          <Field label="Email" value={admission.email} icon={MailIcon} />
+                          <Field label="Contact" value={admission.contactNumber} icon={PhoneIcon} />
+                          <Field label="Alt. Contact" value={admission.alternateContact} icon={PhoneIcon} />
+                          <div className="col-span-full">
+                            <Field label="Address" value={admission.address} icon={HomeIcon} />
+                          </div>
+                          <Field label="Caste" value={admission.caste} />
+                        </>
+                      )}
                     </div>
                   </div>
 
@@ -215,49 +333,84 @@ export function AdmissionApprovalModal({ studentId, studentName, isOpen, onClose
                   <div>
                     <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Academic Details</p>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
-                      <Field label="Class" value={`Class ${admission.studentClass}`} icon={BookOpenIcon} />
-                      <Field label="Stream" value={admission.stream} icon={BookOpenIcon} />
-                      <Field label="Course" value={admission.course} icon={GraduationCapIcon} />
-                      <Field label="School Name" value={admission.schoolName} />
-                      <Field label="Board" value={admission.board} />
-                      <Field label="Batch Code" value={admission.batchCode || "Not assigned"} />
+                      {isEditing ? (
+                        <>
+                          <EditField label="Class" name="studentClass" value={editData.studentClass || ""} onChange={handleFieldChange} icon={BookOpenIcon} />
+                          <EditField label="Stream" name="stream" value={editData.stream || ""} onChange={handleFieldChange} icon={BookOpenIcon} />
+                          <EditField label="Course" name="course" value={editData.course || ""} onChange={handleFieldChange} icon={GraduationCapIcon} />
+                          <EditField label="School Name" name="schoolName" value={editData.schoolName || ""} onChange={handleFieldChange} />
+                          <EditField label="Board" name="board" value={editData.board || ""} onChange={handleFieldChange} />
+                          <EditField label="Batch Code" name="batchCode" value={editData.batchCode || ""} onChange={handleFieldChange} />
+                        </>
+                      ) : (
+                        <>
+                          <Field label="Class" value={`Class ${admission.studentClass}`} icon={BookOpenIcon} />
+                          <Field label="Stream" value={admission.stream} icon={BookOpenIcon} />
+                          <Field label="Course" value={admission.course} icon={GraduationCapIcon} />
+                          <Field label="School Name" value={admission.schoolName} />
+                          <Field label="Board" value={admission.board} />
+                          <Field label="Batch Code" value={admission.batchCode || "Not assigned"} />
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Actions */}
-            {admission && admission.status === "PENDING" && (
-              <div className="px-8 py-6 border-t border-slate-100 flex gap-4 shrink-0">
-                <button
-                  onClick={() => handleAction("reject")}
-                  disabled={isActing}
-                  className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 bg-rose-50 text-rose-600 rounded-2xl font-bold hover:bg-rose-100 transition-all disabled:opacity-50 border border-rose-100"
-                >
-                  <XCircleIcon className="size-5" />
-                  Reject Application
-                </button>
-                <button
-                  onClick={() => handleAction("approve")}
-                  disabled={isActing}
-                  className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 bg-emerald-500 text-white rounded-2xl font-bold hover:bg-emerald-600 transition-all disabled:opacity-50 shadow-lg shadow-emerald-100"
-                >
-                  {isActing ? (
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <CheckCircleIcon className="size-5" />
-                  )}
-                  Approve Application
-                </button>
-              </div>
-            )}
-            {admission && admission.status !== "PENDING" && (
-              <div className="px-8 py-6 border-t border-slate-100 shrink-0">
-                <p className="text-center text-sm text-slate-400 font-medium">
-                  This application has already been <strong className="capitalize">{admission.status.toLowerCase()}</strong>.
-                </p>
-              </div>
+            {/* Footer */}
+            {admission && (
+              isEditing ? (
+                <div className="px-8 py-6 border-t border-slate-100 flex gap-4 shrink-0">
+                  <button
+                    onClick={() => { setIsEditing(false); setEditData(admission); }}
+                    className="flex-1 px-6 py-3.5 bg-slate-100 text-slate-600 rounded-2xl font-bold hover:bg-slate-200 transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSave}
+                    disabled={isActing}
+                    className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-all disabled:opacity-50 shadow-lg shadow-indigo-100"
+                  >
+                    {isActing ? (
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <SaveIcon className="size-5" />
+                    )}
+                    Save Changes
+                  </button>
+                </div>
+              ) : admission.status === "PENDING" && (currentUser?.role === Role.ADMIN) ? (
+                <div className="px-8 py-6 border-t border-slate-100 flex gap-4 shrink-0">
+                  <button
+                    onClick={() => handleAction("reject")}
+                    disabled={isActing}
+                    className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 bg-rose-50 text-rose-600 rounded-2xl font-bold hover:bg-rose-100 transition-all disabled:opacity-50 border border-rose-100"
+                  >
+                    <XCircleIcon className="size-5" />
+                    Reject Application
+                  </button>
+                  <button
+                    onClick={() => handleAction("approve")}
+                    disabled={isActing}
+                    className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 bg-emerald-500 text-white rounded-2xl font-bold hover:bg-emerald-600 transition-all disabled:opacity-50 shadow-lg shadow-emerald-100"
+                  >
+                    {isActing ? (
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <CheckCircleIcon className="size-5" />
+                    )}
+                    Approve Application
+                  </button>
+                </div>
+              ) : admission.status !== "PENDING" ? (
+                <div className="px-8 py-6 border-t border-slate-100 shrink-0">
+                  <p className="text-center text-sm text-slate-400 font-medium">
+                    This application has already been <strong className="capitalize">{admission.status.toLowerCase()}</strong>.
+                  </p>
+                </div>
+              ) : null
             )}
           </motion.div>
         </div>
