@@ -26,6 +26,7 @@ import { api } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { useAuth } from "@/contexts/AuthContext";
 import { UserDetailsModal } from "./UserDetailsModal";
+import { AdmissionApprovalModal } from "../shared/AdmissionApprovalModal";
 
 // Define UserWithCounts interface based on the instruction and context
 interface UserWithCounts extends User {
@@ -75,6 +76,15 @@ export function AdminUserManagement() {
     userName: string;
   }>({ isOpen: false, userId: "", userName: "" });
   const [detailsModal, setDetailsModal] = useState<{
+    isOpen: boolean;
+    userId: string;
+    userName: string;
+  }>({
+    isOpen: false,
+    userId: "",
+    userName: "",
+  });
+  const [admissionModal, setAdmissionModal] = useState<{
     isOpen: boolean;
     userId: string;
     userName: string;
@@ -290,9 +300,9 @@ export function AdminUserManagement() {
         </div>
 
         {/* Filter and Sort Row */}
-        <div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center bg-gray-50/50 p-2 rounded-[2rem] border border-gray-100">
+        <div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center bg-gray-50/50 p-2 rounded-4xl border border-gray-100">
           {/* Quick Filter Tabs */}
-          <div className="flex p-1 bg-white rounded-[1.5rem] shadow-sm border border-gray-100 overflow-x-auto no-scrollbar max-w-full">
+          <div className="flex p-1 bg-white rounded-3xl shadow-sm border border-gray-100 overflow-x-auto no-scrollbar max-w-full">
             {[
               { id: "ALL", label: "All Users", icon: UsersIcon },
               { id: "STUDENT", label: "Students", icon: GraduationCapIcon },
@@ -440,6 +450,7 @@ export function AdminUserManagement() {
                           setEditingUser={setEditingUser}
                           setDeleteConfirm={setDeleteConfirm}
                           setDetailsModal={setDetailsModal}
+                          setAdmissionModal={setAdmissionModal}
                         />
                       ))}
                     </React.Fragment>
@@ -462,6 +473,7 @@ export function AdminUserManagement() {
                     setEditingUser={setEditingUser}
                     setDeleteConfirm={setDeleteConfirm}
                     setDetailsModal={setDetailsModal}
+                    setAdmissionModal={setAdmissionModal}
                   />
                 ))
               )}
@@ -484,7 +496,7 @@ export function AdminUserManagement() {
         {/* Edit User Details Modal */}
         <AnimatePresence>
           {editingUser && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+            <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
               <motion.div
                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -629,12 +641,12 @@ export function AdminUserManagement() {
         {/* Add User Modal */}
         <AnimatePresence>
           {isAddModalOpen && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+            <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
               <motion.div
                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                className="bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl overflow-hidden border border-slate-100"
+                className="bg-white rounded-4xl w-full max-w-lg shadow-2xl overflow-hidden border border-slate-100"
               >
                 <div className="px-10 py-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
                   <div>
@@ -780,6 +792,13 @@ export function AdminUserManagement() {
             setDetailsModal({ isOpen: false, userId: "", userName: "" })
           }
         />
+        <AdmissionApprovalModal
+          isOpen={admissionModal.isOpen}
+          studentId={admissionModal.userId}
+          studentName={admissionModal.userName}
+          onClose={() => setAdmissionModal({ ...admissionModal, isOpen: false })}
+          onAction={() => fetchUsers()}
+        />
       </div>
     </div>
   );
@@ -799,6 +818,7 @@ function UserRow({
   setEditingUser,
   setDeleteConfirm,
   setDetailsModal,
+  setAdmissionModal,
 }: {
   user: UserWithCounts;
   currentUser: User | null;
@@ -820,6 +840,11 @@ function UserRow({
     userName: string;
   }) => void;
   setDetailsModal: (modal: {
+    isOpen: boolean;
+    userId: string;
+    userName: string;
+  }) => void;
+  setAdmissionModal: (modal: {
     isOpen: boolean;
     userId: string;
     userName: string;
@@ -1014,6 +1039,21 @@ function UserRow({
                   className="p-3 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-blue-600 hover:border-blue-100 hover:bg-blue-50 transition-all shadow-sm"
                 >
                   <UserCogIcon className="size-4" />
+                </button>
+              )}
+              {user.role === Role.STUDENT && (
+                <button
+                  onClick={() =>
+                    setAdmissionModal({
+                      isOpen: true,
+                      userId: user.id,
+                      userName: user.name || "Student",
+                    })
+                  }
+                  className="p-3 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-emerald-600 hover:border-emerald-100 hover:bg-emerald-50 transition-all shadow-sm"
+                  title="View Admission Details"
+                >
+                  <GraduationCapIcon className="size-4" />
                 </button>
               )}
               {currentUser?.role !== Role.ACADEMIC_OPERATIONS && (

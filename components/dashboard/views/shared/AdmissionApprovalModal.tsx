@@ -110,16 +110,14 @@ export function AdmissionApprovalModal({ studentId, studentName, isOpen, onClose
   const [editData, setEditData] = useState<Partial<Admission>>({});
 
   const canEdit =
-    currentUser?.role === Role.ADMIN || currentUser?.role === Role.ACADEMIC_OPERATIONS;
+    currentUser?.role === Role.ADMIN ||
+    currentUser?.role === Role.ACADEMIC_OPERATIONS ||
+    currentUser?.role === Role.ACCOUNTS;
 
   useEffect(() => {
     if (!isOpen || !studentId) {
       setAdmission(null);
       setIsEditing(false);
-      if (photoBlobUrl) {
-        URL.revokeObjectURL(photoBlobUrl);
-        setPhotoBlobUrl(null);
-      }
       return;
     }
 
@@ -142,6 +140,13 @@ export function AdmissionApprovalModal({ studentId, studentName, isOpen, onClose
       })
       .catch(() => setAdmission(null))
       .finally(() => setIsLoading(false));
+
+    return () => {
+      if (photoBlobUrl) {
+        URL.revokeObjectURL(photoBlobUrl);
+        setPhotoBlobUrl(null);
+      }
+    };
   }, [isOpen, studentId]);
 
   const handleFieldChange = (name: string, value: string) => {
@@ -381,7 +386,11 @@ export function AdmissionApprovalModal({ studentId, studentName, isOpen, onClose
                     Save Changes
                   </button>
                 </div>
-              ) : admission.status === "PENDING" && (currentUser?.role === Role.ADMIN) ? (
+              ) : admission.status === "PENDING" && (
+                currentUser?.role === Role.ADMIN || 
+                currentUser?.role === Role.ACCOUNTS || 
+                currentUser?.role === Role.ACADEMIC_OPERATIONS
+              ) ? (
                 <div className="px-8 py-6 border-t border-slate-100 flex gap-4 shrink-0">
                   <button
                     onClick={() => handleAction("reject")}
