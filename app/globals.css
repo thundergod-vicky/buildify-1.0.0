@@ -24,6 +24,11 @@
   .minimal-scrollbar::-webkit-scrollbar-thumb:hover {
     @apply bg-gray-300;
   }
+
+  .lock-scroll {
+    overflow: hidden !important;
+    overscroll-behavior: contain;
+  }
 }
 
 /* Page Loader Spinner Styles */

@@ -115,6 +115,20 @@ export function AdmissionApprovalModal({ studentId, studentName, isOpen, onClose
     currentUser?.role === Role.ACCOUNTS;
 
   useEffect(() => {
+    if (isOpen) {
+      document.documentElement.classList.add("lock-scroll");
+      document.body.classList.add("lock-scroll");
+    } else {
+      document.documentElement.classList.remove("lock-scroll");
+      document.body.classList.remove("lock-scroll");
+    }
+    return () => {
+      document.documentElement.classList.remove("lock-scroll");
+      document.body.classList.remove("lock-scroll");
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
     if (!isOpen || !studentId) {
       setAdmission(null);
       setIsEditing(false);
@@ -202,7 +216,10 @@ export function AdmissionApprovalModal({ studentId, studentName, isOpen, onClose
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div 
+          className="fixed inset-0 z-200 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm animate-in fade-in"
+          onWheel={(e) => e.stopPropagation()}
+        >
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -240,7 +257,7 @@ export function AdmissionApprovalModal({ studentId, studentName, isOpen, onClose
             </div>
 
             {/* Body */}
-            <div className="overflow-y-auto flex-1 p-8">
+            <div className="overflow-y-auto flex-1 min-h-0 p-8 overscroll-contain">
               {isLoading ? (
                 <div className="flex justify-center items-center h-48">
                   <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />

@@ -9,14 +9,16 @@ import {
     MapPinIcon,
     GraduationCapIcon,
     LayoutGridIcon,
-    ListIcon
+    ListIcon,
+    Edit3Icon
 } from "lucide-react";
 import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { auth } from "@/lib/auth";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/contexts/AuthContext";
-import { Role } from "@/types";
+import { api } from "@/lib/api";
+import { toast } from "react-toastify";
+import { Batch } from "@/types";
+import { CreateSessionModal } from "../views/academic/CreateSessionModal";
 
 interface Event {
     id: string;
@@ -28,9 +30,15 @@ interface Event {
     teacher?: string;
     description?: string;
     batch?: string;
+    batchId?: string;
+    subjectId?: string;
+    teacherId?: string;
+    startTime?: string;
+    endTime?: string;
     isOnline?: boolean;
     meetingUrl?: string;
     meetingId?: string;
+    meetingPasscode?: string;
   recordingUrl?: string;
   recordingPasscode?: string;
   recordings?: any[];
@@ -42,8 +50,13 @@ export function Calendar({ mode = 'student' }: { mode?: 'student' | 'teacher' | 
     const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
     const [view, setView] = useState<'month' | 'year' | 'day' | 'decade'>('month');
     const [decadeStart, setDecadeStart] = useState(new Date().getFullYear() - 4);
-    const router = useRouter();
-    const { user: authUser } = useAuth();
+    
+    // States for editing
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingSession, setEditingSession] = useState<any>(null);
+    const [teachers, setTeachers] = useState<{ id: string; name: string }[]>([]);
+    const [batches, setBatches] = useState<Batch[]>([]);
+
 
     const daysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
     const firstDayOfMonth = (year: number, month: number) => new Date(year, month, 1).getDay();
@@ -56,37 +69,57 @@ export function Calendar({ mode = 'student' }: { mode?: 'student' | 'teacher' | 
         setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
     };
 
+    const fetchEvents = () => {
+        let endpoint: string;
+        if (mode === 'teacher') {
+            endpoint = '/class-sessions/my-sessions';
+        } else if (mode === 'operations') {
+            endpoint = '/class-sessions';
+        } else {
+            endpoint = '/class-sessions/student-sessions';
+        }
+        api.get<any[]>(endpoint, auth.getToken() || '').then(res => {
+            const mappedEvents = res.map(r => ({
+                id: r.id as string,
+                title: r.title as string,
+                type: 'CLASS' as const,
+                date: new Date(r.date as string),
+                time: `${r.startTime} - ${r.endTime}`,
+                startTime: r.startTime,
+                endTime: r.endTime,
+                location: (r.venue as string) ?? undefined,
+                teacher: (r.teacher as { name?: string })?.name,
+                teacherId: r.teacherId,
+                batch: (r.batch as { name?: string })?.name,
+                batchId: r.batchId,
+                subjectId: r.subjectId,
+                description: r.type as string,
+                isOnline: r.isOnline as boolean,
+                meetingUrl: r.meetingUrl as string,
+                meetingId: r.meetingId as string,
+                meetingPasscode: r.meetingPasscode as string,
+                recordingUrl: r.recordingUrl as string,
+                recordingPasscode: r.recordingPasscode as string,
+                recordings: r.recordings as any[],
+                venue: r.venue,
+            }));
+            setEvents(mappedEvents);
+        }).catch(console.error);
+    };
+
     useEffect(() => {
-        import("@/lib/api").then(({ api }) => {
-            let endpoint: string;
-            if (mode === 'teacher') {
-                endpoint = '/class-sessions/my-sessions';
-            } else if (mode === 'operations') {
-                endpoint = '/class-sessions';
-            } else {
-                endpoint = '/class-sessions/student-sessions';
-            }
-            api.get<Record<string, unknown>[]>(endpoint, auth.getToken() || '').then(res => {
-                const mappedEvents = res.map(r => ({
-                    id: r.id as string,
-                    title: r.title as string,
-                    type: 'CLASS' as const,
-                    date: new Date(r.date as string),
-                    time: `${r.startTime} - ${r.endTime}`,
-                    location: (r.venue as string) ?? undefined,
-                    teacher: (r.teacher as { name?: string })?.name,
-                    batch: (r.batch as { name?: string })?.name,
-                    description: r.type as string,
-                    isOnline: r.isOnline as boolean,
-                    meetingUrl: r.meetingUrl as string,
-                    meetingId: r.meetingId as string,
-                    recordingUrl: r.recordingUrl as string,
-                    recordingPasscode: r.recordingPasscode as string,
-                    recordings: r.recordings as any[],
-                }));
-                setEvents(mappedEvents);
+        fetchEvents();
+
+        if (mode === 'teacher' || mode === 'operations') {
+            const token = auth.getToken() || "";
+            api.get<any[]>("/users/teachers", token).then(res => {
+                setTeachers(res.map((t) => ({ id: t.id, name: t.name })));
             }).catch(console.error);
-        });
+
+            api.get<any[]>("/batches", token).then(res => {
+                setBatches(res);
+            }).catch(console.error);
+        }
     }, [mode]);
 
     const renderHeader = () => {
@@ -297,7 +330,7 @@ export function Calendar({ mode = 'student' }: { mode?: 'student' | 'teacher' | 
                     {dayEvents.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-20 text-center px-6">
                             <div className="size-16 bg-gray-50 rounded-[2rem] flex items-center justify-center mb-4">
-                                CalendarIcon
+                                <CalendarIcon className="size-8 text-gray-300" />
                             </div>
                             <p className="text-sm font-bold text-gray-900">No events today!</p>
                             <p className="text-xs text-gray-400 mt-2">Take some time to relax or catch up on your self-paced courses.</p>
@@ -309,7 +342,7 @@ export function Calendar({ mode = 'student' }: { mode?: 'student' | 'teacher' | 
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 className={cn(
-                                    "p-5 rounded-3xl border transition-all hover:shadow-xl hover:shadow-gray-100",
+                                    "p-5 rounded-3xl border transition-all hover:shadow-xl hover:shadow-gray-100 group relative",
                                     event.type === 'CLASS' ? "bg-blue-50/30 border-blue-100/50" : "bg-red-50/30 border-red-100/50"
                                 )}
                             >
@@ -320,10 +353,28 @@ export function Calendar({ mode = 'student' }: { mode?: 'student' | 'teacher' | 
                                     )}>
                                         {event.type}
                                     </span>
-                                    <span className="text-[10px] font-medium text-gray-400 flex items-center gap-1">
-                                        <ClockIcon className="size-3" />
-                                        {event.time}
-                                    </span>
+                                    <div className="flex items-center gap-2">
+                                        {(mode === 'teacher' || mode === 'operations') && event.type === 'CLASS' && (
+                                            <button
+                                                onClick={() => {
+                                                    setEditingSession({
+                                                        ...event,
+                                                        type: event.description, // original type like LECTURE
+                                                        date: event.date.toISOString().split('T')[0],
+                                                        venue: event.location,
+                                                    });
+                                                    setIsModalOpen(true);
+                                                }}
+                                                className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-white rounded-lg transition-all"
+                                            >
+                                                <Edit3Icon className="size-3.5" />
+                                            </button>
+                                        )}
+                                        <span className="text-[10px] font-medium text-gray-400 flex items-center gap-1">
+                                            <ClockIcon className="size-3" />
+                                            {event.time}
+                                        </span>
+                                    </div>
                                 </div>
                                 
                                 <h4 className="font-black text-gray-900 leading-tight mb-3">
@@ -348,6 +399,23 @@ export function Calendar({ mode = 'student' }: { mode?: 'student' | 'teacher' | 
                                         {event.location || (event.isOnline ? "Online Class (Zoom)" : "Location TBA")}
                                     </div>
                                 </div>
+
+                                {event.isOnline && (event.meetingId || event.meetingUrl) && (
+                                    <div className="mt-3 p-2 bg-blue-50/50 rounded-xl border border-blue-100/50 w-fit">
+                                        <div className="flex items-center gap-3 text-[9px] font-bold">
+                                            <div className="flex items-center gap-1 text-blue-600">
+                                                <span className="text-gray-400 font-black uppercase tracking-widest mr-1">ID:</span>
+                                                {event.meetingId || "See Link"}
+                                            </div>
+                                            {event.meetingPasscode && (
+                                                <div className="flex items-center gap-1 text-blue-600">
+                                                    <span className="text-gray-400 font-black uppercase tracking-widest mr-1">Passcode:</span>
+                                                    {event.meetingPasscode}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
                                 <button
                                     onClick={async () => {
                                         const sessionDate = new Date(event.date);
@@ -359,7 +427,6 @@ export function Calendar({ mode = 'student' }: { mode?: 'student' | 'teacher' | 
                                         if (isPast && event.type === 'CLASS') {
                                             // Try to fetch stream URL through the sync endpoint
                                             try {
-                                                const { api } = await import("@/lib/api");
                                                 const res = await api.get<{ recordings: any[]; source: string }>(`/class-sessions/${event.id}/recording`, auth.getToken() || "");
                                                 if (res && res.recordings && res.recordings.length > 0) {
                                                     // Get CloudFront stream URL
@@ -368,14 +435,14 @@ export function Calendar({ mode = 'student' }: { mode?: 'student' | 'teacher' | 
                                                         auth.getToken() || "",
                                                     );
                                                     if (streamRes.status === 'processing') {
-                                                        alert("Recording is still being processed. Please check back in a few minutes.");
+                                                        toast.info("Recording is still being processed. Please check back in a few minutes.");
                                                     } else if (streamRes.url) {
                                                         window.open(streamRes.url, '_blank');
                                                     } else {
-                                                        alert("Recording is not yet available.");
+                                                        toast.warn("Recording is not yet available.");
                                                     }
                                                 } else {
-                                                    alert("Recording is not yet available. Please check again in a few minutes.");
+                                                    toast.info("Recording is not yet available. Please check again in a few minutes.");
                                                 }
                                             } catch (e) {
                                                 console.error("Failed to fetch recording", e);
@@ -383,19 +450,17 @@ export function Calendar({ mode = 'student' }: { mode?: 'student' | 'teacher' | 
                                             return;
                                         }
 
-                                        if (event.meetingId) {
-                                            const role = authUser?.role === Role.TEACHER ? 1 : 0;
-                                            const cleanId = event.meetingId?.replace(/[^0-9]/g, '');
-                                            let pwd = '';
+                                         if (event.isOnline) {
                                             if (event.meetingUrl) {
-                                                try {
-                                                    const url = new URL(event.meetingUrl);
-                                                    pwd = url.searchParams.get('pwd') || '';
-                                                } catch (e) {
-                                                    console.error("Could not parse meeting URL for password", e);
-                                                }
+                                                window.open(event.meetingUrl, "_blank");
+                                            } else if (event.meetingId) {
+                                                const cleanId = event.meetingId.replace(/[^0-9]/g, "");
+                                                const pwd = event.meetingPasscode || "";
+                                                const zoomUrl = `https://zoom.us/j/${cleanId}?pwd=${pwd}`;
+                                                window.open(zoomUrl, "_blank");
+                                            } else {
+                                                toast.error("No Zoom details provided for this session.");
                                             }
-                                            router.push(`/dashboard?view=zoom-meeting&meetingId=${cleanId}&role=${role}&from=${mode === 'operations' ? 'routine' : 'schedule'}&password=${pwd}`);
                                         }
                                     }} 
                                     className={cn(
@@ -423,7 +488,7 @@ export function Calendar({ mode = 'student' }: { mode?: 'student' | 'teacher' | 
                                             return "Watch Recording";
                                         }
 
-                                        return event.type === 'CLASS' ? (event.meetingId ? "Join Zoom Classroom" : mode === 'teacher' ? "Start Class" : mode === 'operations' ? "View Class" : "Join Class") : "Start Test";
+                                         return event.type === 'CLASS' ? (event.isOnline ? "Join Zoom Classroom" : mode === 'teacher' ? "Start Class" : mode === 'operations' ? "View Class" : "Join Class") : "Start Test";
                                     })()}
                                 </button>
                             </motion.div>
@@ -519,6 +584,18 @@ export function Calendar({ mode = 'student' }: { mode?: 'student' | 'teacher' | 
                 )}
             </div>
             {renderEventsList()}
+
+            <CreateSessionModal 
+                isOpen={isModalOpen}
+                onClose={() => {
+                    setIsModalOpen(false);
+                    setEditingSession(null);
+                }}
+                onSuccess={fetchEvents}
+                teachers={teachers}
+                batches={batches}
+                editingSession={editingSession}
+            />
         </div>
     );
 }
