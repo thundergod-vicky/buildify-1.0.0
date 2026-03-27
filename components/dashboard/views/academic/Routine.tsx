@@ -13,9 +13,8 @@ import { api } from "@/lib/api";
 import { toast } from "react-toastify";
 import { auth } from "@/lib/auth";
 import { useAuth } from "@/contexts/AuthContext";
-import { Role, ClassSession, Batch } from "@/types";
-
-import { CreateSessionModal } from "./CreateSessionModal";
+import { Role, ClassSession, Batch, Subject } from "@/types";
+import { CreateSessionModal } from "./CreateSessionModal"; // Added import for CreateSessionModal
 
 export function ClassRoutine() {
   const [sessions, setSessions] = useState<ClassSession[]>([]);

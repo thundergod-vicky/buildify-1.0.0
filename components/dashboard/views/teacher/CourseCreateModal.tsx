@@ -44,35 +44,16 @@ export function CourseCreateModal({
     if (isOpen) {
       document.documentElement.classList.add("lock-scroll");
       document.body.classList.add("lock-scroll");
-    } else {
-      document.documentElement.classList.remove("lock-scroll");
-      document.body.classList.remove("lock-scroll");
-    }
-    return () => {
-      document.documentElement.classList.remove("lock-scroll");
-      document.body.classList.remove("lock-scroll");
-    };
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (isOpen) {
-      document.documentElement.classList.add("lock-scroll");
-      document.body.classList.add("lock-scroll");
-    } else {
-      document.documentElement.classList.remove("lock-scroll");
-      document.body.classList.remove("lock-scroll");
-    }
-    return () => {
-      document.documentElement.classList.remove("lock-scroll");
-      document.body.classList.remove("lock-scroll");
-    };
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (isOpen) {
       if (isAdminOrOps) fetchTeachers();
       fetchBatches();
+    } else {
+      document.documentElement.classList.remove("lock-scroll");
+      document.body.classList.remove("lock-scroll");
     }
+    return () => {
+      document.documentElement.classList.remove("lock-scroll");
+      document.body.classList.remove("lock-scroll");
+    };
   }, [isOpen, isAdminOrOps]);
 
   useEffect(() => {
@@ -125,9 +106,9 @@ export function CourseCreateModal({
     try {
       await coursesApi.create(formData);
       onSuccess();
+      onClose();
     } catch (error) {
       console.error("Failed to create course:", error);
-      // Handle error toast
     } finally {
       setIsLoading(false);
     }
@@ -138,8 +119,8 @@ export function CourseCreateModal({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
       onWheel={(e) => e.stopPropagation()}
     >
-      <div className="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+      <div className="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200 max-h-[90vh] flex flex-col">
+        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50 shrink-0">
           <h2 className="text-xl font-bold text-gray-900">Create New Course</h2>
           <button
             onClick={onClose}
@@ -149,7 +130,7 @@ export function CourseCreateModal({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto flex-1 minimal-scrollbar">
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700">
               Course Title
@@ -308,14 +289,6 @@ export function CourseCreateModal({
                 <span className="text-sm text-gray-700">Premium Course</span>
               </label>
             </div>
-            {formData.courseType === CourseType.PREMIUM && (
-              <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-xs text-blue-700">
-                  💡 Premium courses are only visible to students you assign.
-                  You can assign students after creating the course.
-                </p>
-              </div>
-            )}
           </div>
 
           <div className="pt-2 flex justify-end gap-3">

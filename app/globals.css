@@ -13,16 +13,16 @@
 
 @layer utilities {
   .minimal-scrollbar::-webkit-scrollbar {
-    width: 4px;
+    width: 14px;
   }
   .minimal-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
+    @apply bg-gray-100 rounded-full;
   }
   .minimal-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-gray-200 rounded-full;
+    @apply bg-gray-400 rounded-full border-4 border-solid border-gray-100 bg-clip-padding;
   }
   .minimal-scrollbar::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-300;
+    @apply bg-gray-500;
   }
 
   .lock-scroll {
