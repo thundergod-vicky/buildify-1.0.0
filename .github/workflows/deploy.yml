@@ -3,15 +3,13 @@ name: Deploy Frontend
 on:
   push:
     branches: [main]
-    paths:
-      - "Client/**" # Only run when files in the Client folder change
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Set up Docker Buildx
@@ -24,29 +22,29 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-south-1
 
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
+      - name: Login to ECR
+        run: |
+          aws ecr get-login-password --region ap-south-1 | \
+          docker login --username AWS --password-stdin 640465964259.dkr.ecr.ap-south-1.amazonaws.com
 
       - name: Build & Push Image
         run: |
           docker buildx build \
             --platform linux/amd64 \
             -t 640465964259.dkr.ecr.ap-south-1.amazonaws.com/adhyayan-client:latest \
-            --push \
-            ./Client
+            --push .
 
-      - name: SSH Deploy to EC2
+      - name: Deploy on EC2
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
+          username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            # Login to ECR on the server
+            # Login to ECR on EC2
             aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 640465964259.dkr.ecr.ap-south-1.amazonaws.com
             
-            # Pull and Restart container
+            # Update container
             docker pull 640465964259.dkr.ecr.ap-south-1.amazonaws.com/adhyayan-client:latest
             docker stop adhyayan-client-container || true
             docker rm adhyayan-client-container || true
