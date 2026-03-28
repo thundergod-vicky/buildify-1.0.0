@@ -15,6 +15,7 @@ import {
   Loader2Icon,
   Lock,
   GraduationCapIcon,
+  EyeIcon,
   SortAscIcon,
   SortDescIcon,
 } from "lucide-react";
@@ -1148,7 +1149,7 @@ function UserRow({
                 className="p-3 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-indigo-600 hover:border-indigo-100 hover:bg-indigo-50 transition-all shadow-sm"
                 title="View Full Profile"
               >
-                <GraduationCapIcon className="size-4" />
+                <EyeIcon className="size-4" />
               </button>
               {(currentUser?.role !== Role.ACADEMIC_OPERATIONS || (user.role === Role.STUDENT || user.role === Role.PARENT)) && (
                 <button

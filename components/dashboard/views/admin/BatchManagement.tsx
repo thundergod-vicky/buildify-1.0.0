@@ -50,8 +50,8 @@ export function AdminBatchManagement() {
       setBatches(batchesData);
       setTeachers(teachersData);
       setStudents(studentsData);
-    } catch (err) {
-      console.error("Failed to fetch data:", err);
+    } catch {
+      console.error("Failed to fetch data");
       toast.error("Failed to load batches");
     } finally {
       setLoading(false);
@@ -61,6 +61,22 @@ export function AdminBatchManagement() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    const isAnyModalOpen =
+      isCreateModalOpen || isAssignModalOpen || isAssignTeacherModalOpen;
+    if (isAnyModalOpen) {
+      document.body.classList.add("lock-scroll");
+      document.documentElement.classList.add("lock-scroll");
+    } else {
+      document.body.classList.remove("lock-scroll");
+      document.documentElement.classList.remove("lock-scroll");
+    }
+    return () => {
+      document.body.classList.remove("lock-scroll");
+      document.documentElement.classList.remove("lock-scroll");
+    };
+  }, [isCreateModalOpen, isAssignModalOpen, isAssignTeacherModalOpen]);
 
   const handleCreateBatch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,7 +89,7 @@ export function AdminBatchManagement() {
       setIsCreateModalOpen(false);
       setNewBatch({ name: "", description: "", teacherIds: [] });
       fetchData();
-    } catch (err) {
+    } catch {
       toast.error("Failed to create batch");
     }
   };
@@ -87,7 +103,7 @@ export function AdminBatchManagement() {
       await api.delete(`/batches/${id}`, token);
       toast.success("Batch deleted");
       fetchData();
-    } catch (err) {
+    } catch {
       toast.error("Failed to delete batch");
     }
   };
@@ -106,7 +122,7 @@ export function AdminBatchManagement() {
       setIsAssignModalOpen(false);
       setAssignStudentIds([]);
       fetchData();
-    } catch (err) {
+    } catch {
       toast.error("Failed to assign students");
     }
   };
@@ -166,7 +182,7 @@ export function AdminBatchManagement() {
                   <div className="size-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
                     <LayersIcon className="size-6" />
                   </div>
-                  <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex gap-2">
                     <button
                       onClick={() =>
                         (window.location.href = `/dashboard?view=batch-details&batchId=${batch.id}`)
@@ -287,7 +303,10 @@ export function AdminBatchManagement() {
 
       {/* Create Batch Modal */}
       {isCreateModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div 
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onWheel={(e) => e.stopPropagation()}
+        >
           <div className="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl">
             <div className="p-8 border-b border-gray-100">
               <h2 className="text-2xl font-bold text-gray-900">
@@ -331,7 +350,7 @@ export function AdminBatchManagement() {
                   <label className="text-sm font-bold text-gray-700 mb-2 block">
                     Assign Teachers (Select Multiple)
                   </label>
-                  <div className="grid grid-cols-1 gap-2 max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
+                  <div className="grid grid-cols-1 gap-3 max-h-[300px] overflow-y-auto pr-2 minimal-scrollbar" style={{ overscrollBehavior: 'contain' }}>
                     {teachers.map((t) => (
                       <div
                         key={t.id}
@@ -350,23 +369,24 @@ export function AdminBatchManagement() {
                             });
                           }
                         }}
-                        className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${
+                        className={`flex items-center justify-between p-4 rounded-2xl border cursor-pointer transition-all ${
                           newBatch.teacherIds.includes(t.id)
-                            ? "border-blue-500 bg-blue-50"
+                            ? "border-blue-500 bg-blue-50 ring-1 ring-blue-500"
                             : "border-gray-100 hover:bg-gray-50"
                         }`}
                       >
-                        <div className="flex items-center gap-3">
-                          <div className="size-8 rounded-full bg-white border border-gray-100 flex items-center justify-center text-gray-400 text-xs font-bold group-hover:text-blue-600">
-                            {t.name?.[0] || "T"}
+                        <div className="flex items-center gap-4">
+                          <div className="size-10 rounded-full bg-white border border-gray-100 flex items-center justify-center text-gray-500">
+                             <UsersIcon className="size-5" />
                           </div>
-                          <span className="text-sm font-medium text-gray-700">
-                            {t.name}
-                          </span>
+                          <div>
+                            <p className="font-bold text-gray-900">{t.name}</p>
+                            <p className="text-xs text-gray-500">{t.email}</p>
+                          </div>
                         </div>
                         {newBatch.teacherIds.includes(t.id) && (
-                          <div className="size-5 bg-blue-600 rounded-full flex items-center justify-center text-white">
-                            <PlusIcon className="size-3" />
+                          <div className="size-6 bg-blue-600 rounded-full flex items-center justify-center text-white">
+                            <PlusIcon className="size-4" />
                           </div>
                         )}
                       </div>
@@ -396,7 +416,10 @@ export function AdminBatchManagement() {
 
       {/* Assign Students Modal */}
       {isAssignModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div 
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onWheel={(e) => e.stopPropagation()}
+        >
           <div className="bg-white rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl max-h-[90vh] flex flex-col">
             <div className="p-8 border-b border-gray-100">
               <h2 className="text-2xl font-bold text-gray-900">
@@ -406,7 +429,7 @@ export function AdminBatchManagement() {
                 Select multiple students to add to this batch
               </p>
             </div>
-            <div className="p-8 flex-1 overflow-y-auto space-y-4">
+            <div className="p-8 flex-1 overflow-y-auto space-y-4 minimal-scrollbar" style={{ overscrollBehavior: 'contain' }}>
               {students.map((s) => (
                 <div
                   key={s.id}
@@ -463,7 +486,10 @@ export function AdminBatchManagement() {
 
       {/* Assign Teachers Modal */}
       {isAssignTeacherModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div 
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onWheel={(e) => e.stopPropagation()}
+        >
           <div className="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl">
             <div className="p-8 border-b border-gray-100">
               <h2 className="text-2xl font-bold text-gray-900">
@@ -473,7 +499,7 @@ export function AdminBatchManagement() {
                 Assign or remove teachers for this batch
               </p>
             </div>
-            <div className="p-8 max-h-[400px] overflow-y-auto space-y-2">
+            <div className="p-8 max-h-[90vh] overflow-y-auto space-y-4 minimal-scrollbar" style={{ overscrollBehavior: 'contain' }}>
               {teachers.map((t) => {
                 const isAssigned = selectedBatch?.teachers?.some(
                   (bt: any) => bt.id === t.id,
@@ -505,41 +531,41 @@ export function AdminBatchManagement() {
                         toast.success(
                           isAssigned ? "Teacher removed" : "Teacher assigned",
                         );
-                        // Update local selectedBatch state to reflect changes immediately in modal if needed,
-                        // but fetchData will handle it for the main UI.
                         const updatedBatch = await api.get<any>(
                           `/batches/${selectedBatch.id}`,
                           token,
                         );
                         setSelectedBatch(updatedBatch);
                         fetchData();
-                      } catch (err) {
+                      } catch {
                         toast.error("Failed to update teachers");
                       }
                     }}
                     className={`flex items-center justify-between p-4 rounded-2xl border cursor-pointer transition-all ${
                       isAssigned
-                        ? "border-indigo-500 bg-indigo-50 shadow-sm"
-                        : "border-gray-100 hover:bg-gray-50 text-gray-400"
+                        ? "border-blue-500 bg-blue-50 ring-1 ring-blue-500 shadow-sm"
+                        : "border-gray-100 hover:bg-gray-50"
                     }`}
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-4">
                       <div
-                        className={`size-10 rounded-full flex items-center justify-center font-bold text-sm ${isAssigned ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-400"}`}
+                        className={`size-10 rounded-full flex items-center justify-center border border-gray-100 bg-white text-gray-500 transition-colors ${isAssigned ? "border-blue-200" : ""}`}
                       >
-                        {t.name?.[0] || "T"}
+                        <UsersIcon className="size-5" />
                       </div>
                       <div>
                         <p
-                          className={`font-bold ${isAssigned ? "text-indigo-900" : "text-gray-500"}`}
+                          className={`font-bold ${isAssigned ? "text-blue-900" : "text-gray-900"}`}
                         >
                           {t.name}
                         </p>
-                        <p className="text-xs opacity-60">{t.email}</p>
+                        <p className="text-xs text-gray-500">
+                          {t.email}
+                        </p>
                       </div>
                     </div>
                     {isAssigned && (
-                      <div className="size-6 bg-indigo-600 rounded-full flex items-center justify-center text-white">
+                      <div className="size-6 bg-blue-600 rounded-full flex items-center justify-center text-white">
                         <PlusIcon className="size-4 rotate-45" />
                       </div>
                     )}
