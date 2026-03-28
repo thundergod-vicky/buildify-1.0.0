@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useCallback } from "react";
 import {
   VideoIcon,
   FileTextIcon,
@@ -33,8 +32,14 @@ export function BatchDetailsView({ batchId }: { batchId: string }) {
     "subjects" | "schedule" | "settings"
   >("subjects");
   const [expandedSubjects, setExpandedSubjects] = useState<string[]>([]);
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [isAssignTeacherModalOpen, setIsAssignTeacherModalOpen] =
+    useState(false);
+  const [students, setStudents] = useState<any[]>([]);
+  const [teachers, setTeachers] = useState<any[]>([]);
+  const [assignStudentIds, setAssignStudentIds] = useState<string[]>([]);
 
-  const fetchBatch = async () => {
+  const fetchBatch = useCallback(async () => {
     try {
       const token = auth.getToken();
       if (!token) return;
@@ -44,16 +49,55 @@ export function BatchDetailsView({ batchId }: { batchId: string }) {
       if (data.subjects) {
         setExpandedSubjects(data.subjects.map((s) => s.id));
       }
-    } catch (err) {
+    } catch {
       toast.error("Failed to load batch details");
     } finally {
       setLoading(false);
     }
-  };
+  }, [batchId]);
+
+  const fetchUsers = useCallback(async () => {
+    try {
+      const token = auth.getToken();
+      if (!token) return;
+      const [teachersData, studentsData] = await Promise.all([
+        api.get<any[]>("/users/teachers", token),
+        api.get<any[]>("/users/students", token),
+      ]);
+      setTeachers(teachersData);
+      setStudents(studentsData);
+    } catch {
+      toast.error("Failed to load user lists");
+    }
+  }, []);
 
   useEffect(() => {
     fetchBatch();
-  }, [batchId]);
+    if (
+      user?.role === Role.ADMIN ||
+      user?.role === Role.ACADEMIC_OPERATIONS
+    ) {
+      fetchUsers();
+    }
+  }, [batchId, user?.role, fetchBatch, fetchUsers]);
+
+  const handleAssignStudents = async () => {
+    try {
+      const token = auth.getToken();
+      if (!token) return;
+
+      await api.patch(
+        `/batches/${batchId}/students`,
+        { studentIds: assignStudentIds },
+        token,
+      );
+      toast.success("Students assigned successfully");
+      setIsAssignModalOpen(false);
+      fetchBatch();
+    } catch {
+      toast.error("Failed to assign students");
+    }
+  };
 
   const toggleSubject = (id: string) => {
     setExpandedSubjects((prev) =>
@@ -292,9 +336,187 @@ export function BatchDetailsView({ batchId }: { batchId: string }) {
         )}
 
         {activeTab === "settings" && isManagementRole && (
-          <BatchSettings batch={batch} onUpdate={fetchBatch} />
+          <BatchSettings
+            batch={batch}
+            onUpdate={fetchBatch}
+            onManageStudents={() => {
+              setAssignStudentIds(batch.students?.map((s: any) => s.id) || []);
+              setIsAssignModalOpen(true);
+            }}
+            onManageTeachers={() => setIsAssignTeacherModalOpen(true)}
+          />
         )}
       </div>
+
+      {/* Assign Students Modal */}
+      {isAssignModalOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
+          onWheel={(e) => e.stopPropagation()}
+        >
+          <div className="bg-white rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl max-h-[90vh] flex flex-col">
+            <div className="p-8 border-b border-gray-100">
+              <h2 className="text-2xl font-bold text-gray-900">
+                Assign Students: {batch?.name}
+              </h2>
+              <p className="text-gray-500">
+                Select multiple students to add to this batch
+              </p>
+            </div>
+            <div
+              className="p-8 flex-1 overflow-y-auto space-y-4 minimal-scrollbar"
+              style={{ overscrollBehavior: "contain" }}
+            >
+              {students.map((s) => (
+                <div
+                  key={s.id}
+                  onClick={() => {
+                    if (assignStudentIds.includes(s.id)) {
+                      setAssignStudentIds(
+                        assignStudentIds.filter((id) => id !== s.id),
+                      );
+                    } else {
+                      setAssignStudentIds([...assignStudentIds, s.id]);
+                    }
+                  }}
+                  className={`flex items-center justify-between p-4 rounded-2xl border cursor-pointer transition-all ${
+                    assignStudentIds.includes(s.id)
+                      ? "border-blue-500 bg-blue-50 ring-1 ring-blue-500"
+                      : "border-gray-100 hover:bg-gray-50"
+                  }`}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="size-10 rounded-full bg-white border border-gray-100 flex items-center justify-center text-gray-500">
+                      <GraduationCapIcon className="size-5" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-gray-900">{s.name}</p>
+                      <p className="text-xs text-gray-500">{s.email}</p>
+                    </div>
+                  </div>
+                  {assignStudentIds.includes(s.id) && (
+                    <div className="size-6 bg-blue-600 rounded-full flex items-center justify-center text-white">
+                      <PlusIcon className="size-4" />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+            <div className="p-8 border-t border-gray-100 flex gap-4 bg-gray-50">
+              <button
+                onClick={() => setIsAssignModalOpen(false)}
+                className="flex-1 px-6 py-3 bg-white border border-gray-100 text-gray-600 rounded-xl font-bold hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAssignStudents}
+                disabled={assignStudentIds.length === 0}
+                className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Assign {assignStudentIds.length} Students
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Manage Teachers Modal */}
+      {isAssignTeacherModalOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
+          onWheel={(e) => e.stopPropagation()}
+        >
+          <div className="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl">
+            <div className="p-8 border-b border-gray-100">
+              <h2 className="text-2xl font-bold text-gray-900">
+                Manage Teachers: {batch?.name}
+              </h2>
+              <p className="text-gray-500">
+                Assign or remove teachers for this batch
+              </p>
+            </div>
+            <div
+              className="p-8 max-h-[60vh] overflow-y-auto space-y-4 minimal-scrollbar"
+              style={{ overscrollBehavior: "contain" }}
+            >
+              {teachers.map((t) => {
+                const isAssigned = batch?.teachers?.some(
+                  (bt: any) => bt.id === t.id,
+                );
+                return (
+                  <div
+                    key={t.id}
+                    onClick={async () => {
+                      const token = auth.getToken();
+                      if (!token) return;
+
+                      const currentTeacherIds =
+                        batch?.teachers?.map((bt: any) => bt.id) || [];
+                      let newTeacherIds;
+                      if (isAssigned) {
+                        newTeacherIds = currentTeacherIds.filter(
+                          (id: string) => id !== t.id,
+                        );
+                      } else {
+                        newTeacherIds = [...currentTeacherIds, t.id];
+                      }
+
+                      try {
+                        await api.patch(
+                          `/batches/${batchId}/teachers`,
+                          { teacherIds: newTeacherIds },
+                          token,
+                        );
+                        toast.success(
+                          isAssigned ? "Teacher removed" : "Teacher assigned",
+                        );
+                        fetchBatch();
+                      } catch {
+                        toast.error("Failed to update teachers");
+                      }
+                    }}
+                    className={`flex items-center justify-between p-4 rounded-2xl border cursor-pointer transition-all ${
+                      isAssigned
+                        ? "border-blue-500 bg-blue-50 ring-1 ring-blue-500 shadow-sm"
+                        : "border-gray-100 hover:bg-gray-50"
+                    }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div
+                        className={`size-10 rounded-full flex items-center justify-center border border-gray-100 bg-white text-gray-500 transition-colors ${isAssigned ? "border-blue-200" : ""}`}
+                      >
+                        <UsersIcon className="size-5" />
+                      </div>
+                      <div>
+                        <p
+                          className={`font-bold ${isAssigned ? "text-blue-900" : "text-gray-900"}`}
+                        >
+                          {t.name}
+                        </p>
+                        <p className="text-xs text-gray-500">{t.email}</p>
+                      </div>
+                    </div>
+                    {isAssigned && (
+                      <div className="size-6 bg-blue-600 rounded-full flex items-center justify-center text-white">
+                        <PlusIcon className="size-4 rotate-45" />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            <div className="p-8 border-t border-gray-100 bg-gray-50">
+              <button
+                onClick={() => setIsAssignTeacherModalOpen(false)}
+                className="w-full px-6 py-3 bg-white border border-gray-100 text-gray-600 rounded-xl font-bold hover:bg-gray-50 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -310,7 +532,6 @@ function ClassItem({
   isTeacher: boolean;
   onRefresh: () => void;
 }) {
-  const { user } = useAuth();
   const [showArtifacts, setShowArtifacts] = useState(false);
 
   const sessionDate = new Date(session.date);
@@ -436,14 +657,14 @@ function ClassItem({
                               autoClose: 3000,
                             });
                             onRefresh();
-                          } catch (err: any) {
-                            toast.update(loadId, {
-                              render: err.message || "Failed to sync",
-                              type: "error",
-                              isLoading: false,
-                              autoClose: 3000,
-                            });
-                          }
+    } catch {
+      toast.update(loadId, {
+        render: "Failed to sync",
+        type: "error",
+        isLoading: false,
+        autoClose: 3000,
+      });
+    }
                         }}
                         className="text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 px-2 py-1 rounded-lg hover:bg-blue-100 transition-all flex items-center gap-1"
                         title="Sync with Zoom"
@@ -711,9 +932,13 @@ function RecordingItem({
 function BatchSettings({
   batch,
   onUpdate,
+  onManageStudents,
+  onManageTeachers,
 }: {
   batch: Batch;
   onUpdate: () => void;
+  onManageStudents: () => void;
+  onManageTeachers: () => void;
 }) {
   const [newSubject, setNewSubject] = useState("");
   const [loading, setLoading] = useState(false);
@@ -732,7 +957,7 @@ function BatchSettings({
       toast.success("Subject added successfully");
       setNewSubject("");
       onUpdate();
-    } catch (err) {
+    } catch {
       toast.error("Failed to add subject");
     } finally {
       setLoading(false);
@@ -746,7 +971,7 @@ function BatchSettings({
       await api.delete(`/batches/${batch.id}/subjects/${id}`, auth.getToken()!);
       toast.success("Subject removed");
       onUpdate();
-    } catch (err) {
+    } catch {
       toast.error("Failed to remove subject");
     }
   };
@@ -810,15 +1035,32 @@ function BatchSettings({
                 Total Students
               </span>
             </div>
-            <span className="font-black text-blue-600">
-              {batch._count?.students || batch.students?.length || 0}
-            </span>
+            <div className="flex items-center gap-4">
+              <span className="font-black text-blue-600">
+                {batch._count?.students || batch.students?.length || 0}
+              </span>
+              <button
+                onClick={onManageStudents}
+                className="p-1.5 bg-white border border-blue-100 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-all shadow-sm"
+                title="Manage Students"
+              >
+                <PlusIcon className="size-4" />
+              </button>
+            </div>
           </div>
 
           <div className="space-y-2">
-            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">
-              Assigned Teachers
-            </p>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">
+                Assigned Teachers
+              </p>
+              <button
+                onClick={onManageTeachers}
+                className="p-1 px-2.5 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all border border-blue-100"
+              >
+                Manage
+              </button>
+            </div>
             {batch.teachers?.map((teacher) => (
               <div
                 key={teacher.id}
