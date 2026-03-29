@@ -246,7 +246,7 @@ export default function Topbar() {
                                 )}
                             </div>
 
-                            <div className="p-2 space-y-1 flex-1 overflow-y-auto min-h-0 overscroll-behavior-contain">
+                            <div className="p-2 space-y-1 flex-1 overflow-y-auto minimal-scrollbar overscroll-behavior-contain" style={{ maxHeight: 'calc(480px - 120px)' }}>
                                 {isLoadingNotis ? (
                                     <div className="flex flex-col items-center justify-center p-12 space-y-3">
                                         <Loader2Icon className="size-8 text-blue-600 animate-spin" />
