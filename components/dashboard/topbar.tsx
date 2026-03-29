@@ -149,8 +149,16 @@ export default function Topbar() {
 
     useEffect(() => {
         fetchNotifications();
+        
+        // Poll for notifications every 30 seconds
+        const notiInterval = setInterval(fetchNotifications, 30000);
+        
         const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-        return () => clearInterval(timer);
+        
+        return () => {
+            clearInterval(notiInterval);
+            clearInterval(timer);
+        };
     }, []);
 
     const markAsRead = async (id: string) => {
