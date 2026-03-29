@@ -576,7 +576,7 @@ function ClassItem({
               </div>
               <div className="flex items-center gap-1.5 text-xs text-gray-500 font-medium">
                 <MapPinIcon className="size-3.5 text-gray-400" />
-                {session.venue || (session.isOnline ? "Zoom Classroom" : "TBA")}
+                {session.venue || (session.isOnline ? "Online Classroom" : "TBA")}
               </div>
             </div>
             {session.isOnline && (session.meetingId || session.meetingUrl) && (
@@ -602,16 +602,13 @@ function ClassItem({
           {session.isOnline && !isPast && (
             <button
               onClick={() => {
-                if (session.meetingUrl) {
-                  window.open(session.meetingUrl, "_blank");
-                } else if (session.meetingId) {
-                  const cleanId = session.meetingId.replace(/[^0-9]/g, "");
-                  const pwd = session.meetingPasscode || "";
-                  const zoomUrl = `https://zoom.us/j/${cleanId}?pwd=${pwd}`;
-                  window.open(zoomUrl, "_blank");
-                } else {
-                  toast.error("No Zoom details provided for this session.");
-                }
+                const serverUrl =
+                  process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3002";
+                const token = auth.getToken();
+                window.open(
+                  `${serverUrl}/class-sessions/attend/${session.id}${token ? `?token=${token}` : ""}`,
+                  "_blank",
+                );
               }}
               className="px-6 py-2.5 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg shadow-blue-100"
             >
@@ -635,7 +632,7 @@ function ClassItem({
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-gray-400">
-                  <VideoIcon className="size-4" /> Zoom Recordings
+                  <VideoIcon className="size-4" /> Class Recordings
                 </div>
                 {(isManagementRole || isTeacher) && (
                   <div className="flex items-center gap-2">
@@ -643,7 +640,7 @@ function ClassItem({
                       <button
                         onClick={async (e) => {
                           e.stopPropagation();
-                          const loadId = toast.loading("Syncing with Zoom...");
+                          const loadId = toast.loading("Syncing recordings...");
                           try {
                             await api.get(
                               `/class-sessions/${session.id}/recording`,
@@ -669,7 +666,7 @@ function ClassItem({
                         className="text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 px-2 py-1 rounded-lg hover:bg-blue-100 transition-all flex items-center gap-1"
                         title="Sync with Zoom"
                       >
-                        <ClockIcon className="size-3" /> Sync
+                        <ClockIcon className="size-3" /> Sync Recordings
                       </button>
                     )}
                     <button

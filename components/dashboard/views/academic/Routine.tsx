@@ -243,7 +243,7 @@ export function ClassRoutine() {
                     <div className="size-6 bg-rose-50 rounded-lg flex items-center justify-center">
                       <MapPinIcon className="size-3 text-rose-500" />
                     </div>
-                    {item.venue || (item.isOnline ? "Zoom Classroom" : "TBA")}
+                    {item.venue || (item.isOnline ? "Online Classroom" : "TBA")}
                   </div>
                 </div>
               </div>
@@ -418,20 +418,18 @@ export function ClassRoutine() {
                     return (
                       <button
                         onClick={() => {
-                          if (item.meetingUrl) {
-                            window.open(item.meetingUrl, "_blank");
-                          } else if (item.meetingId) {
-                            const cleanId = item.meetingId.replace(/[^0-9]/g, "");
-                            const pwd = item.meetingPasscode || "";
-                            const zoomUrl = `https://zoom.us/j/${cleanId}?pwd=${pwd}`;
-                            window.open(zoomUrl, "_blank");
-                          } else {
-                            toast.error("No Zoom details provided for this session.");
-                          }
+                          const serverUrl =
+                            process.env.NEXT_PUBLIC_SERVER_URL ||
+                            "http://localhost:3002";
+                          const token = auth.getToken();
+                          window.open(
+                            `${serverUrl}/class-sessions/attend/${item.id}${token ? `?token=${token}` : ""}`,
+                            "_blank",
+                          );
                         }}
                         className="px-5 py-3 bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all border border-blue-600 whitespace-nowrap shadow-lg shadow-blue-100"
                       >
-                        Join Zoom Classroom
+                        Join Live Class
                       </button>
                     );
                   })()}
