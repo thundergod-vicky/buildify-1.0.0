@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { Role } from "@/types";
-import Link from "next/link";
 import { User, Lock, Mail, Phone } from "lucide-react";
 
 function GoogleLoginButton() {
@@ -367,7 +366,6 @@ export default function AuthPage() {
                                 className="w-full py-2.5 pl-5 pr-12 bg-gray-100 rounded-lg border-0 outline-none text-base text-gray-800 font-medium focus:ring-0"
                             >
                                 <option value={Role.STUDENT}>Student</option>
-                                <option value={Role.TEACHER}>Teacher</option>
                                 <option value={Role.PARENT}>Parent</option>
                             </select>
                         </div>

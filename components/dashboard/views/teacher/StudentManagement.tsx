@@ -4,8 +4,6 @@ import { useState, useEffect } from "react";
 import { 
   SearchIcon, 
   GraduationCapIcon, 
-  TrophyIcon, 
-  StarIcon, 
   CheckCircle2Icon,
   SortAscIcon,
   SortDescIcon,
@@ -15,13 +13,21 @@ import {
 import { showToast } from "@/lib/toast";
 import { api } from "@/lib/api";
 import { auth } from "@/lib/auth";
+import { User } from "@/types";
 import { AdmissionApprovalModal } from "@/components/dashboard/views/shared/AdmissionApprovalModal";
+
+interface UserWithCounts extends User {
+  _count?: {
+    enrollments: number;
+    practiceTestResults: number;
+  };
+}
 
 const MEDALS = ["WOOD", "STONE", "IRON", "SILVER", "GOLD", "DIAMOND", "PLATINUM", "VIBRANIUM"];
 const GRADES = ["F", "D", "D_PLUS", "C", "C_PLUS", "B", "B_PLUS", "A", "A_PLUS", "E"];
 
 export function TeacherStudentManagement() {
-  const [students, setStudents] = useState<any[]>([]);
+  const [students, setStudents] = useState<UserWithCounts[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
@@ -38,7 +44,7 @@ export function TeacherStudentManagement() {
       const token = auth.getToken();
       if (!token) return;
       
-      const data = await api.get<any[]>('/users/students', token);
+      const data = await api.get<UserWithCounts[]>('/users/students', token);
       setStudents(data);
     } catch (error) {
       console.error("Failed to fetch students:", error);
@@ -47,7 +53,7 @@ export function TeacherStudentManagement() {
     }
   };
 
-  const updateStatus = async (studentId: string, medal: string, grade: string) => {
+  const updateStatus = async (studentId: string, medal: string | undefined, grade: string | undefined) => {
     setUpdatingId(studentId);
     try {
       const token = auth.getToken();
@@ -113,7 +119,7 @@ export function TeacherStudentManagement() {
               <ArrowUpDownIcon className="size-4 text-gray-400 ml-2" />
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as any)}
+                onChange={(e) => setSortBy(e.target.value as "name" | "createdAt" | "enrollmentId")}
                 className="bg-transparent text-xs font-bold text-gray-700 outline-none pr-4 cursor-pointer"
               >
                 <option value="name">Sort by Name</option>
@@ -187,7 +193,7 @@ export function TeacherStudentManagement() {
                       <td className="px-6 py-4">
                         <select
                           defaultValue={student.medal || ""}
-                          onChange={(e) => updateStatus(student.id, e.target.value, student.grade)}
+                          onChange={(e) => updateStatus(student.id, e.target.value, student.grade || undefined)}
                           className="bg-white border border-gray-200 rounded-lg text-sm p-2 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none font-bold text-gray-700"
                         >
                           <option value="">No Medal</option>
@@ -199,7 +205,7 @@ export function TeacherStudentManagement() {
                       <td className="px-6 py-4">
                         <select
                           defaultValue={student.grade || ""}
-                          onChange={(e) => updateStatus(student.id, student.medal, e.target.value)}
+                          onChange={(e) => updateStatus(student.id, student.medal || undefined, e.target.value)}
                           className="bg-white border border-gray-200 rounded-lg text-sm p-2 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none font-bold text-gray-700"
                         >
                           <option value="">No Grade</option>
