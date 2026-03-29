@@ -12,11 +12,27 @@ import {
   CameraIcon,
   Trash2Icon,
   FingerprintIcon,
+  GraduationCapIcon,
+  BookOpenIcon,
+  HomeIcon,
+  CalendarIcon,
+  HashIcon,
 } from "lucide-react";
 
 import { resolveImageUrl } from "@/lib/utils";
 import { isRandomAvatar } from "@/lib/auth";
 import { api } from "@/lib/api";
+import { Role } from "@/types";
+
+const ReadOnlyField = ({ label, value, icon: Icon }: { label: string; value?: string; icon: any }) => (
+  <div className="space-y-1.5 min-w-0">
+    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 flex items-center gap-1.5 truncate">
+      <Icon className="size-3 shrink-0" />
+      <span className="truncate">{label}</span>
+    </label>
+    <p className="text-sm font-bold text-gray-700 break-words">{value || "—"}</p>
+  </div>
+);
 
 export function SettingsForm() {
   const { user, updateProfile } = useAuth();
@@ -24,6 +40,7 @@ export function SettingsForm() {
   const [isImageLoading, setIsImageLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [error, setError] = useState("");
+  const [admissionPhotoBlobUrl, setAdmissionPhotoBlobUrl] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     name: user?.name || "",
@@ -45,6 +62,38 @@ export function SettingsForm() {
       }));
     }
   }, [user]);
+
+  useEffect(() => {
+    let objectUrl: string | null = null;
+
+    const fetchAdmissionPhoto = async () => {
+      // If user has a default avatar and an admission record, try to fetch the official photo
+      if (user?.admission?.id && isRandomAvatar(user.profileImage)) {
+        try {
+          const { auth } = await import("@/lib/auth");
+          const token = auth.getToken();
+          if (!token) return;
+
+          const blob = await api.getBlob(`/admissions/photo/${user.admission.id}`, token);
+          objectUrl = URL.createObjectURL(blob);
+          setAdmissionPhotoBlobUrl(objectUrl);
+        } catch (err) {
+          console.error("Failed to fetch admission photo:", err);
+          setAdmissionPhotoBlobUrl(null);
+        }
+      } else {
+        setAdmissionPhotoBlobUrl(null);
+      }
+    };
+
+    fetchAdmissionPhoto();
+
+    return () => {
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+  }, [user?.admission?.id, user?.profileImage]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -143,7 +192,9 @@ export function SettingsForm() {
   };
 
   const hasCustomImage = !isRandomAvatar(user?.profileImage);
-  const profileImageSrc = resolveImageUrl(user?.profileImage);
+  const profileImageSrc = hasCustomImage
+    ? resolveImageUrl(user?.profileImage)
+    : (admissionPhotoBlobUrl || resolveImageUrl(user?.profileImage));
 
   return (
     <div className="max-w-2xl mx-auto bg-white rounded-3xl p-8 border border-gray-100 shadow-sm">
@@ -331,6 +382,50 @@ export function SettingsForm() {
             )}
           </div>
         </div>
+
+        {/* Admission Data Section */}
+        {user?.admission && (
+          <div className="pt-8 border-t border-gray-100 space-y-6">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <GraduationCapIcon className="size-6 text-blue-600" />
+                Academic Registration Details
+              </h3>
+              {user.admission.status === 'PENDING' && (
+                <span className="px-3 py-1 bg-amber-50 text-amber-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-amber-100">
+                  Under Review
+                </span>
+              )}
+              {user.admission.status === 'APPROVED' && (
+                <span className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-100">
+                  Approved
+                </span>
+              )}
+              {user.admission.status === 'REJECTED' && (
+                <span className="px-3 py-1 bg-rose-50 text-rose-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-rose-100">
+                  Rejected
+                </span>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 bg-gray-50/50 p-6 rounded-3xl border border-gray-100 overflow-hidden">
+              <ReadOnlyField label="Father's Name" value={user.admission.fatherName} icon={UserIcon} />
+              <ReadOnlyField label="Mother's Name" value={user.admission.motherName} icon={UserIcon} />
+              <ReadOnlyField label="Class" value={`Class ${user.admission.studentClass}`} icon={BookOpenIcon} />
+              <ReadOnlyField label="Stream" value={user.admission.stream} icon={GraduationCapIcon} />
+              <ReadOnlyField label="Course" value={user.admission.course} icon={GraduationCapIcon} />
+              <ReadOnlyField label="Form Number" value={user.admission.formNumber} icon={HashIcon} />
+              <ReadOnlyField label="School Name" value={user.admission.schoolName} icon={HomeIcon} />
+              <ReadOnlyField label="Board" value={user.admission.board} icon={HashIcon} />
+              <ReadOnlyField label="Caste" value={user.admission.caste} icon={FingerprintIcon} />
+              <ReadOnlyField label="Date of Birth" value={new Date(user.admission.dateOfBirth).toLocaleDateString()} icon={CalendarIcon} />
+            </div>
+            
+            <p className="px-2 text-[10px] text-gray-400 font-bold uppercase tracking-tighter leading-relaxed">
+              * The details above were captured during admission. If any corrections are needed, please contact the institutional administration desk with valid proof.
+            </p>
+          </div>
+        )}
 
         <div className="pt-6 border-t border-gray-100 space-y-4">
           <h3 className="text-lg font-semibold text-gray-900">

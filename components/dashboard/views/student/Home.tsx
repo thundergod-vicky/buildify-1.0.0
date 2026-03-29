@@ -60,7 +60,7 @@ export function StudentHome() {
                 <AnimatedContent>
                     <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 p-4 rounded-2xl flex items-center justify-between">
                         <p className="text-sm font-medium">
-                            Your account is waiting for approval. Please call @ 1234567890 to complete the admission process and approve your account.
+                            Your account is waiting for approval. Please call @ +91 9475 974 315 or email adhyayan.durgapur@gmail.com to complete the admission process and approve your account.
                         </p>
                     </div>
                 </AnimatedContent>

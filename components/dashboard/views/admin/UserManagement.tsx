@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   SearchIcon,
   UserCogIcon,
@@ -11,13 +11,14 @@ import {
   UsersIcon,
   SaveIcon,
   XIcon,
+  SortAscIcon,
   PhoneIcon,
   Loader2Icon,
   Lock,
   GraduationCapIcon,
   EyeIcon,
-  SortAscIcon,
   SortDescIcon,
+  MoreHorizontal,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { showToast } from "@/lib/toast";
@@ -968,6 +969,29 @@ function UserRow({
     newPassword: string;
   }) => void;
 }) {
+  const [isActionsOpen, setIsActionsOpen] = useState(false);
+  const [openUpwards, setOpenUpwards] = useState(false);
+  const actionsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        actionsRef.current &&
+        !actionsRef.current.contains(event.target as Node)
+      ) {
+        setIsActionsOpen(false);
+      }
+    }
+
+    if (isActionsOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isActionsOpen]);
+
   return (
     <tr
       key={user.id}
@@ -1130,86 +1154,154 @@ function UserRow({
           </div>
         </div>
       </td>
-      <td className="px-6 py-5 whitespace-nowrap text-right">
-        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
+      <td className="px-6 py-5 whitespace-nowrap text-right relative">
+        <div className="flex items-center justify-end" ref={actionsRef}>
           {updatingId === user.id ? (
             <div className="size-10 flex items-center justify-center">
               <div className="size-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
             </div>
           ) : (
-            <>
-              <button
-                onClick={() =>
-                  setDetailsModal({
-                    isOpen: true,
-                    userId: user.id,
-                    userName: user.name || "User",
-                  })
-                }
-                className="p-3 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-indigo-600 hover:border-indigo-100 hover:bg-indigo-50 transition-all shadow-sm"
-                title="View Full Profile"
-              >
-                <EyeIcon className="size-4" />
-              </button>
-              {(currentUser?.role !== Role.ACADEMIC_OPERATIONS || (user.role === Role.STUDENT || user.role === Role.PARENT)) && (
-                <button
-                  onClick={() => setEditingUser(user)}
-                  className="p-3 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-blue-600 hover:border-blue-100 hover:bg-blue-50 transition-all shadow-sm"
-                  title="Edit User Particulars"
-                >
-                  <UserCogIcon className="size-4" />
-                </button>
-              )}
-              {(currentUser?.role === Role.ADMIN ||
-                (currentUser?.role === Role.ACADEMIC_OPERATIONS &&
-                  (user.role === Role.TEACHER ||
-                    user.role === Role.STUDENT ||
-                    user.role === Role.PARENT))) && (
-                <button
-                  onClick={() =>
-                    setPasswordModal({
-                      isOpen: true,
-                      userId: user.id,
-                      userName: user.name || "User",
-                      newPassword: "",
-                    })
-                  }
-                  className="p-3 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-amber-600 hover:border-amber-100 hover:bg-amber-50 transition-all shadow-sm"
-                  title="Reset User Password"
-                >
-                  <Lock className="size-4" />
-                </button>
-              )}
-              {user.role === Role.STUDENT && (
-                <button
-                  onClick={() =>
-                    setAdmissionModal({
-                      isOpen: true,
-                      userId: user.id,
-                      userName: user.name || "Student",
-                    })
-                  }
-                  className="p-3 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-emerald-600 hover:border-emerald-100 hover:bg-emerald-50 transition-all shadow-sm"
-                  title="View Admission Details"
-                >
-                  <GraduationCapIcon className="size-4" />
-                </button>
-              )}
-              {currentUser?.role !== Role.ACADEMIC_OPERATIONS && (
-                <button
-                  onClick={() =>
-                    setDeleteConfirm({
-                      isOpen: true,
-                      userId: user.id,
-                      userName: user.name || "this user",
-                    })
-                  }
-                  className="p-3 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-rose-600 hover:border-rose-100 hover:bg-rose-50 transition-all shadow-sm"
-                >
-                  <Trash2Icon className="size-4" />
-                </button>
-              )}
-            </>
+                <div className="relative">
+                  <button
+                    onClick={() => {
+                      if (!isActionsOpen) {
+                        const rect = actionsRef.current?.getBoundingClientRect();
+                        if (rect) {
+                          setOpenUpwards(window.innerHeight - rect.bottom < 300);
+                        }
+                      }
+                      setIsActionsOpen(!isActionsOpen);
+                    }}
+                    className={`p-2.5 rounded-xl transition-all duration-300 ${
+                      isActionsOpen
+                        ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200"
+                        : "bg-white border border-gray-100 text-gray-400 hover:text-indigo-600 hover:border-indigo-100 hover:bg-indigo-50 shadow-sm"
+                    }`}
+                    title="Action Menu"
+                  >
+                    {isActionsOpen ? (
+                      <XIcon className="size-5" />
+                    ) : (
+                      <MoreHorizontal className="size-5" />
+                    )}
+                  </button>
+
+                  <AnimatePresence>
+                    {isActionsOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.9, x: 20 }}
+                        animate={{ opacity: 1, scale: 1, x: 0 }}
+                        exit={{ opacity: 0, scale: 0.9, x: 20 }}
+                        className={`absolute right-full mr-3 w-60 bg-white/95 backdrop-blur-2xl border border-gray-100 rounded-[2.5rem] shadow-2xl shadow-indigo-100/50 z-[101] overflow-hidden p-2.5 ${
+                          openUpwards
+                            ? "bottom-0 origin-bottom-right"
+                            : "top-0 origin-top-right"
+                        }`}
+                      >
+                    <div className="flex flex-col gap-1">
+                      <button
+                        onClick={() => {
+                          setIsActionsOpen(false);
+                          setDetailsModal({
+                            isOpen: true,
+                            userId: user.id,
+                            userName: user.name || "User",
+                          });
+                        }}
+                        className="flex items-center gap-3 w-full p-3 text-left text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 rounded-2xl transition-all group/item"
+                      >
+                        <div className="size-8 rounded-xl bg-gray-50 group-hover/item:bg-white flex items-center justify-center transition-colors">
+                          <EyeIcon className="size-4" />
+                        </div>
+                        <span className="text-xs font-bold">View Profile</span>
+                      </button>
+
+                      {(currentUser?.role !== Role.ACADEMIC_OPERATIONS ||
+                        user.role === Role.STUDENT ||
+                        user.role === Role.PARENT) && (
+                        <button
+                          onClick={() => {
+                            setIsActionsOpen(false);
+                            setEditingUser(user);
+                          }}
+                          className="flex items-center gap-3 w-full p-3 text-left text-gray-600 hover:bg-blue-50 hover:text-blue-600 rounded-2xl transition-all group/item"
+                        >
+                          <div className="size-8 rounded-xl bg-gray-50 group-hover/item:bg-white flex items-center justify-center transition-colors">
+                            <UserCogIcon className="size-4" />
+                          </div>
+                          <span className="text-xs font-bold">Edit Details</span>
+                        </button>
+                      )}
+
+                      {(currentUser?.role === Role.ADMIN ||
+                        (currentUser?.role === Role.ACADEMIC_OPERATIONS &&
+                          (user.role === Role.TEACHER ||
+                            user.role === Role.STUDENT ||
+                            user.role === Role.PARENT))) && (
+                        <button
+                          onClick={() => {
+                            setIsActionsOpen(false);
+                            setPasswordModal({
+                              isOpen: true,
+                              userId: user.id,
+                              userName: user.name || "User",
+                              newPassword: "",
+                            });
+                          }}
+                          className="flex items-center gap-3 w-full p-3 text-left text-gray-600 hover:bg-amber-50 hover:text-amber-600 rounded-2xl transition-all group/item"
+                        >
+                          <div className="size-8 rounded-xl bg-gray-50 group-hover/item:bg-white flex items-center justify-center transition-colors">
+                            <Lock className="size-4" />
+                          </div>
+                          <span className="text-xs font-bold">Reset Password</span>
+                        </button>
+                      )}
+
+                      {user.role === Role.STUDENT && (
+                        <button
+                          onClick={() => {
+                            setIsActionsOpen(false);
+                            setAdmissionModal({
+                              isOpen: true,
+                              userId: user.id,
+                              userName: user.name || "Student",
+                            });
+                          }}
+                          className="flex items-center gap-3 w-full p-3 text-left text-gray-600 hover:bg-emerald-50 hover:text-emerald-600 rounded-2xl transition-all group/item"
+                        >
+                          <div className="size-8 rounded-xl bg-gray-50 group-hover/item:bg-white flex items-center justify-center transition-colors">
+                            <GraduationCapIcon className="size-4" />
+                          </div>
+                          <span className="text-xs font-bold">Admission Info</span>
+                        </button>
+                      )}
+
+                      {currentUser?.role !== Role.ACADEMIC_OPERATIONS && (
+                        <>
+                          <div className="h-px bg-gray-50 my-1 mx-2"></div>
+                          <button
+                            onClick={() => {
+                              setIsActionsOpen(false);
+                              setDeleteConfirm({
+                                isOpen: true,
+                                userId: user.id,
+                                userName: user.name || "this user",
+                              });
+                            }}
+                            className="flex items-center gap-3 w-full p-3 text-left text-rose-500 hover:bg-rose-50 rounded-2xl transition-all group/item"
+                          >
+                            <div className="size-8 rounded-xl bg-rose-50/50 group-hover/item:bg-white flex items-center justify-center transition-colors">
+                              <Trash2Icon className="size-4" />
+                            </div>
+                            <span className="text-xs font-bold">Delete User</span>
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           )}
         </div>
       </td>
