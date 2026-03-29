@@ -31,6 +31,8 @@ jobs:
         run: |
           docker buildx build \
             --platform linux/amd64 \
+            --build-arg NEXT_PUBLIC_API_URL=http://3.108.123.149:3002 \
+            --build-arg NEXT_PUBLIC_SOCKET_URL=http://3.108.123.149:3002 \
             -t 640465964259.dkr.ecr.ap-south-1.amazonaws.com/adhyayan-client:latest \
             --push .
 
