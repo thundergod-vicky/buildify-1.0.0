@@ -281,6 +281,8 @@ function DashboardContent() {
         return <AdminSettings />;
       case "messages":
         return <MessagesView />;
+      case "notifications":
+        return <NotificationsView />;
       case "omr":
         return <OmrDashboard />;
       default:
@@ -302,6 +304,8 @@ function DashboardContent() {
         return <AdminSettings />;
       case "messages":
         return <MessagesView />;
+      case "notifications":
+        return <NotificationsView />;
       default:
         return <AccountsHome />;
     }

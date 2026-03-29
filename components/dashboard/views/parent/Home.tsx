@@ -11,8 +11,24 @@ import { toast } from "react-toastify";
 import { api } from "@/lib/api";
 import { auth } from "@/lib/auth";
 
+import { useRouter } from "next/navigation";
+
+const GRADE_DISPLAY: Record<string, string> = {
+  'A_PLUS': 'A+',
+  'A': 'A',
+  'B_PLUS': 'B+',
+  'B': 'B',
+  'C_PLUS': 'C+',
+  'C': 'C',
+  'D_PLUS': 'D+',
+  'D': 'D',
+  'F': 'F',
+  'E': 'E',
+};
+
 export function ParentHome() {
   const { user } = useAuth();
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [showLinkForm, setShowLinkForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -108,13 +124,15 @@ export function ParentHome() {
                 <div className="flex justify-between items-end">
                   <div>
                     <div className="text-sm text-gray-500 uppercase font-semibold">Current Grade</div>
-                    <div className="text-2xl font-bold text-blue-600">{student.grade || 'N/A'}</div>
+                    <div className="text-2xl font-bold text-blue-600">
+                      {student.grade ? (GRADE_DISPLAY[student.grade] || student.grade) : 'N/A'}
+                    </div>
                   </div>
                   <Button 
                     variant="outline" 
                     size="sm" 
                     className="border-blue-200 text-blue-700 hover:bg-blue-50"
-                    onClick={() => toast.info(`Navigate to Performance tab to see full data for ${student.name}`)}
+                    onClick={() => router.push(`/dashboard?view=performance&studentId=${student.id}`)}
                   >
                     View Performance
                   </Button>

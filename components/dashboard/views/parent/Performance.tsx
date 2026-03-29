@@ -11,9 +11,27 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Trophy, BookOpen, Clock, AlertCircle } from "lucide-react";
 import { TestResultModal } from "./TestResultModal";
 
+import { useSearchParams } from "next/navigation";
+
+const GRADE_DISPLAY: Record<string, string> = {
+  'A_PLUS': 'A+',
+  'A': 'A',
+  'B_PLUS': 'B+',
+  'B': 'B',
+  'C_PLUS': 'C+',
+  'C': 'C',
+  'D_PLUS': 'D+',
+  'D': 'D',
+  'F': 'F',
+  'E': 'E',
+};
+
 export function ParentPerformance() {
   const { user } = useAuth();
-  const [data, setData] = useState<any>(null); // Still any for student data as it's a mix
+  const searchParams = useSearchParams();
+  const initialStudentId = searchParams.get("studentId");
+  
+  const [data, setData] = useState<any>(null); 
   const [isLoading, setIsLoading] = useState(false);
   const [selectedResult, setSelectedResult] =
     useState<PracticeTestResult | null>(null);
@@ -25,10 +43,12 @@ export function ParentPerformance() {
   const [selectedStudentId, setSelectedStudentId] = useState<string>("");
 
   useEffect(() => {
-    if (linkedStudents.length > 0 && !selectedStudentId) {
+    if (initialStudentId) {
+      setSelectedStudentId(initialStudentId);
+    } else if (linkedStudents.length > 0 && !selectedStudentId) {
       setSelectedStudentId(linkedStudents[0].id);
     }
-  }, [linkedStudents, selectedStudentId]);
+  }, [linkedStudents, selectedStudentId, initialStudentId]);
 
   useEffect(() => {
     if (selectedStudentId) {
@@ -124,9 +144,9 @@ export function ParentPerformance() {
                   <p className="text-sm text-gray-500 font-medium">
                     Academic Grade
                   </p>
-                  <h3 className="text-2xl font-bold text-gray-900">
-                    {data.grade || "N/A"}
-                  </h3>
+                    <h3 className="text-2xl font-bold text-gray-900">
+                      {data.grade ? (GRADE_DISPLAY[data.grade] || data.grade) : "N/A"}
+                    </h3>
                 </div>
               </CardContent>
             </Card>
