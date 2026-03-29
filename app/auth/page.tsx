@@ -103,7 +103,7 @@ export default function AuthPage() {
 
     const handleForgotPassword = (e: React.MouseEvent) => {
         e.preventDefault();
-        alert("Please call Operations @ 1234567890 to change your password.");
+        alert("Please call Operations @ +91 9475 974 315 or email adhyayan.durgapur@gmail.com to change your password.");
     };
 
     return (

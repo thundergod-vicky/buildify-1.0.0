@@ -60,10 +60,10 @@ const Section = ({ title, children, icon: Icon }: { title: string; children: Rea
 );
 
 const Field = ({ label, value, icon: Icon }: { label: string; value?: string | null; icon?: any }) => (
-  <div className="space-y-1">
-    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
-      {Icon && <Icon className="size-3" />}
-      {label}
+  <div className="space-y-1 min-w-0">
+    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5 truncate">
+      {Icon && <Icon className="size-3 shrink-0" />}
+      <span className="truncate">{label}</span>
     </p>
     <p className="text-sm font-semibold text-slate-800 break-words">{value || "\u2014"}</p>
   </div>

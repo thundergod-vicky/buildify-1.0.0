@@ -60,12 +60,12 @@ interface Props {
 }
 
 const Field = ({ label, value, icon: Icon }: { label: string; value?: string | null; icon?: React.ElementType }) => (
-  <div className="space-y-1">
-    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
-      {Icon && <Icon className="size-3" />}
-      {label}
+  <div className="space-y-1 min-w-0">
+    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5 truncate">
+      {Icon && <Icon className="size-3 shrink-0" />}
+      <span className="truncate">{label}</span>
     </p>
-    <p className="text-sm font-semibold text-slate-800">{value || "—"}</p>
+    <p className="text-sm font-semibold text-slate-800 break-words">{value || "—"}</p>
   </div>
 );
 
@@ -86,10 +86,10 @@ const EditField = ({
   type?: string;
   className?: string;
 }) => (
-  <div className={`space-y-1 ${className}`}>
-    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
-      {Icon && <Icon className="size-3" />}
-      {label}
+  <div className={`space-y-1 min-w-0 ${className}`}>
+    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5 truncate">
+      {Icon && <Icon className="size-3 shrink-0" />}
+      <span className="truncate">{label}</span>
     </p>
     <input
       type={type}
