@@ -148,6 +148,9 @@ export default function Topbar() {
     };
 
     useEffect(() => {
+        if (!authService.getToken()) return;
+        
+        console.log(`[Notification-Check] Polling for role: ${user?.role || 'Guest'}`);
         fetchNotifications();
         
         // Poll for notifications every 30 seconds
@@ -159,7 +162,7 @@ export default function Topbar() {
             clearInterval(notiInterval);
             clearInterval(timer);
         };
-    }, []);
+    }, [user?.id, user?.role]);
 
     const markAsRead = async (id: string) => {
         try {
