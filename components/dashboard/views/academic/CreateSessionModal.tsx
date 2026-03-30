@@ -31,8 +31,8 @@ export function CreateSessionModal({
     batchId: "",
     subjectId: "",
     date: new Date().toISOString().split("T")[0],
-    startTime: "09:00",
-    endTime: "10:30",
+    startTime: new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }),
+    endTime: new Date(Date.now() + 2 * 60 * 60 * 1000).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }),
     venue: "",
     isOnline: false,
     meetingUrl: "",
@@ -58,15 +58,19 @@ export function CreateSessionModal({
         meetingPasscode: editingSession.meetingPasscode || "",
       });
     } else {
+      const now = new Date();
+      const start = now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+      const end = new Date(now.getTime() + 2 * 60 * 60 * 1000).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+      
       setFormData({
         title: "",
         type: "LECTURE" as any,
         teacherId: "",
         batchId: "",
         subjectId: "",
-        date: new Date().toISOString().split("T")[0],
-        startTime: "09:00",
-        endTime: "10:30",
+        date: now.toISOString().split("T")[0],
+        startTime: start,
+        endTime: end,
         venue: "",
         isOnline: false,
         meetingUrl: "",
@@ -125,6 +129,16 @@ export function CreateSessionModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validation: Prevent scheduling in the past
+    const selectedDateTime = new Date(`${formData.date}T${formData.startTime}`);
+    const now = new Date();
+    
+    if (selectedDateTime < now && !editingSession) {
+      toast.error("Cannot schedule a class in the past. Please select a future time.");
+      return;
+    }
+
     setLoading(true);
     try {
       if (editingSession) {
