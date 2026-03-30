@@ -40,7 +40,6 @@ import { AdminCourseManagement } from "@/components/dashboard/views/admin/Course
 import { AdminPracticeTestManagement } from "@/components/dashboard/views/admin/PracticeTestManagement";
 import { AdminRequests } from "@/components/dashboard/views/admin/Requests";
 import { AdminBatchManagement } from "@/components/dashboard/views/admin/BatchManagement";
-import { WebinarAccountManagement } from "@/components/dashboard/views/admin/WebinarAccountManagement";
 
 // Academic Views
 import { AcademicHome } from "@/components/dashboard/views/academic/Home";
@@ -234,8 +233,6 @@ function DashboardContent() {
         return <AdminCourseManagement />;
       case "practice-tests":
         return <AdminPracticeTestManagement />;
-      case "webinar-accounts":
-        return <WebinarAccountManagement />;
       case "revenue":
         return <div className="p-8">Revenue & Payments View (Coming Soon)</div>;
       case "requests":

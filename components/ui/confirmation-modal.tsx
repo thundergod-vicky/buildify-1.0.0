@@ -31,6 +31,11 @@ export function ConfirmationModal({
 
     useEffect(() => {
         setMounted(true);
+    }, []);
+
+    useEffect(() => {
+        if (!mounted) return;
+
         if (isOpen) {
             document.body.style.overflow = "hidden";
         } else {
@@ -39,13 +44,17 @@ export function ConfirmationModal({
         return () => {
             document.body.style.overflow = "unset";
         };
-    }, [isOpen]);
+    }, [isOpen, mounted]);
 
     if (!mounted) return null;
     if (!isOpen) return null;
 
     const modalContent = (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+        <div 
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
+            onWheel={(e) => e.stopPropagation()}
+            data-lenis-prevent
+        >
             <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-200">
                 <div className="p-6">
                     <div className="flex items-center gap-4 mb-4">

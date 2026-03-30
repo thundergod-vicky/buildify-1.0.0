@@ -116,6 +116,34 @@ export function AdminUserManagement() {
     fetchUsers();
   }, []);
 
+  useEffect(() => {
+    const isModalOpen =
+      !!editingUser ||
+      isAddModalOpen ||
+      detailsModal.isOpen ||
+      admissionModal.isOpen ||
+      passwordModal.isOpen;
+
+    if (isModalOpen) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [
+    editingUser,
+    isAddModalOpen,
+    detailsModal.isOpen,
+    admissionModal.isOpen,
+    passwordModal.isOpen,
+  ]);
+
   const fetchUsers = async () => {
     try {
       const token = auth.getToken();
@@ -161,6 +189,9 @@ export function AdminUserManagement() {
           name: editingUser.name,
           email: editingUser.email,
           phone: editingUser.phone,
+          webinarName: editingUser.webinarName,
+          webinarEmail: editingUser.webinarEmail,
+          webinarApiKey: editingUser.webinarApiKey,
         },
         token,
       );
@@ -535,12 +566,15 @@ export function AdminUserManagement() {
         {/* Edit User Details Modal */}
         <AnimatePresence>
           {editingUser && (
-            <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+            <div 
+              className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
+              onWheel={(e) => e.stopPropagation()}
+            >
               <motion.div
                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                className="bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl overflow-hidden border border-slate-100"
+                className="bg-white rounded-[2.5rem] w-full max-w-lg max-h-[90vh] flex flex-col shadow-2xl overflow-hidden border border-slate-100"
               >
                 <div className="px-10 py-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
                   <div>
@@ -559,83 +593,159 @@ export function AdminUserManagement() {
                   </button>
                 </div>
 
-                <div className="p-10 space-y-6">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">
-                      Full Name
-                    </label>
-                    <input
-                      value={editingUser.name || ""}
-                      onChange={(e) =>
-                        setEditingUser({ ...editingUser, name: e.target.value })
-                      }
-                      type="text"
-                      className="w-full px-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl outline-none focus:border-indigo-500 focus:bg-white transition-all font-bold text-sm text-slate-700 shadow-inner"
-                      placeholder="Enter user name..."
-                    />
-                  </div>
+                <div 
+                  className="flex-1 overflow-y-auto custom-scrollbar overscroll-contain"
+                  onWheel={(e) => e.stopPropagation()}
+                  data-lenis-prevent
+                >
+                  <div className="p-10 space-y-6">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">
+                        Full Name
+                      </label>
+                      <input
+                        value={editingUser.name || ""}
+                        onChange={(e) =>
+                          setEditingUser({
+                            ...editingUser,
+                            name: e.target.value,
+                          })
+                        }
+                        type="text"
+                        className="w-full px-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl outline-none focus:border-indigo-500 focus:bg-white transition-all font-bold text-sm text-slate-700 shadow-inner"
+                        placeholder="Enter user name..."
+                      />
+                    </div>
 
-                  <div className="grid grid-cols-1 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">
-                        Email Address
-                      </label>
-                      <div className="relative group">
-                        <MailIcon className="absolute left-5 top-1/2 -translate-y-1/2 size-4 text-slate-300 group-focus-within:text-indigo-400 transition-colors" />
-                        <input
-                          value={editingUser.email || ""}
-                          onChange={(e) =>
-                            setEditingUser({
-                              ...editingUser,
-                              email: e.target.value,
-                            })
-                          }
-                          type="email"
-                          readOnly={currentUser?.role !== Role.ADMIN}
-                          className={`w-full pl-12 pr-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl outline-none focus:border-indigo-500 focus:bg-white transition-all font-bold text-sm text-slate-700 shadow-inner ${
-                            currentUser?.role !== Role.ADMIN
-                              ? "opacity-60 cursor-not-allowed"
-                              : ""
-                          }`}
-                          placeholder="user@example.com"
-                        />
+                    <div className="grid grid-cols-1 gap-6">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">
+                          Email Address
+                        </label>
+                        <div className="relative group">
+                          <MailIcon className="absolute left-5 top-1/2 -translate-y-1/2 size-4 text-slate-300 group-focus-within:text-indigo-400 transition-colors" />
+                          <input
+                            value={editingUser.email || ""}
+                            onChange={(e) =>
+                              setEditingUser({
+                                ...editingUser,
+                                email: e.target.value,
+                              })
+                            }
+                            type="email"
+                            readOnly={currentUser?.role !== Role.ADMIN}
+                            className={`w-full pl-12 pr-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl outline-none focus:border-indigo-500 focus:bg-white transition-all font-bold text-sm text-slate-700 shadow-inner ${
+                              currentUser?.role !== Role.ADMIN
+                                ? "opacity-60 cursor-not-allowed"
+                                : ""
+                            }`}
+                            placeholder="user@example.com"
+                          />
+                        </div>
+                        {currentUser?.role !== Role.ADMIN && (
+                          <p className="text-[9px] font-bold text-rose-500 uppercase tracking-tighter mt-1 ml-1">
+                            Admin level clearance required to modify email
+                          </p>
+                        )}
                       </div>
-                      {currentUser?.role !== Role.ADMIN && (
-                        <p className="text-[9px] font-bold text-rose-500 uppercase tracking-tighter mt-1 ml-1">
-                          Admin level clearance required to modify email
-                        </p>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">
-                        Phone Number
-                      </label>
-                      <div className="relative group">
-                        <PhoneIcon className="absolute left-5 top-1/2 -translate-y-1/2 size-4 text-slate-300 group-focus-within:text-indigo-400 transition-colors" />
-                        <input
-                          value={editingUser.phone || ""}
-                          onChange={(e) =>
-                            setEditingUser({
-                              ...editingUser,
-                              phone: e.target.value,
-                            })
-                          }
-                          type="tel"
-                          readOnly={currentUser?.role !== Role.ADMIN}
-                          className={`w-full pl-12 pr-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl outline-none focus:border-indigo-500 focus:bg-white transition-all font-bold text-sm text-slate-700 shadow-inner ${
-                            currentUser?.role !== Role.ADMIN
-                              ? "opacity-60 cursor-not-allowed"
-                              : ""
-                          }`}
-                          placeholder="+91 XXXXX XXXXX"
-                        />
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">
+                          Phone Number
+                        </label>
+                        <div className="relative group">
+                          <PhoneIcon className="absolute left-5 top-1/2 -translate-y-1/2 size-4 text-slate-300 group-focus-within:text-indigo-400 transition-colors" />
+                          <input
+                            value={editingUser.phone || ""}
+                            onChange={(e) =>
+                              setEditingUser({
+                                ...editingUser,
+                                phone: e.target.value,
+                              })
+                            }
+                            type="tel"
+                            readOnly={currentUser?.role !== Role.ADMIN}
+                            className={`w-full pl-12 pr-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl outline-none focus:border-indigo-500 focus:bg-white transition-all font-bold text-sm text-slate-700 shadow-inner ${
+                              currentUser?.role !== Role.ADMIN
+                                ? "opacity-60 cursor-not-allowed"
+                                : ""
+                            }`}
+                            placeholder="+91 XXXXX XXXXX"
+                          />
+                        </div>
+                        {currentUser?.role !== Role.ADMIN && (
+                          <p className="text-[9px] font-bold text-rose-500 uppercase tracking-tighter mt-1 ml-1">
+                            Admin level clearance required to modify phone
+                          </p>
+                        )}
                       </div>
-                      {currentUser?.role !== Role.ADMIN && (
-                        <p className="text-[9px] font-bold text-rose-500 uppercase tracking-tighter mt-1 ml-1">
-                          Admin level clearance required to modify phone
-                        </p>
-                      )}
                     </div>
+
+                    {editingUser.role === Role.TEACHER && (
+                      <div className="pt-6 border-t border-slate-100 space-y-6">
+                        <div className="flex items-center gap-2">
+                          <div className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-[10px] font-black uppercase tracking-widest">
+                            Webinar.gg Integration
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">
+                            Webinar Display Name
+                          </label>
+                          <input
+                            value={editingUser.webinarName || ""}
+                            onChange={(e) =>
+                              setEditingUser({
+                                ...editingUser,
+                                webinarName: e.target.value,
+                              })
+                            }
+                            type="text"
+                            className="w-full px-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl outline-none focus:border-indigo-500 focus:bg-white transition-all font-bold text-sm text-slate-700 shadow-inner"
+                            placeholder="e.g. Prof. Smith"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">
+                            Webinar Account Email
+                          </label>
+                          <input
+                            value={editingUser.webinarEmail || ""}
+                            onChange={(e) =>
+                              setEditingUser({
+                                ...editingUser,
+                                webinarEmail: e.target.value,
+                              })
+                            }
+                            type="email"
+                            className="w-full px-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl outline-none focus:border-indigo-500 focus:bg-white transition-all font-bold text-sm text-slate-700 shadow-inner"
+                            placeholder="teacher@webinar.gg"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">
+                            Webinar API Key
+                          </label>
+                          <div className="relative group">
+                            <Lock className="absolute left-5 top-1/2 -translate-y-1/2 size-4 text-slate-300 group-focus-within:text-indigo-400 transition-colors" />
+                            <input
+                              value={editingUser.webinarApiKey || ""}
+                              onChange={(e) =>
+                                setEditingUser({
+                                  ...editingUser,
+                                  webinarApiKey: e.target.value,
+                                })
+                              }
+                              type="password"
+                              className="w-full pl-12 pr-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl outline-none focus:border-indigo-500 focus:bg-white transition-all font-bold text-sm text-slate-700 shadow-inner"
+                              placeholder="Paste your API key here..."
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -680,12 +790,15 @@ export function AdminUserManagement() {
         {/* Add User Modal */}
         <AnimatePresence>
           {isAddModalOpen && (
-            <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+            <div 
+              className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
+              onWheel={(e) => e.stopPropagation()}
+            >
               <motion.div
                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                className="bg-white rounded-4xl w-full max-w-lg shadow-2xl overflow-hidden border border-slate-100"
+                className="bg-white rounded-4xl w-full max-w-lg max-h-[90vh] flex flex-col shadow-2xl overflow-hidden border border-slate-100"
               >
                 <div className="px-10 py-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
                   <div>
@@ -704,102 +817,111 @@ export function AdminUserManagement() {
                   </button>
                 </div>
 
-                <div className="p-10 space-y-4 max-h-[60vh] overflow-y-auto custom-scrollbar">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">
-                      Full Name
-                    </label>
-                    <input
-                      value={newUser.name}
-                      onChange={(e) =>
-                        setNewUser({ ...newUser, name: e.target.value })
-                      }
-                      type="text"
-                      className="w-full px-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl outline-none focus:border-indigo-500 focus:bg-white transition-all font-bold text-sm text-slate-700 shadow-inner"
-                      placeholder="Enter user name..."
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">
-                      Email Address
-                    </label>
-                    <div className="relative group">
-                      <MailIcon className="absolute left-5 top-1/2 -translate-y-1/2 size-4 text-slate-300 group-focus-within:text-indigo-400 transition-colors" />
+                <div 
+                  className="flex-1 overflow-y-auto custom-scrollbar overscroll-contain"
+                  onWheel={(e) => e.stopPropagation()}
+                  data-lenis-prevent
+                >
+                  <div className="p-10 space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">
+                        Full Name
+                      </label>
                       <input
-                        value={newUser.email}
+                        value={newUser.name}
                         onChange={(e) =>
-                          setNewUser({ ...newUser, email: e.target.value })
-                        }
-                        type="email"
-                        className="w-full pl-12 pr-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl outline-none focus:border-indigo-500 focus:bg-white transition-all font-bold text-sm text-slate-700 shadow-inner"
-                        placeholder="user@example.com"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">
-                      Phone Number
-                    </label>
-                    <div className="relative group">
-                      <PhoneIcon className="absolute left-5 top-1/2 -translate-y-1/2 size-4 text-slate-300 group-focus-within:text-indigo-400 transition-colors" />
-                      <input
-                        value={newUser.phone}
-                        onChange={(e) =>
-                          setNewUser({ ...newUser, phone: e.target.value })
-                        }
-                        type="tel"
-                        className="w-full pl-12 pr-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl outline-none focus:border-indigo-500 focus:bg-white transition-all font-bold text-sm text-slate-700 shadow-inner"
-                        placeholder="+91 XXXXX XXXXX"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">
-                      Assigned Role
-                    </label>
-                    <select
-                      value={newUser.role}
-                      onChange={(e) =>
-                        setNewUser({ ...newUser, role: e.target.value as Role })
-                      }
-                      className="w-full px-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl outline-none focus:border-indigo-500 focus:bg-white transition-all font-bold text-sm text-slate-700 shadow-inner appearance-none cursor-pointer"
-                    >
-                      {ROLES.filter((r) => {
-                        if (currentUser?.role === Role.ACADEMIC_OPERATIONS) {
-                          return r === "STUDENT" || r === "PARENT";
-                        }
-                        return r !== "ADMIN";
-                      }).map((role) => (
-                        <option key={role} value={role}>
-                          {role}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">
-                      Initial Password
-                    </label>
-                    <div className="relative group">
-                      <Lock className="absolute left-5 top-1/2 -translate-y-1/2 size-4 text-slate-300 group-focus-within:text-indigo-400 transition-colors" />
-                      <input
-                        value={newUser.password}
-                        onChange={(e) =>
-                          setNewUser({ ...newUser, password: e.target.value })
+                          setNewUser({ ...newUser, name: e.target.value })
                         }
                         type="text"
-                        className="w-full pl-12 pr-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl outline-none focus:border-indigo-500 focus:bg-white transition-all font-bold text-sm text-slate-700 shadow-inner"
-                        placeholder="Enter password..."
+                        className="w-full px-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl outline-none focus:border-indigo-500 focus:bg-white transition-all font-bold text-sm text-slate-700 shadow-inner"
+                        placeholder="Enter user name..."
                       />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">
+                        Email Address
+                      </label>
+                      <div className="relative group">
+                        <MailIcon className="absolute left-5 top-1/2 -translate-y-1/2 size-4 text-slate-300 group-focus-within:text-indigo-400 transition-colors" />
+                        <input
+                          value={newUser.email}
+                          onChange={(e) =>
+                            setNewUser({ ...newUser, email: e.target.value })
+                          }
+                          type="email"
+                          className="w-full pl-12 pr-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl outline-none focus:border-indigo-500 focus:bg-white transition-all font-bold text-sm text-slate-700 shadow-inner"
+                          placeholder="user@example.com"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">
+                        Phone Number
+                      </label>
+                      <div className="relative group">
+                        <PhoneIcon className="absolute left-5 top-1/2 -translate-y-1/2 size-4 text-slate-300 group-focus-within:text-indigo-400 transition-colors" />
+                        <input
+                          value={newUser.phone}
+                          onChange={(e) =>
+                            setNewUser({ ...newUser, phone: e.target.value })
+                          }
+                          type="tel"
+                          className="w-full pl-12 pr-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl outline-none focus:border-indigo-500 focus:bg-white transition-all font-bold text-sm text-slate-700 shadow-inner"
+                          placeholder="+91 XXXXX XXXXX"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">
+                        Assigned Role
+                      </label>
+                      <select
+                        value={newUser.role}
+                        onChange={(e) =>
+                          setNewUser({
+                            ...newUser,
+                            role: e.target.value as Role,
+                          })
+                        }
+                        className="w-full px-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl outline-none focus:border-indigo-500 focus:bg-white transition-all font-bold text-sm text-slate-700 shadow-inner appearance-none cursor-pointer"
+                      >
+                        {ROLES.filter((r) => {
+                          if (currentUser?.role === Role.ACADEMIC_OPERATIONS) {
+                            return r === 'STUDENT' || r === 'PARENT';
+                          }
+                          return r !== 'ADMIN';
+                        }).map((role) => (
+                          <option key={role} value={role}>
+                            {role}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">
+                        Initial Password
+                      </label>
+                      <div className="relative group">
+                        <Lock className="absolute left-5 top-1/2 -translate-y-1/2 size-4 text-slate-300 group-focus-within:text-indigo-400 transition-colors" />
+                        <input
+                          value={newUser.password}
+                          onChange={(e) =>
+                            setNewUser({ ...newUser, password: e.target.value })
+                          }
+                          type="text"
+                          className="w-full pl-12 pr-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl outline-none focus:border-indigo-500 focus:bg-white transition-all font-bold text-sm text-slate-700 shadow-inner"
+                          placeholder="Enter password..."
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="px-10 py-8 bg-slate-50/50 border-t border-slate-50 flex justify-end gap-4">
+                <div className="px-10 py-8 bg-slate-50/50 border-t border-slate-50 flex justify-end gap-4 mt-auto">
                   <button
                     onClick={() => setIsAddModalOpen(false)}
                     className="px-6 py-3 bg-white border border-slate-200 text-slate-500 rounded-xl text-xs font-bold hover:bg-slate-100 transition-all shadow-sm"
@@ -842,7 +964,11 @@ export function AdminUserManagement() {
         {/* Reset Password Modal */}
         <AnimatePresence>
           {passwordModal.isOpen && (
-            <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+            <div 
+              className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
+              onWheel={(e) => e.stopPropagation()}
+              data-lenis-prevent
+            >
               <motion.div
                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -887,7 +1013,7 @@ export function AdminUserManagement() {
                   </div>
                 </div>
 
-                <div className="px-10 py-8 bg-slate-50/50 border-t border-slate-50 flex justify-end gap-4 mt-4">
+                <div className="px-10 py-8 bg-slate-50/50 border-t border-slate-50 flex justify-end gap-4 mt-auto">
                   <button
                     onClick={() => setPasswordModal({ ...passwordModal, isOpen: false })}
                     className="px-6 py-3 bg-white border border-slate-200 text-slate-500 rounded-xl text-xs font-bold hover:bg-slate-100 transition-all shadow-sm"
@@ -1197,6 +1323,8 @@ function UserRow({
                             ? "bottom-0 origin-bottom-right"
                             : "top-0 origin-top-right"
                         }`}
+                        onWheel={(e) => e.stopPropagation()}
+                        data-lenis-prevent
                       >
                     <div className="flex flex-col gap-1">
                       <button

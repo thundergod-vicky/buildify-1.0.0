@@ -178,6 +178,10 @@ export interface User {
   profileSlug?: string;
   profileImage?: string;
   profileSettings?: ProfileSettings;
+  // Webinar.gg integration
+  webinarApiKey?: string;
+  webinarEmail?: string;
+  webinarName?: string;
   // Relations
   parentOf?: ParentStudent[];
   studentOf?: ParentStudent[];
@@ -523,6 +527,7 @@ export interface ClassSession {
   endTime: string;
   venue?: string;
   isOnline: boolean;
+  webinarId?: string;
   meetingUrl?: string;
   meetingId?: string;
   meetingPasscode?: string;

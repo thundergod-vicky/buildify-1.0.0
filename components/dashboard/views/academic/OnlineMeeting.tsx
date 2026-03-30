@@ -35,15 +35,27 @@ export function OnlineMeeting() {
 
       try {
         const token = auth.getToken() || "";
+        const user = auth.getUser();
+        
         const response = await api.post<{ token: string; iframeUrl: string }>(
           `/webinars/join/${sessionId}`,
           {},
           token
         );
+
+        // Redirect Hosts (Teachers, Admins, Operations) to the full app
+        const isHost = ["TEACHER", "ADMIN", "ACADEMIC_OPERATIONS"].includes(user?.role || "");
+        
+        if (isHost) {
+          window.location.href = response.iframeUrl;
+          return;
+        }
+
         setIframeUrl(response.iframeUrl);
         setStatus("ready");
-      } catch (err: any) {
-        setError(err.message || "Failed to join the virtual classroom.");
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : "Failed to join the virtual classroom.";
+        setError(message);
         setStatus("error");
         joinLock.current = false; // Allow retry on error
       }
@@ -136,7 +148,7 @@ export function OnlineMeeting() {
             allow="camera; microphone; display-capture; fullscreen; autoplay"
             title="WebinarGG Classroom"
             allowFullScreen
-            {...({ credentialless: "" } as any)}
+            {...({ "credentialless": "" } as React.IframeHTMLAttributes<HTMLIFrameElement>)}
           />
         )}
       </div>

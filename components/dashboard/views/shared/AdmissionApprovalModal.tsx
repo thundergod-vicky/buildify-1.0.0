@@ -158,10 +158,9 @@ export function AdmissionApprovalModal({ studentId, studentName, isOpen, onClose
     return () => {
       if (photoBlobUrl) {
         URL.revokeObjectURL(photoBlobUrl);
-        setPhotoBlobUrl(null);
       }
     };
-  }, [isOpen, studentId]);
+  }, [isOpen, studentId, photoBlobUrl]);
 
   const handleFieldChange = (name: string, value: string) => {
     setEditData((prev) => ({ ...prev, [name]: value }));
@@ -257,7 +256,11 @@ export function AdmissionApprovalModal({ studentId, studentName, isOpen, onClose
             </div>
 
             {/* Body */}
-            <div className="overflow-y-auto flex-1 min-h-0 p-8 overscroll-contain">
+            <div 
+              className="overflow-y-auto flex-1 min-h-0 p-8 overscroll-contain custom-scrollbar"
+              onWheel={(e) => e.stopPropagation()}
+              data-lenis-prevent
+            >
               {isLoading ? (
                 <div className="flex justify-center items-center h-48">
                   <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />

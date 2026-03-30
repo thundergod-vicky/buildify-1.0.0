@@ -64,14 +64,13 @@ function SidebarContent() {
     studentDetails:    { name: "Student Details",      icon: GraduationCapIcon,view: "student-details" },
     billing:           { name: "Billing Template",     icon: FileTextIcon,     view: "billing" },
     invoices:          { name: "Invoices",             icon: FileTextIcon,     view: "invoices" },
-    webinarAccounts:   { name: "Webinar Accounts",     icon: ShieldCheckIcon,  view: "webinar-accounts" },
     settings:          { name: "Settings",             icon: SettingsIcon,     view: "settings" },
   };
 
   const roleMenus: Record<string, typeof allItems[keyof typeof allItems][]> = {
     [Role.STUDENT]:             [allItems.home, allItems.courses, allItems.tests, allItems.performance, allItems.schedule, allItems.exams, allItems.messages, allItems.batches, allItems.settings],
     [Role.TEACHER]:             [allItems.home, allItems.courses, allItems.tests, allItems.students, allItems.batches, allItems.omr, allItems.schedule, allItems.exams, allItems.messages, allItems.settings],
-    [Role.ADMIN]:               [allItems.home, allItems.users, allItems.manageCourses, allItems.practiceTests, allItems.webinarAccounts, allItems.manageBatches, allItems.exams, allItems.revenue, allItems.requests, allItems.messages, allItems.settings],
+    [Role.ADMIN]:               [allItems.home, allItems.users, allItems.manageCourses, allItems.practiceTests, allItems.manageBatches, allItems.exams, allItems.revenue, allItems.requests, allItems.messages, allItems.settings],
     [Role.PARENT]:              [allItems.home, allItems.performance, allItems.messages, allItems.settings],
     [Role.ACADEMIC_OPERATIONS]: [allItems.home, allItems.users, allItems.manageCourses, allItems.students, allItems.manageBatches, allItems.requests, allItems.schedule, allItems.routine, allItems.exams, allItems.omr, allItems.settings],
     [Role.ACCOUNTS]:            [allItems.home, allItems.revenue, allItems.studentDetails, allItems.invoices, allItems.settings],

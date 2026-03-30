@@ -16,26 +16,26 @@ import {
 import { api } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { useAuth } from "@/contexts/AuthContext";
-import { Role } from "@/types";
-import { showToast } from "@/lib/toast";
+import { 
+  User, 
+  Role, 
+  Admission, 
+  Enrollment, 
+  Payment, 
+  Batch, 
+  Course, 
+  ParentStudent 
+} from "@/types";
 
-interface UserWithDetails {
-  id: string;
-  name: string;
-  email: string;
-  phone?: string;
-  role: string;
-  enrollmentId?: string;
-  profileImage?: string;
-  createdAt: string;
-  admission?: any;
-  enrollments?: any[];
-  payments?: any[];
-  batchesEnrolled?: any[];
-  batchesTaught?: any[];
-  coursesOwned?: any[];
-  parentOf?: any[];
-  studentOf?: any[];
+interface UserWithDetails extends User {
+  admission?: Admission;
+  enrollments?: (Enrollment & { course?: Course })[];
+  payments?: Payment[];
+  batchesEnrolled?: Batch[];
+  batchesTaught?: Batch[];
+  coursesOwned?: Course[];
+  parentOf?: ParentStudent[];
+  studentOf?: ParentStudent[];
   _count?: {
     enrollments: number;
     practiceTestResults: number;
@@ -49,7 +49,7 @@ interface Props {
   onClose: () => void;
 }
 
-const Section = ({ title, children, icon: Icon }: { title: string; children: React.ReactNode; icon: any }) => (
+const Section = ({ title, children, icon: Icon }: { title: string; children: React.ReactNode; icon: React.ElementType }) => (
   <div className="space-y-4">
     <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
       <Icon className="size-4 text-indigo-500" />
@@ -59,7 +59,7 @@ const Section = ({ title, children, icon: Icon }: { title: string; children: Rea
   </div>
 );
 
-const Field = ({ label, value, icon: Icon }: { label: string; value?: string | null; icon?: any }) => (
+const Field = ({ label, value, icon: Icon }: { label: string; value?: string | null | number; icon?: React.ElementType }) => (
   <div className="space-y-1 min-w-0">
     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5 truncate">
       {Icon && <Icon className="size-3 shrink-0" />}
@@ -75,27 +75,37 @@ export function UserDetailsModal({ userId, isOpen, onClose }: Props) {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (!isOpen || !userId) {
-      setUser(null);
-      return;
-    }
-
-    setIsLoading(true);
-    const token = auth.getToken() || "";
-    api
-      .get<UserWithDetails>(`/admin/users/${userId}/details`, token)
-      .then((data) => setUser(data))
-      .catch(() => {
+    const fetchUserDetails = async () => {
+      if (!isOpen || !userId) return;
+      
+      setIsLoading(true);
+      try {
+        const token = auth.getToken() || "";
+        const data = await api.get<UserWithDetails>(`/admin/users/${userId}/details`, token);
+        setUser(data);
+      } catch (error) {
+        console.error("Failed to fetch user details:", error);
         showToast.error("Failed to load user details");
         onClose();
-      })
-      .finally(() => setIsLoading(false));
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUserDetails();
+
+    return () => {
+      setUser(null);
+    };
   }, [isOpen, userId, onClose]);
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div 
+          className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
+          onWheel={(e) => e.stopPropagation()}
+        >
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -122,7 +132,11 @@ export function UserDetailsModal({ userId, isOpen, onClose }: Props) {
             </div>
 
             {/* Body */}
-            <div className="overflow-y-auto flex-1 p-8">
+            <div 
+              className="overflow-y-auto flex-1 p-8 overscroll-contain custom-scrollbar"
+              onWheel={(e) => e.stopPropagation()}
+              data-lenis-prevent
+            >
               {isLoading ? (
                 <div className="flex flex-col justify-center items-center h-64 gap-4">
                   <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
@@ -182,7 +196,7 @@ export function UserDetailsModal({ userId, isOpen, onClose }: Props) {
                     {user.role === "PARENT" && (
                       <Section title="Relations" icon={UsersIcon}>
                         <div className="space-y-3">
-                          {user.parentOf?.map((rel: any) => (
+                          {user.parentOf?.map((rel) => (
                             <div key={rel.id} className="flex items-center gap-3 p-3 bg-blue-50/50 rounded-xl border border-blue-100">
                               <div className="size-8 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600">
                                 <GraduationCapIcon className="size-4" />
@@ -202,7 +216,7 @@ export function UserDetailsModal({ userId, isOpen, onClose }: Props) {
                   {user.role === "STUDENT" && (
                     <Section title="Course Enrollments" icon={LayersIcon}>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {user.enrollments?.map((enr: any) => (
+                        {user.enrollments?.map((enr) => (
                           <div key={enr.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:border-indigo-200 transition-colors">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-3">
@@ -238,7 +252,7 @@ export function UserDetailsModal({ userId, isOpen, onClose }: Props) {
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100">
-                            {user.payments?.map((pay: any) => (
+                            {user.payments?.map((pay) => (
                               <tr key={pay.id} className="text-xs font-semibold">
                                 <td className="py-3 px-2 text-slate-500">{new Date(pay.createdAt).toLocaleDateString()}</td>
                                 <td className="py-3 px-2 text-slate-900 font-black">\u20B9{pay.amount}</td>
