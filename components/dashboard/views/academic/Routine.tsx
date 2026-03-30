@@ -431,7 +431,7 @@ export function ClassRoutine() {
                         }}
                         className="px-5 py-3 bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all border border-blue-600 whitespace-nowrap shadow-lg shadow-blue-100"
                       >
-                        Join Zoom Classroom
+                        Join Classroom
                       </button>
                     );
                   })()}

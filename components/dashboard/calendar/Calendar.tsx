@@ -491,7 +491,7 @@ export function Calendar({ mode = 'student' }: { mode?: 'student' | 'teacher' | 
                                             return "Watch Recording";
                                         }
 
-                                         return event.type === 'CLASS' ? (event.isOnline ? "Join Virtual Classroom" : mode === 'teacher' ? "Start Class" : mode === 'operations' ? "View Class" : "Join Class") : "Start Test";
+                                         return event.type === 'CLASS' ? (event.isOnline ? "Join Classroom" : mode === 'teacher' ? "Start Class" : mode === 'operations' ? "View Class" : "Join Class") : "Start Test";
                                     })()}
                                 </button>
                             </motion.div>
