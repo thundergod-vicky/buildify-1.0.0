@@ -39,6 +39,7 @@ interface Event {
     meetingUrl?: string;
     meetingId?: string;
     meetingPasscode?: string;
+    webinarId?: string;
   recordingUrl?: string;
   recordingPasscode?: string;
   recordings?: any[];
@@ -98,6 +99,7 @@ export function Calendar({ mode = 'student' }: { mode?: 'student' | 'teacher' | 
                 meetingUrl: r.meetingUrl as string,
                 meetingId: r.meetingId as string,
                 meetingPasscode: r.meetingPasscode as string,
+                webinarId: r.webinarId as string,
                 recordingUrl: r.recordingUrl as string,
                 recordingPasscode: r.recordingPasscode as string,
                 recordings: r.recordings as any[],
@@ -451,15 +453,16 @@ export function Calendar({ mode = 'student' }: { mode?: 'student' | 'teacher' | 
                                         }
 
                                          if (event.isOnline) {
-                                            if (event.meetingUrl) {
-                                                window.open(event.meetingUrl, "_blank");
-                                            } else if (event.meetingId) {
-                                                const cleanId = event.meetingId.replace(/[^0-9]/g, "");
-                                                const pwd = event.meetingPasscode || "";
-                                                const zoomUrl = `https://zoom.us/j/${cleanId}?pwd=${pwd}`;
-                                                window.open(zoomUrl, "_blank");
+                                            // Hosts (Teacher, Operations) go directly to webinar.gg
+                                            if (mode === 'teacher' || mode === 'operations') {
+                                                if (event.webinarId) {
+                                                    window.open(`https://webinar.gg/webinar-page/${event.webinarId}`, "_blank");
+                                                } else {
+                                                    toast.error("Webinar ID missing. Cannot join session.");
+                                                }
                                             } else {
-                                                toast.error("No Zoom details provided for this session.");
+                                                // Students go through the internal transition page for tokens
+                                                window.open(`/dashboard?view=online-meeting&sessionId=${event.id}`, "_self");
                                             }
                                         }
                                     }} 
@@ -488,7 +491,7 @@ export function Calendar({ mode = 'student' }: { mode?: 'student' | 'teacher' | 
                                             return "Watch Recording";
                                         }
 
-                                         return event.type === 'CLASS' ? (event.isOnline ? "Join Zoom Classroom" : mode === 'teacher' ? "Start Class" : mode === 'operations' ? "View Class" : "Join Class") : "Start Test";
+                                         return event.type === 'CLASS' ? (event.isOnline ? "Join Virtual Classroom" : mode === 'teacher' ? "Start Class" : mode === 'operations' ? "View Class" : "Join Class") : "Start Test";
                                     })()}
                                 </button>
                             </motion.div>

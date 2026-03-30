@@ -35,9 +35,6 @@ export function CreateSessionModal({
     endTime: new Date(Date.now() + 2 * 60 * 60 * 1000).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }),
     venue: "",
     isOnline: false,
-    meetingUrl: "",
-    meetingId: "",
-    meetingPasscode: "",
   });
 
   useEffect(() => {
@@ -53,9 +50,6 @@ export function CreateSessionModal({
         endTime: editingSession.endTime,
         venue: editingSession.venue || "",
         isOnline: editingSession.isOnline,
-        meetingUrl: editingSession.meetingUrl || "",
-        meetingId: editingSession.meetingId || "",
-        meetingPasscode: editingSession.meetingPasscode || "",
       });
     } else {
       const now = new Date();
@@ -73,9 +67,6 @@ export function CreateSessionModal({
         endTime: end,
         venue: "",
         isOnline: false,
-        meetingUrl: "",
-        meetingId: "",
-        meetingPasscode: "",
       });
     }
   }, [editingSession, isOpen]);
@@ -326,7 +317,7 @@ export function CreateSessionModal({
                 htmlFor="isOnline"
                 className="text-sm font-black text-gray-900 cursor-pointer"
               >
-                Online Session (Zoom)
+                Generate meeting link
               </label>
             </div>
 
@@ -334,49 +325,17 @@ export function CreateSessionModal({
               <motion.div 
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
-                className="space-y-6 pt-2 bg-blue-50/20 p-6 rounded-2xl border border-blue-100/50"
+                className="bg-blue-50/20 p-6 rounded-2xl border border-blue-100/50"
               >
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-blue-600">
-                    Zoom Join Link
-                  </label>
-                  <input
-                    value={formData.meetingUrl}
-                    onChange={(e) =>
-                      setFormData({ ...formData, meetingUrl: e.target.value })
-                    }
-                    className="w-full p-4 bg-white border-2 border-transparent focus:border-blue-100 rounded-2xl outline-none transition-all font-bold text-gray-900"
-                    placeholder="https://zoom.us/j/..."
-                  />
+                <div className="flex items-center gap-3 text-blue-600">
+                  <div className="size-2 bg-blue-600 rounded-full animate-pulse" />
+                  <p className="text-[10px] font-black uppercase tracking-widest">
+                    Webinar.gg Auto-Scheduling Enabled
+                  </p>
                 </div>
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-blue-600">
-                      Meeting ID
-                    </label>
-                    <input
-                      value={formData.meetingId}
-                      onChange={(e) =>
-                        setFormData({ ...formData, meetingId: e.target.value })
-                      }
-                      className="w-full p-4 bg-white border-2 border-transparent focus:border-blue-100 rounded-2xl outline-none transition-all font-bold text-gray-900"
-                      placeholder="123 456 7890"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-blue-600">
-                      Passcode
-                    </label>
-                    <input
-                      value={formData.meetingPasscode}
-                      onChange={(e) =>
-                        setFormData({ ...formData, meetingPasscode: e.target.value })
-                      }
-                      className="w-full p-4 bg-white border-2 border-transparent focus:border-blue-100 rounded-2xl outline-none transition-all font-bold text-gray-900"
-                      placeholder="Required for internal join"
-                    />
-                  </div>
-                </div>
+                <p className="text-[11px] text-gray-500 mt-2 font-medium">
+                  The system will automatically allocate an available account and generate a secure join link for this session.
+                </p>
               </motion.div>
             )}
 

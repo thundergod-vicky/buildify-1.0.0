@@ -61,6 +61,7 @@ import { AdminSettings } from "@/components/dashboard/views/admin/Settings";
 import { BatchDetailsView } from "@/components/dashboard/views/shared/BatchDetails";
 
 import { ZoomMeeting } from "@/components/dashboard/views/academic/ZoomMeeting";
+import { OnlineMeeting } from "@/components/dashboard/views/academic/OnlineMeeting";
 import { Suspense } from "react";
 
 export default function DashboardPage() {
@@ -128,6 +129,10 @@ function DashboardContent() {
 
   if (currentView === "zoom-meeting") {
     return <ZoomMeeting />;
+  }
+
+  if (currentView === "online-meeting") {
+    return <OnlineMeeting />;
   }
 
   // Student

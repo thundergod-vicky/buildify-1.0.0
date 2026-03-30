@@ -602,20 +602,23 @@ function ClassItem({
           {session.isOnline && !isPast && (
             <button
               onClick={() => {
-                if (session.meetingUrl) {
-                  window.open(session.meetingUrl, "_blank");
-                } else if (session.meetingId) {
-                  const cleanId = session.meetingId.replace(/[^0-9]/g, "");
-                  const pwd = session.meetingPasscode || "";
-                  const zoomUrl = `https://zoom.us/j/${cleanId}?pwd=${pwd}`;
-                  window.open(zoomUrl, "_blank");
+                const isHost = isManagementRole || isTeacher;
+                
+                if (isHost) {
+                  if (session.webinarId) {
+                    window.open(`https://webinar.gg/webinar-page/${session.webinarId}`, "_blank");
+                  } else {
+                    // Fallback to internal if webinarId is somehow missing
+                    window.open(`/dashboard?view=online-meeting&sessionId=${session.id}`, "_self");
+                  }
                 } else {
-                  toast.error("No Zoom details provided for this session.");
+                  // Students go to internal transition
+                  window.open(`/dashboard?view=online-meeting&sessionId=${session.id}`, "_self");
                 }
               }}
               className="px-6 py-2.5 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg shadow-blue-100"
             >
-              Join Live Class
+              Join Virtual Classroom
             </button>
           )}
 
