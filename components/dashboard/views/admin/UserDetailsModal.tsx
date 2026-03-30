@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { auth } from "@/lib/auth";
+import { toast } from "react-toastify";
 import { useAuth } from "@/contexts/AuthContext";
 import { 
   User, 
@@ -24,7 +25,8 @@ import {
   Payment, 
   Batch, 
   Course, 
-  ParentStudent 
+  ParentStudent,
+  PaymentStatus,
 } from "@/types";
 
 interface UserWithDetails extends User {
@@ -85,7 +87,7 @@ export function UserDetailsModal({ userId, isOpen, onClose }: Props) {
         setUser(data);
       } catch (error) {
         console.error("Failed to fetch user details:", error);
-        showToast.error("Failed to load user details");
+        toast.error("Failed to load user details");
         onClose();
       } finally {
         setIsLoading(false);
@@ -224,8 +226,8 @@ export function UserDetailsModal({ userId, isOpen, onClose }: Props) {
                                   <BookOpenIcon className="size-5" />
                                 </div>
                                 <div>
-                                  <p className="text-sm font-bold text-slate-900">{enr.course.title}</p>
-                                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Enrolled {new Date(enr.createdAt).toLocaleDateString()}</p>
+                                  <p className="text-sm font-bold text-slate-900">{enr.course?.title || "Unknown Course"}</p>
+                                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Enrolled {new Date(enr.enrolledAt).toLocaleDateString()}</p>
                                 </div>
                               </div>
                             </div>
@@ -256,10 +258,10 @@ export function UserDetailsModal({ userId, isOpen, onClose }: Props) {
                               <tr key={pay.id} className="text-xs font-semibold">
                                 <td className="py-3 px-2 text-slate-500">{new Date(pay.createdAt).toLocaleDateString()}</td>
                                 <td className="py-3 px-2 text-slate-900 font-black">\u20B9{pay.amount}</td>
-                                <td className="py-3 px-2 text-slate-500">{pay.mode || "ONLINE"}</td>
+                                <td className="py-3 px-2 text-slate-500">{"ONLINE"}</td>
                                 <td className="py-3 px-2 text-right">
                                   <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
-                                    pay.status === 'SUCCESS' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
+                                    pay.status === PaymentStatus.COMPLETED ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
                                   }`}>
                                     {pay.status}
                                   </span>
