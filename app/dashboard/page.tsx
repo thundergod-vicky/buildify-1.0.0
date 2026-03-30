@@ -40,6 +40,7 @@ import { AdminCourseManagement } from "@/components/dashboard/views/admin/Course
 import { AdminPracticeTestManagement } from "@/components/dashboard/views/admin/PracticeTestManagement";
 import { AdminRequests } from "@/components/dashboard/views/admin/Requests";
 import { AdminBatchManagement } from "@/components/dashboard/views/admin/BatchManagement";
+import { WebinarAccountManagement } from "@/components/dashboard/views/admin/WebinarAccountManagement";
 
 // Academic Views
 import { AcademicHome } from "@/components/dashboard/views/academic/Home";
@@ -61,6 +62,7 @@ import { AdminSettings } from "@/components/dashboard/views/admin/Settings";
 import { BatchDetailsView } from "@/components/dashboard/views/shared/BatchDetails";
 
 import { ZoomMeeting } from "@/components/dashboard/views/academic/ZoomMeeting";
+import { OnlineMeeting } from "@/components/dashboard/views/academic/OnlineMeeting";
 import { Suspense } from "react";
 
 export default function DashboardPage() {
@@ -128,6 +130,10 @@ function DashboardContent() {
 
   if (currentView === "zoom-meeting") {
     return <ZoomMeeting />;
+  }
+
+  if (currentView === "online-meeting") {
+    return <OnlineMeeting />;
   }
 
   // Student
@@ -228,6 +234,8 @@ function DashboardContent() {
         return <AdminCourseManagement />;
       case "practice-tests":
         return <AdminPracticeTestManagement />;
+      case "webinar-accounts":
+        return <WebinarAccountManagement />;
       case "revenue":
         return <div className="p-8">Revenue & Payments View (Coming Soon)</div>;
       case "requests":

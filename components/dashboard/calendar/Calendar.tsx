@@ -451,16 +451,7 @@ export function Calendar({ mode = 'student' }: { mode?: 'student' | 'teacher' | 
                                         }
 
                                          if (event.isOnline) {
-                                            if (event.meetingUrl) {
-                                                window.open(event.meetingUrl, "_blank");
-                                            } else if (event.meetingId) {
-                                                const cleanId = event.meetingId.replace(/[^0-9]/g, "");
-                                                const pwd = event.meetingPasscode || "";
-                                                const zoomUrl = `https://zoom.us/j/${cleanId}?pwd=${pwd}`;
-                                                window.open(zoomUrl, "_blank");
-                                            } else {
-                                                toast.error("No Zoom details provided for this session.");
-                                            }
+                                            window.open(`/dashboard?view=online-meeting&sessionId=${event.id}`, "_self");
                                         }
                                     }} 
                                     className={cn(
