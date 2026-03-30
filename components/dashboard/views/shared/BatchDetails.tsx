@@ -618,7 +618,7 @@ function ClassItem({
               }}
               className="px-6 py-2.5 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg shadow-blue-100"
             >
-              Join Virtual Classroom
+              Join Classroom
             </button>
           )}
 
