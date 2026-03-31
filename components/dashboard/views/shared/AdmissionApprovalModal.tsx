@@ -277,8 +277,8 @@ export function AdmissionApprovalModal({ studentId, studentName, isOpen, onClose
                 <div className="space-y-8">
                   {/* Status Badge */}
                   <div className="flex items-center justify-between">
-                    <span className={`px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-wider border ${statusColor[admission.status]}`}>
-                      {admission.status}
+                    <span className={`px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-wider border ${admission?.status ? statusColor[admission.status] : ""}`}>
+                      {admission?.status || "UNKNOWN"}
                     </span>
                     <span className="text-xs text-slate-400 font-medium">
                       Submitted {new Date(admission.createdAt).toLocaleDateString()}
@@ -439,7 +439,7 @@ export function AdmissionApprovalModal({ studentId, studentName, isOpen, onClose
               ) : admission.status !== "PENDING" ? (
                 <div className="px-8 py-6 border-t border-slate-100 shrink-0">
                   <p className="text-center text-sm text-slate-400 font-medium">
-                    This application has already been <strong className="capitalize">{admission.status.toLowerCase()}</strong>.
+                    This application has already been <strong className="capitalize">{admission.status?.toLowerCase() || "updated"}</strong>.
                   </p>
                 </div>
               ) : null
