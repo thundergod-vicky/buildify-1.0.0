@@ -96,8 +96,9 @@ function DashboardContent() {
     const token = auth.getToken();
     admissionsApi
       .getMyAdmission(token || undefined)
-      .then(() => {
-        setHasAdmission(true);
+      .then((data) => {
+        // Only mark as true if actual data was returned (must have an id)
+        setHasAdmission(!!(data && data.id));
       })
       .catch(() => {
         setHasAdmission(false);
