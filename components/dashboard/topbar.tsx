@@ -175,6 +175,18 @@ export default function Topbar() {
         }
     };
 
+    const markAllAsRead = async () => {
+        try {
+            const token = authService.getToken();
+            if (!token) return;
+            await api.patch(`/notifications/read-all`, {}, token);
+            setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+            toast.success("All marked as read");
+        } catch {
+            toast.error("Failed to update status");
+        }
+    };
+
     const unreadCount = notifications.filter(n => !n.isRead).length;
     
     const timeBasedGreeting = () => {
@@ -243,9 +255,17 @@ export default function Topbar() {
                             <div className="p-5 border-b border-gray-50 flex items-center justify-between bg-white shrink-0">
                                 <h3 className="font-bold text-gray-900">Notifications</h3>
                                 {unreadCount > 0 && (
-                                    <span className="px-2 py-0.5 bg-yellow-100 text-blue-600 text-[10px] font-black rounded-full uppercase tracking-wider">
-                                        {unreadCount} New
-                                    </span>
+                                    <div className="flex items-center gap-3">
+                                        <button 
+                                            onClick={markAllAsRead}
+                                            className="text-[10px] text-blue-600 font-bold uppercase tracking-wider hover:underline"
+                                        >
+                                            Mark all read
+                                        </button>
+                                        <span className="px-2 py-0.5 bg-yellow-100 text-blue-600 text-[10px] font-black rounded-full uppercase tracking-wider">
+                                            {unreadCount} New
+                                        </span>
+                                    </div>
                                 )}
                             </div>
 

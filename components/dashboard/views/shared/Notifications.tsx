@@ -39,11 +39,33 @@ export function NotificationsView() {
     }
   };
 
+  const markAllAsRead = async () => {
+    try {
+        const token = auth.getToken();
+        if (!token) return;
+        await api.patch(`/notifications/read-all`, {}, token);
+        setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+        toast.success("All marked as read");
+    } catch {
+        toast.error("Failed to update status");
+    }
+  };
+
   if (isLoading) return <div className="flex justify-center p-8"><Loader2 className="animate-spin text-blue-600" /></div>;
 
   return (
     <div className="p-8 space-y-6">
-       <h1 className="text-2xl font-bold font-urbanist text-gray-900">Notifications</h1>
+       <div className="flex justify-between items-center max-w-3xl">
+           <h1 className="text-2xl font-bold font-urbanist text-gray-900">Notifications</h1>
+           {notifications.some(n => !n.isRead) && (
+               <button 
+                   onClick={markAllAsRead}
+                   className="flex items-center gap-2 text-sm text-blue-600 font-semibold hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-xl transition-colors"
+               >
+                   <CheckCircle className="size-4" /> Mark all read
+               </button>
+           )}
+       </div>
        
        <div className="space-y-4 max-w-3xl">
           {notifications.length === 0 ? (
