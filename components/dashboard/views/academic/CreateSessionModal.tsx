@@ -31,8 +31,14 @@ export function CreateSessionModal({
     batchId: "",
     subjectId: "",
     date: new Date().toISOString().split("T")[0],
-    startTime: new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }),
-    endTime: new Date(Date.now() + 2 * 60 * 60 * 1000).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }),
+    startTime: new Date().toLocaleTimeString("en-GB", {
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+    endTime: new Date(Date.now() + 2 * 60 * 60 * 1000).toLocaleTimeString(
+      "en-GB",
+      { hour: "2-digit", minute: "2-digit" },
+    ),
     venue: "",
     isOnline: false,
   });
@@ -53,9 +59,14 @@ export function CreateSessionModal({
       });
     } else {
       const now = new Date();
-      const start = now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
-      const end = new Date(now.getTime() + 2 * 60 * 60 * 1000).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
-      
+      const start = now.toLocaleTimeString("en-GB", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      const end = new Date(
+        now.getTime() + 1 * 60 * 60 * 1000,
+      ).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+
       setFormData({
         title: "",
         type: "LECTURE" as any,
@@ -124,16 +135,22 @@ export function CreateSessionModal({
     // Validation: Prevent scheduling in the past
     const selectedDateTime = new Date(`${formData.date}T${formData.startTime}`);
     const now = new Date();
-    
+
     if (selectedDateTime < now && !editingSession) {
-      toast.error("Cannot schedule a class in the past. Please select a future time.");
+      toast.error(
+        "Cannot schedule a class in the past. Please select a future time.",
+      );
       return;
     }
 
     setLoading(true);
     try {
       if (editingSession) {
-        await api.patch(`/class-sessions/${editingSession.id}`, formData, auth.getToken() || "");
+        await api.patch(
+          `/class-sessions/${editingSession.id}`,
+          formData,
+          auth.getToken() || "",
+        );
         toast.success("Session updated!");
       } else {
         await api.post("/class-sessions", formData, auth.getToken() || "");
@@ -151,7 +168,7 @@ export function CreateSessionModal({
   if (!isOpen) return null;
 
   return (
-    <div 
+    <div
       className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm animate-in fade-in"
       onWheel={(e) => e.stopPropagation()}
     >
@@ -322,7 +339,7 @@ export function CreateSessionModal({
             </div>
 
             {formData.isOnline && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 className="bg-blue-50/20 p-6 rounded-2xl border border-blue-100/50"
@@ -334,7 +351,8 @@ export function CreateSessionModal({
                   </p>
                 </div>
                 <p className="text-[11px] text-gray-500 mt-2 font-medium">
-                  The system will automatically allocate an available account and generate a secure join link for this session.
+                  The system will automatically allocate an available account
+                  and generate a secure join link for this session.
                 </p>
               </motion.div>
             )}
