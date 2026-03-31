@@ -132,11 +132,14 @@ export function AdmissionApprovalModal({ studentId, studentName, isOpen, onClose
     if (!isOpen || !studentId) {
       setAdmission(null);
       setIsEditing(false);
+      setPhotoBlobUrl(null);
       return;
     }
 
     setIsLoading(true);
     const token = auth.getToken() || "";
+    let objectUrl: string | null = null;
+
     api
       .get<Admission>(`/admissions/student/${studentId}`, token)
       .then(async (data) => {
@@ -145,8 +148,8 @@ export function AdmissionApprovalModal({ studentId, studentName, isOpen, onClose
         if (data && data.photoUrl) {
           try {
             const blob = await api.getBlob(`/admissions/photo/${data.id}`, token);
-            const url = URL.createObjectURL(blob);
-            setPhotoBlobUrl(url);
+            objectUrl = URL.createObjectURL(blob);
+            setPhotoBlobUrl(objectUrl);
           } catch (err) {
             console.error("Failed to fetch photo blob:", err);
           }
@@ -156,11 +159,11 @@ export function AdmissionApprovalModal({ studentId, studentName, isOpen, onClose
       .finally(() => setIsLoading(false));
 
     return () => {
-      if (photoBlobUrl) {
-        URL.revokeObjectURL(photoBlobUrl);
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
       }
     };
-  }, [isOpen, studentId, photoBlobUrl]);
+  }, [isOpen, studentId]);
 
   const handleFieldChange = (name: string, value: string) => {
     setEditData((prev) => ({ ...prev, [name]: value }));
