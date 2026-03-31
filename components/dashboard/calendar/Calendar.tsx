@@ -426,31 +426,40 @@ export function Calendar({ mode = 'student' }: { mode?: 'student' | 'teacher' | 
                                         sessionEnd.setHours(endHours, endMinutes, 0, 0);
                                         const isPast = new Date() > sessionEnd;
 
-                                        if (isPast && event.type === 'CLASS') {
-                                            // Try to fetch stream URL through the sync endpoint
-                                            try {
-                                                const res = await api.get<{ recordings: any[]; source: string }>(`/class-sessions/${event.id}/recording`, auth.getToken() || "");
-                                                if (res && res.recordings && res.recordings.length > 0) {
-                                                    // Get CloudFront stream URL
-                                                    const streamRes = await api.get<{ url: string; status: string }>(
-                                                        `/recordings/${res.recordings[0].id}/stream`,
-                                                        auth.getToken() || "",
-                                                    );
-                                                    if (streamRes.status === 'processing') {
-                                                        toast.info("Recording is still being processed. Please check back in a few minutes.");
-                                                    } else if (streamRes.url) {
-                                                        window.open(streamRes.url, '_blank');
-                                                    } else {
-                                                        toast.warn("Recording is not yet available.");
-                                                    }
-                                                } else {
-                                                    toast.info("Recording is not yet available. Please check again in a few minutes.");
-                                                }
-                                            } catch (e) {
-                                                console.error("Failed to fetch recording", e);
-                                            }
-                                            return;
-                                        }
+              if (isPast && event.type === 'CLASS') {
+                // Try to fetch stream URL through the sync endpoint
+                try {
+                  const res = await api.get<{ recordings: any[]; source: string }>(`/class-sessions/${event.id}/recording`, auth.getToken() || "");
+                  if (res && res.recordings && res.recordings.length > 0) {
+                    // Get CloudFront stream URL
+                    const recordingId = res.recordings[0].id;
+                    if (!recordingId) {
+                      toast.warn("Recording ID not found.");
+                      return;
+                    }
+                    const streamRes = await api.get<{ url?: string; status?: string; error?: string }>(
+                      `/recordings/${recordingId}/stream`,
+                      auth.getToken() || "",
+                    );
+                    if (streamRes.error) {
+                      toast.error(streamRes.error);
+                    } else if (streamRes.status === 'processing') {
+                      toast.info("Recording is still being processed. Please check back in a few minutes.");
+                    } else if (streamRes.url) {
+                      window.open(streamRes.url, '_blank');
+                    } else {
+                      toast.warn("Recording is not yet available.");
+                    }
+                  } else {
+                    toast.info("Recording is not yet available. Please check again in a few minutes.");
+                  }
+                } catch (e) {
+                  console.error("Failed to fetch recording", e);
+                  const errorMessage = e instanceof Error ? e.message : "Failed to load recording. Please try again later.";
+                  toast.error(errorMessage);
+                }
+                return;
+              }
 
                                          if (event.isOnline) {
                                             // Hosts (Teacher, Operations) go directly to webinar.gg

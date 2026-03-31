@@ -4,18 +4,57 @@ import React, { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { useSearchParams, useRouter } from "next/navigation";
-import { ArrowLeft, AlertCircle, Loader2Icon } from "lucide-react";
+import { ArrowLeft, AlertCircle, Loader2Icon, Maximize, Minimize } from "lucide-react";
 
 export function OnlineMeeting() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const sessionId = searchParams.get("sessionId");
 
-  const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [status, setStatus] = useState<"loading" | "ready" | "error">(
+    "loading",
+  );
   const [error, setError] = useState<string | null>(null);
   const [iframeUrl, setIframeUrl] = useState<string | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const containerRef = React.useRef<HTMLDivElement>(null);
   const joinLock = React.useRef(false);
   const lastSessionId = React.useRef<string | null>(null);
+
+  const toggleFullscreen = () => {
+    if (!containerRef.current) return;
+
+    if (!document.fullscreenElement) {
+      containerRef.current.requestFullscreen().catch((err) => {
+        console.error(`Error attempting to enable full-screen mode: ${err.message}`);
+      });
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen();
+      setIsFullscreen(false);
+    }
+  };
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
+  }, []);
+
+  const handleBack = () => {
+    const user = auth.getUser();
+    const isAcademic = ["TEACHER", "STUDENT", "ACADEMIC_OPERATIONS"].includes(
+      user?.role || "",
+    );
+
+    if (isAcademic) {
+      router.push("/dashboard?view=schedule");
+    } else {
+      router.push("/dashboard");
+    }
+  };
 
   useEffect(() => {
     // Prevent double-joining for the same sessionId
@@ -36,16 +75,18 @@ export function OnlineMeeting() {
       try {
         const token = auth.getToken() || "";
         const user = auth.getUser();
-        
+
         const response = await api.post<{ token: string; iframeUrl: string }>(
           `/webinars/join/${sessionId}`,
           {},
-          token
+          token,
         );
 
         // Redirect Hosts (Teachers, Admins, Operations) to the full app
-        const isHost = ["TEACHER", "ADMIN", "ACADEMIC_OPERATIONS"].includes(user?.role || "");
-        
+        const isHost = ["TEACHER", "ADMIN", "ACADEMIC_OPERATIONS"].includes(
+          user?.role || "",
+        );
+
         if (isHost) {
           window.location.href = response.iframeUrl;
           return;
@@ -54,7 +95,10 @@ export function OnlineMeeting() {
         setIframeUrl(response.iframeUrl);
         setStatus("ready");
       } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : "Failed to join the virtual classroom.";
+        const message =
+          err instanceof Error
+            ? err.message
+            : "Failed to join the virtual classroom.";
         setError(message);
         setStatus("error");
         joinLock.current = false; // Allow retry on error
@@ -65,34 +109,53 @@ export function OnlineMeeting() {
   }, [sessionId]);
 
   return (
-    <div className="fixed inset-0 z-[99999] bg-slate-950 overflow-hidden flex flex-col animate-in fade-in duration-700 font-urbanist">
+    <div 
+      ref={containerRef}
+      className="fixed inset-0 z-[99999] bg-slate-950 overflow-hidden flex flex-col animate-in fade-in duration-700 font-urbanist"
+    >
       {/* Header */}
-      <div className="p-6 flex items-center justify-between bg-slate-900/50 backdrop-blur-md border-b border-white/5 z-50">
-        <div className="flex items-center gap-4">
+      <div className="py-3 px-4 md:px-6 flex items-center justify-between bg-slate-900/50 backdrop-blur-md border-b border-white/5 z-50">
+        <div className="flex items-center gap-3 md:gap-4">
           <button
-            onClick={() => router.back()}
-            className="bg-white/5 hover:bg-white/10 p-3 rounded-2xl border border-white/10 transition-all group"
+            onClick={handleBack}
+            className="bg-white/5 hover:bg-white/10 p-2 md:p-3 rounded-xl md:rounded-2xl border border-white/10 transition-all group"
           >
-            <ArrowLeft className="w-5 h-5 text-white/70 group-hover:-translate-x-1 transition-transform" />
+            <ArrowLeft className="w-4 h-4 md:w-5 md:h-5 text-white/70 group-hover:-translate-x-1 transition-transform" />
           </button>
-          <div>
-            <h1 className="text-sm font-black tracking-[0.2em] uppercase text-white/90">
+          <div className="min-w-0">
+            <h1 className="text-[10px] md:text-sm font-black tracking-[0.2em] uppercase text-white/90 truncate">
               Virtual Classroom
             </h1>
-            <p className="text-[10px] text-indigo-400 uppercase tracking-widest mt-0.5 font-black">
+            <p className="hidden md:block text-[10px] text-indigo-400 uppercase tracking-widest mt-0.5 font-black">
               Webinar.gg Integration • Secure Session
             </p>
           </div>
         </div>
 
-        {status === "ready" && (
-          <div className="flex items-center gap-3 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full shadow-lg shadow-emerald-500/5">
-            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">
-              Live Connection
-            </span>
-          </div>
-        )}
+        <div className="flex items-center gap-2 md:gap-4">
+          {status === "ready" && (
+            <button
+              onClick={toggleFullscreen}
+              className="bg-white/5 hover:bg-white/10 p-2 md:p-3 rounded-xl md:rounded-2xl border border-white/10 transition-all group text-white/70 hover:text-white"
+              title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+            >
+              {isFullscreen ? (
+                <Minimize className="w-4 h-4 md:w-5 md:h-5" />
+              ) : (
+                <Maximize className="w-4 h-4 md:w-5 md:h-5" />
+              )}
+            </button>
+          )}
+
+          {status === "ready" && (
+            <div className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-1.5 md:py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full shadow-lg shadow-emerald-500/5">
+              <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-[8px] md:text-[10px] font-black text-emerald-500 uppercase tracking-widest whitespace-nowrap">
+                Live Connection
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Main Content */}
@@ -100,14 +163,16 @@ export function OnlineMeeting() {
         {status === "loading" && (
           <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-slate-950">
             <div className="relative">
-                <div className="size-20 border-b-4 border-indigo-500 rounded-full animate-spin" />
-                <Loader2Icon className="size-8 text-indigo-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse" />
+              <div className="size-20 border-b-4 border-indigo-500 rounded-full animate-spin" />
+              <Loader2Icon className="size-8 text-indigo-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse" />
             </div>
             <div className="text-center mt-8">
               <h2 className="text-2xl font-black text-white mb-2 tracking-tight">
                 Authenticating...
               </h2>
-              <p className="text-sm text-slate-400 font-medium">Establishing secure Handshake with Webinar.gg</p>
+              <p className="text-sm text-slate-400 font-medium">
+                Establishing secure Handshake with Webinar.gg
+              </p>
             </div>
           </div>
         )}
@@ -132,7 +197,7 @@ export function OnlineMeeting() {
                 Retry
               </button>
               <button
-                onClick={() => router.back()}
+                onClick={handleBack}
                 className="px-10 py-4 bg-rose-600 hover:bg-rose-700 text-white rounded-2xl font-black uppercase text-xs tracking-widest shadow-2xl shadow-rose-900/20 transition-all border border-rose-500/50"
               >
                 Go Back
@@ -148,7 +213,9 @@ export function OnlineMeeting() {
             allow="camera; microphone; display-capture; fullscreen; autoplay"
             title="WebinarGG Classroom"
             allowFullScreen
-            {...({ "credentialless": "" } as React.IframeHTMLAttributes<HTMLIFrameElement>)}
+            {...({
+              credentialless: "",
+            } as React.IframeHTMLAttributes<HTMLIFrameElement>)}
           />
         )}
       </div>
