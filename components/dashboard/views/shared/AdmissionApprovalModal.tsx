@@ -170,11 +170,21 @@ export function AdmissionApprovalModal({ studentId, studentName, isOpen, onClose
   };
 
   const handleSave = async () => {
-    if (!admission) return;
+    if (!admission || !admission.id || admission.id === 'undefined') {
+      showToast.error("Missing valid admission ID. Please refresh.");
+      return;
+    }
     setIsActing(true);
     const token = auth.getToken() || "";
+    
+    // Normalize caste to uppercase for Prisma enum compatibility
+    const dataToUpdate = {
+      ...editData,
+      caste: editData.caste ? editData.caste.toUpperCase() : undefined,
+    };
+
     try {
-      await api.patch(`/admissions/${admission.id}`, editData, token);
+      await api.patch(`/admissions/${admission.id}`, dataToUpdate, token);
       showToast.success("Admission details updated successfully");
       setIsEditing(false);
       // Re-fetch to show updated data
@@ -182,8 +192,9 @@ export function AdmissionApprovalModal({ studentId, studentName, isOpen, onClose
       setAdmission(updated);
       setEditData(updated);
       onAction();
-    } catch {
-      showToast.error("Failed to update admission details");
+    } catch (error: any) {
+      const errorMsg = error?.message || "Failed to update admission details";
+      showToast.error(errorMsg);
     } finally {
       setIsActing(false);
     }
