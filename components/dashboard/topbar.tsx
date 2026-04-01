@@ -269,7 +269,7 @@ export default function Topbar() {
                                 )}
                             </div>
 
-                            <div className="p-2 space-y-1 flex-1 overflow-y-auto minimal-scrollbar overscroll-behavior-auto">
+                            <div className="p-2 space-y-1 flex-1 overflow-y-auto minimal-scrollbar overscroll-behavior-auto" data-lenis-prevent>
                                 {isLoadingNotis ? (
                                     <div className="flex flex-col items-center justify-center p-12 space-y-3">
                                         <Loader2Icon className="size-8 text-blue-600 animate-spin" />
@@ -383,7 +383,7 @@ export default function Topbar() {
 
                     {/* Dropdown Menu */}
                     {isMenuOpen && (
-                        <div className="absolute right-0 mt-3 w-[calc(100vw-2rem)] sm:w-80 bg-white border border-gray-100 rounded-2xl sm:rounded-3xl shadow-2xl shadow-gray-200/50 py-2 z-50 animate-in fade-in zoom-in duration-200 overflow-hidden">
+                        <div className="absolute right-0 mt-3 w-[calc(100vw-2rem)] sm:w-80 bg-white border border-gray-100 rounded-2xl sm:rounded-3xl shadow-2xl shadow-gray-200/50 py-2 z-50 animate-in fade-in zoom-in duration-200 overflow-y-auto max-h-[85vh] sm:max-h-none minimal-scrollbar" data-lenis-prevent>
                             {user?.role === Role.STUDENT && (
                                 <div className="p-4 border-b border-gray-50 bg-gray-50/30">
                                     <div className="flex items-center justify-between mb-3">
