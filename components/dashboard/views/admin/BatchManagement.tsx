@@ -35,6 +35,7 @@ export function AdminBatchManagement() {
   });
   const [assignStudentIds, setAssignStudentIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [studentSearchQuery, setStudentSearchQuery] = useState("");
 
   const fetchData = async () => {
     try {
@@ -121,6 +122,7 @@ export function AdminBatchManagement() {
       toast.success("Students assigned successfully");
       setIsAssignModalOpen(false);
       setAssignStudentIds([]);
+      setStudentSearchQuery(""); // Reset search when closing
       fetchData();
     } catch {
       toast.error("Failed to assign students");
@@ -205,6 +207,7 @@ export function AdminBatchManagement() {
                         setAssignStudentIds(
                           fullBatch.students?.map((s: any) => s.id) || [],
                         );
+                        setStudentSearchQuery(""); // Reset search when opening
                         setIsAssignModalOpen(true);
                       }}
                       className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
@@ -428,46 +431,82 @@ export function AdminBatchManagement() {
               <p className="text-gray-500">
                 Select multiple students to add to this batch
               </p>
+              <div className="mt-6 relative">
+                <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search students by name or email..."
+                  className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium"
+                  value={studentSearchQuery}
+                  onChange={(e) => setStudentSearchQuery(e.target.value)}
+                />
+              </div>
             </div>
             <div className="p-8 flex-1 overflow-y-auto space-y-4 minimal-scrollbar" style={{ overscrollBehavior: 'contain' }}>
-              {students.map((s) => (
-                <div
-                  key={s.id}
-                  onClick={() => {
-                    if (assignStudentIds.includes(s.id)) {
-                      setAssignStudentIds(
-                        assignStudentIds.filter((id) => id !== s.id),
-                      );
-                    } else {
-                      setAssignStudentIds([...assignStudentIds, s.id]);
-                    }
-                  }}
-                  className={`flex items-center justify-between p-4 rounded-2xl border cursor-pointer transition-all ${
-                    assignStudentIds.includes(s.id)
-                      ? "border-blue-500 bg-blue-50 ring-1 ring-blue-500"
-                      : "border-gray-100 hover:bg-gray-50"
-                  }`}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="size-10 rounded-full bg-white border border-gray-100 flex items-center justify-center text-gray-500">
-                      <GraduationCapIcon className="size-5" />
+              {students
+                .filter(
+                  (s) =>
+                    s.name
+                      ?.toLowerCase()
+                      .includes(studentSearchQuery.toLowerCase()) ||
+                    s.email
+                      ?.toLowerCase()
+                      .includes(studentSearchQuery.toLowerCase()),
+                )
+                .map((s) => (
+                  <div
+                    key={s.id}
+                    onClick={() => {
+                      if (assignStudentIds.includes(s.id)) {
+                        setAssignStudentIds(
+                          assignStudentIds.filter((id) => id !== s.id),
+                        );
+                      } else {
+                        setAssignStudentIds([...assignStudentIds, s.id]);
+                      }
+                    }}
+                    className={`flex items-center justify-between p-4 rounded-2xl border cursor-pointer transition-all ${
+                      assignStudentIds.includes(s.id)
+                        ? "border-blue-500 bg-blue-50 ring-1 ring-blue-500"
+                        : "border-gray-100 hover:bg-gray-50"
+                    }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="size-10 rounded-full bg-white border border-gray-100 flex items-center justify-center text-gray-500">
+                        <GraduationCapIcon className="size-5" />
+                      </div>
+                      <div>
+                        <p className="font-bold text-gray-900">{s.name}</p>
+                        <p className="text-xs text-gray-500">{s.email}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-bold text-gray-900">{s.name}</p>
-                      <p className="text-xs text-gray-500">{s.email}</p>
-                    </div>
+                    {assignStudentIds.includes(s.id) && (
+                      <div className="size-6 bg-blue-600 rounded-full flex items-center justify-center text-white">
+                        <PlusIcon className="size-4" />
+                      </div>
+                    )}
                   </div>
-                  {assignStudentIds.includes(s.id) && (
-                    <div className="size-6 bg-blue-600 rounded-full flex items-center justify-center text-white">
-                      <PlusIcon className="size-4" />
-                    </div>
-                  )}
+                ))}
+              {students.filter(
+                (s) =>
+                  s.name
+                    ?.toLowerCase()
+                    .includes(studentSearchQuery.toLowerCase()) ||
+                  s.email
+                    ?.toLowerCase()
+                    .includes(studentSearchQuery.toLowerCase()),
+              ).length === 0 && (
+                <div className="py-10 text-center text-gray-400 font-medium">
+                  No students found matching your search.
                 </div>
-              ))}
+              )}
             </div>
             <div className="p-8 border-t border-gray-100 flex gap-4 bg-gray-50">
               <button
-                onClick={() => setIsAssignModalOpen(false)}
+                onClick={() => {
+                  setIsAssignModalOpen(false);
+                  setStudentSearchQuery("");
+                }}
                 className="flex-1 px-6 py-3 bg-white border border-gray-100 text-gray-600 rounded-xl font-bold hover:bg-gray-50 transition-colors"
               >
                 Cancel
