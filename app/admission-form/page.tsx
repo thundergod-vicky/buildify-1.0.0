@@ -128,10 +128,6 @@ export default function AdmissionFormPage() {
   };
 
   const onSubmit = async (data: AdmissionFormData) => {
-    if (!photoFile) {
-      toast.error("Please upload a student photo");
-      return;
-    }
 
     setIsSubmitting(true);
     const token = auth.getToken();
@@ -140,7 +136,9 @@ export default function AdmissionFormPage() {
       Object.entries(data).forEach(([key, value]) => {
         formData.append(key, value || "");
       });
-      formData.append("photo", photoFile);
+      if (photoFile) {
+        formData.append("photo", photoFile);
+      }
 
       await admissionsApi.submitAdmission(formData, token || undefined);
       // Refresh user profile so user.admission is populated
@@ -190,7 +188,7 @@ export default function AdmissionFormPage() {
 
           <div className="w-32">
             <label className="block text-sm font-semibold text-gray-600 mb-2 text-center">
-              Student Photo <span className="text-red-500">*</span>
+              Student Photo <span className="text-gray-400 font-normal">(Optional)</span>
             </label>
             <div className="relative w-32 h-36 border-2 border-dashed border-gray-300 rounded-xl overflow-hidden flex items-center justify-center bg-gray-50 cursor-pointer hover:border-blue-500 hover:bg-blue-50/50 transition-colors">
               {photoPreview ? (
