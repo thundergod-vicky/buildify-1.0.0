@@ -36,6 +36,7 @@ export function AdminBatchManagement() {
   const [assignStudentIds, setAssignStudentIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [studentSearchQuery, setStudentSearchQuery] = useState("");
+  const [teacherSearchQuery, setTeacherSearchQuery] = useState("");
 
   const fetchData = async () => {
     try {
@@ -218,6 +219,7 @@ export function AdminBatchManagement() {
                     <button
                       onClick={() => {
                         setSelectedBatch(batch);
+                        setTeacherSearchQuery(""); // Reset search when opening
                         setIsAssignTeacherModalOpen(true);
                       }}
                       className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg"
@@ -537,9 +539,29 @@ export function AdminBatchManagement() {
               <p className="text-gray-500 text-sm">
                 Assign or remove teachers for this batch
               </p>
+              <div className="mt-6 relative">
+                <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search teachers by name or email..."
+                  className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-medium"
+                  value={teacherSearchQuery}
+                  onChange={(e) => setTeacherSearchQuery(e.target.value)}
+                />
+              </div>
             </div>
             <div className="p-4 sm:p-8 overflow-y-auto space-y-4 minimal-scrollbar flex-1" style={{ overscrollBehavior: 'contain' }}>
-              {teachers.map((t) => {
+              {teachers
+                .filter(
+                  (t) =>
+                    t.name
+                      ?.toLowerCase()
+                      .includes(teacherSearchQuery.toLowerCase()) ||
+                    t.email
+                      ?.toLowerCase()
+                      .includes(teacherSearchQuery.toLowerCase()),
+                )
+                .map((t) => {
                 const isAssigned = selectedBatch?.teachers?.some(
                   (bt: any) => bt.id === t.id,
                 );
@@ -611,10 +633,26 @@ export function AdminBatchManagement() {
                   </div>
                 );
               })}
+               {teachers.filter(
+                (t) =>
+                  t.name
+                    ?.toLowerCase()
+                    .includes(teacherSearchQuery.toLowerCase()) ||
+                  t.email
+                    ?.toLowerCase()
+                    .includes(teacherSearchQuery.toLowerCase())
+              ).length === 0 && (
+                <div className="py-10 text-center text-gray-400 font-medium">
+                  No teachers found matching your search.
+                </div>
+              )}
             </div>
             <div className="p-8 border-t border-gray-100 bg-gray-50">
               <button
-                onClick={() => setIsAssignTeacherModalOpen(false)}
+                onClick={() => {
+                  setIsAssignTeacherModalOpen(false);
+                  setTeacherSearchQuery("");
+                }}
                 className="w-full px-6 py-3 bg-white border border-gray-100 text-gray-600 rounded-xl font-bold hover:bg-gray-50 transition-colors"
               >
                 Close
