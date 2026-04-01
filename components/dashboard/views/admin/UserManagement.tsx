@@ -71,6 +71,7 @@ export function AdminUserManagement() {
     phone: "",
     password: "Password@123",
     role: "STUDENT" as Role,
+    userCode: "",
   });
   const [deleteConfirm, setDeleteConfirm] = useState<{
     isOpen: boolean;
@@ -192,6 +193,7 @@ export function AdminUserManagement() {
           webinarName: editingUser.webinarName,
           webinarEmail: editingUser.webinarEmail,
           webinarApiKey: editingUser.webinarApiKey,
+          userCode: editingUser.userCode,
         },
         token,
       );
@@ -261,6 +263,7 @@ export function AdminUserManagement() {
         phone: "",
         password: "Password@123",
         role: "STUDENT" as Role,
+        userCode: "",
       });
       fetchUsers();
     } catch (error) {
@@ -746,6 +749,27 @@ export function AdminUserManagement() {
                         </div>
                       </div>
                     )}
+
+                    <div className="pt-6 border-t border-slate-100 space-y-4">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">
+                        Biometric User Code
+                      </label>
+                      <input
+                        value={editingUser.userCode || ""}
+                        onChange={(e) =>
+                          setEditingUser({
+                            ...editingUser,
+                            userCode: e.target.value,
+                          })
+                        }
+                        type="text"
+                        className="w-full px-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl outline-none focus:border-indigo-500 focus:bg-white transition-all font-bold text-sm text-slate-700 shadow-inner"
+                        placeholder="e.g. E1023"
+                      />
+                      <p className="text-[9px] font-medium text-slate-400 ml-1">
+                        This code must match the employee_code in the biometric system logs.
+                      </p>
+                    </div>
                   </div>
                 </div>
 
@@ -917,6 +941,21 @@ export function AdminUserManagement() {
                           placeholder="Enter password..."
                         />
                       </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">
+                        Biometric User Code (Optional)
+                      </label>
+                      <input
+                        value={newUser.userCode}
+                        onChange={(e) =>
+                          setNewUser({ ...newUser, userCode: e.target.value })
+                        }
+                        type="text"
+                        className="w-full px-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl outline-none focus:border-indigo-500 focus:bg-white transition-all font-bold text-sm text-slate-700 shadow-inner"
+                        placeholder="e.g. E1023"
+                      />
                     </div>
                   </div>
                 </div>
@@ -1318,7 +1357,7 @@ function UserRow({
                         initial={{ opacity: 0, scale: 0.9, x: 20 }}
                         animate={{ opacity: 1, scale: 1, x: 0 }}
                         exit={{ opacity: 0, scale: 0.9, x: 20 }}
-                        className={`absolute right-full mr-3 w-60 bg-white/95 backdrop-blur-2xl border border-gray-100 rounded-[2.5rem] shadow-2xl shadow-indigo-100/50 z-[101] overflow-hidden p-2.5 ${
+                        className={`absolute right-full mr-3 w-60 bg-white/95 backdrop-blur-2xl border border-gray-100 rounded-[2.5rem] shadow-2xl shadow-indigo-100/50 z-101 overflow-hidden p-2.5 ${
                           openUpwards
                             ? "bottom-0 origin-bottom-right"
                             : "top-0 origin-top-right"
