@@ -610,6 +610,7 @@ export function AdminUserManagement() {
                   setDetailsModal={setDetailsModal}
                   setAdmissionModal={setAdmissionModal}
                   setPasswordModal={setPasswordModal}
+                  setEditingUser={setEditingUser}
                 />
               ))}
             </div>
@@ -1509,6 +1510,7 @@ function UserCard({
   setDetailsModal,
   setAdmissionModal,
   setPasswordModal,
+  setEditingUser,
 }: {
   user: UserWithCounts;
   currentUser: User | null;
@@ -1516,6 +1518,7 @@ function UserCard({
   setDetailsModal: (modal: { isOpen: boolean; userId: string; userName: string }) => void;
   setAdmissionModal: (modal: { isOpen: boolean; userId: string; userName: string }) => void;
   setPasswordModal: (modal: { isOpen: boolean; userId: string; userName: string; newPassword: '' }) => void;
+  setEditingUser: (user: UserWithCounts | null) => void;
 }) {
   const [isActionsOpen, setIsActionsOpen] = useState(false);
 
