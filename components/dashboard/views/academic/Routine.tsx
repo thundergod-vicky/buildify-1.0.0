@@ -25,9 +25,16 @@ export function ClassRoutine() {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
+  const getLocalYMD = (d: Date) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  };
+
   // For routine viewing, filter by the next 7 days in tabs
   const [selectedDateFilter, setSelectedDateFilter] = useState<string>(
-    new Date().toISOString().split("T")[0],
+    getLocalYMD(new Date())
   );
 
   const generateNext7Days = () => {
@@ -123,8 +130,8 @@ export function ClassRoutine() {
 
       <div className="bg-white/50 backdrop-blur-md p-1.5 rounded-2xl border border-gray-100 shadow-sm flex gap-2 overflow-x-auto w-full minimal-scrollbar">
         {weekDays.map((d) => {
-          const dateStr = d.toISOString().split("T")[0];
-          const isToday = new Date().toISOString().split("T")[0] === dateStr;
+          const dateStr = getLocalYMD(d);
+          const isToday = getLocalYMD(new Date()) === dateStr;
           const isSelected = selectedDateFilter === dateStr;
           return (
             <button
