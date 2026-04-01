@@ -8,13 +8,19 @@ import {
   SortAscIcon,
   SortDescIcon,
   CalendarIcon,
-  ArrowUpDownIcon
+  ArrowUpDownIcon,
+  MoreHorizontal,
+  TrophyIcon,
+  BookOpenIcon,
+  ClockIcon
 } from "lucide-react";
 import { showToast } from "@/lib/toast";
 import { api } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { User } from "@/types";
 import { AdmissionApprovalModal } from "@/components/dashboard/views/shared/AdmissionApprovalModal";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 interface UserWithCounts extends User {
   _count?: {
@@ -25,6 +31,161 @@ interface UserWithCounts extends User {
 
 const MEDALS = ["WOOD", "STONE", "IRON", "SILVER", "GOLD", "DIAMOND", "PLATINUM", "VIBRANIUM"];
 const GRADES = ["F", "D", "D_PLUS", "C", "C_PLUS", "B", "B_PLUS", "A", "A_PLUS", "E"];
+
+function StudentCard({
+  student,
+  updateStatus,
+  updatingId,
+  setAdmissionModal,
+}: {
+  student: UserWithCounts;
+  updateStatus: (studentId: string, medal: string | undefined, grade: string | undefined) => void;
+  updatingId: string | null;
+  setAdmissionModal: (modal: { isOpen: boolean; studentId: string; studentName: string }) => void;
+}) {
+  const [isActionsOpen, setIsActionsOpen] = useState(false);
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm hover:shadow-md transition-all group overflow-visible relative">
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className="size-10 rounded-xl bg-indigo-50 flex items-center justify-center font-black text-indigo-600 text-base">
+            {student.name?.[0]?.toUpperCase() || "S"}
+          </div>
+          <div className="truncate">
+            <h4 className="font-black text-gray-900 text-sm leading-none mb-1 truncate max-w-[150px]">
+              {student.name || "Unnamed Student"}
+            </h4>
+            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest truncate max-w-[120px]">
+              {student.email}
+            </p>
+          </div>
+        </div>
+
+        <div className="relative">
+          <button
+            onClick={() => setIsActionsOpen(!isActionsOpen)}
+            className={cn(
+              "p-2 rounded-xl border transition-all",
+              isActionsOpen ? "bg-indigo-600 border-indigo-600 text-white" : "border-gray-100 text-gray-400 hover:bg-gray-50"
+            )}
+          >
+            <MoreHorizontal className="size-4" />
+          </button>
+
+          <AnimatePresence>
+            {isActionsOpen && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                className="absolute right-0 top-full mt-2 w-52 bg-white rounded-2xl shadow-2xl border border-gray-100 z-[60] p-2 overflow-hidden"
+              >
+                <div className="space-y-3 p-2">
+                  <div className="space-y-1.5">
+                    <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest px-1">Assign Medal</p>
+                    <div className="grid grid-cols-2 gap-1">
+                      <select
+                        defaultValue={student.medal || ""}
+                        onChange={(e) => {
+                          updateStatus(student.id, e.target.value, student.grade || undefined);
+                          setIsActionsOpen(false);
+                        }}
+                        className="w-full bg-gray-50 border border-gray-100 rounded-lg text-[10px] font-bold p-1.5 outline-none"
+                      >
+                        <option value="">No Medal</option>
+                        {MEDALS.map((m) => (
+                          <option key={m} value={m}>{m}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest px-1">Assign Grade</p>
+                    <select
+                      defaultValue={student.grade || ""}
+                      onChange={(e) => {
+                        updateStatus(student.id, student.medal || undefined, e.target.value);
+                        setIsActionsOpen(false);
+                      }}
+                      className="w-full bg-gray-50 border border-gray-100 rounded-lg text-[10px] font-bold p-1.5 outline-none"
+                    >
+                      <option value="">No Grade</option>
+                      {GRADES.map((g) => (
+                        <option key={g} value={g}>{g.replace("_PLUS", "+")}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="pt-2 border-t border-gray-50">
+                    <button
+                      onClick={() => {
+                        setIsActionsOpen(false);
+                        setAdmissionModal({ isOpen: true, studentId: student.id, studentName: student.name || "Student" });
+                      }}
+                      className="flex items-center gap-2 w-full p-2 text-left text-[10px] font-bold text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                    >
+                      <GraduationCapIcon className="size-3.5" />
+                      View Admission
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="bg-gray-50/50 rounded-xl p-2.5 border border-gray-100">
+           <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest block mb-0.5">Medal Status</span>
+           <div className="flex items-center gap-1.5">
+             <TrophyIcon className={cn("size-3", student.medal ? "text-amber-500" : "text-gray-300")} />
+             <span className="text-[10px] font-black text-gray-700 truncate">{student.medal || "NONE"}</span>
+           </div>
+        </div>
+        <div className="bg-gray-50/50 rounded-xl p-2.5 border border-gray-100">
+           <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest block mb-0.5">Academic Grade</span>
+           <div className="flex items-center gap-1.5">
+             <BookOpenIcon className={cn("size-3", student.grade ? "text-indigo-500" : "text-gray-300")} />
+             <span className="text-[10px] font-black text-gray-700">{student.grade?.replace("_PLUS", "+") || "NONE"}</span>
+           </div>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between pt-3 border-t border-gray-50">
+        <div className="flex gap-4">
+          <div className="flex flex-col">
+            <span className="text-xs font-black text-gray-900">{student._count?.enrollments || 0}</span>
+            <span className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Courses</span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-xs font-black text-gray-900">{student._count?.practiceTestResults || 0}</span>
+            <span className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Tests</span>
+          </div>
+        </div>
+        <div className="flex flex-col items-end">
+           {student.enrollmentId && (
+             <span className="text-[9px] font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full mb-1">
+               {student.enrollmentId}
+             </span>
+           )}
+           <span className="text-[8px] font-bold text-gray-300 flex items-center gap-1">
+             <ClockIcon className="size-2.5" />
+             {new Date(student.createdAt).toLocaleDateString()}
+           </span>
+        </div>
+      </div>
+      
+      {updatingId === student.id && (
+        <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] rounded-2xl flex items-center justify-center z-10 transition-all">
+          <div className="size-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function TeacherStudentManagement() {
   const [students, setStudents] = useState<UserWithCounts[]>([]);
@@ -91,45 +252,49 @@ export function TeacherStudentManagement() {
 
   return (
     <>
-      <div className="p-8 max-w-7xl mx-auto space-y-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 font-urbanist">Student Management</h1>
-            <p className="text-gray-500 mt-1">Assign medals and grades to your students based on performance</p>
+      <div className="p-3 sm:p-8 max-w-7xl mx-auto space-y-3 sm:space-y-8 overflow-x-hidden">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3 sm:gap-6">
+          <div className="max-w-full">
+            <h1 className="text-xl sm:text-3xl font-black text-gray-900 font-urbanist tracking-tight truncate">
+              Student Management
+            </h1>
+            <p className="text-gray-500 font-medium text-[10px] sm:text-sm mt-0.5 leading-relaxed">
+              Manage performance medals and grades
+            </p>
           </div>
-          <div className="px-4 py-2 bg-indigo-50 text-indigo-700 rounded-xl text-xs font-bold border border-indigo-100 shadow-sm">
-            {processedStudents.length} Students Listed
+          <div className="px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg text-[10px] font-black uppercase tracking-widest border border-indigo-100 shadow-sm w-fit">
+            {processedStudents.length} Students
           </div>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-4 items-center justify-between bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
-          <div className="relative w-full max-w-md group">
-            <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-gray-400 group-focus-within:text-indigo-500 transition-colors" />
+        <div className="flex flex-col lg:flex-row gap-3 items-center justify-between bg-gray-50/50 p-2 rounded-2xl border border-gray-100">
+          <div className="relative w-full lg:max-w-md group">
+            <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-gray-400 group-focus-within:text-indigo-500 transition-colors" />
             <input
               type="text"
               placeholder="Search by name, email or ID..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-white border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-sm"
+              className="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-100 rounded-xl focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all shadow-sm text-xs sm:text-sm font-medium"
             />
           </div>
 
-          <div className="flex items-center gap-3 w-full lg:w-auto">
-            <div className="flex items-center gap-2 bg-white p-1.5 rounded-xl border border-gray-100 shadow-sm flex-1">
-              <ArrowUpDownIcon className="size-4 text-gray-400 ml-2" />
+          <div className="flex items-center gap-2 w-full lg:w-auto">
+            <div className="flex items-center gap-2 bg-white p-1 rounded-xl border border-gray-100 shadow-sm flex-1">
+              <ArrowUpDownIcon className="size-3.5 text-gray-400 ml-2" />
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as "name" | "createdAt" | "enrollmentId")}
-                className="bg-transparent text-xs font-bold text-gray-700 outline-none pr-4 cursor-pointer"
+                className="bg-transparent text-[10px] font-black uppercase tracking-widest text-gray-700 outline-none pr-4 cursor-pointer py-1.5 appearance-none"
               >
                 <option value="name">Sort by Name</option>
-                <option value="createdAt">Sort by Date Joined</option>
-                <option value="enrollmentId">Sort by ID</option>
+                <option value="createdAt">Date Joined</option>
+                <option value="enrollmentId">Enrollment ID</option>
               </select>
             </div>
             <button
               onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-              className="p-3 bg-white border border-gray-100 rounded-xl hover:bg-gray-50 text-indigo-600 transition-all shadow-sm"
+              className="p-2 sm:p-2.5 bg-white border border-gray-100 rounded-xl hover:bg-gray-50 text-indigo-600 transition-all shadow-sm"
               title={sortOrder === "asc" ? "Descending" : "Ascending"}
             >
               {sortOrder === "asc" ? <SortAscIcon className="size-4" /> : <SortDescIcon className="size-4" />}
@@ -137,8 +302,8 @@ export function TeacherStudentManagement() {
           </div>
         </div>
 
-        <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
+        <div className="bg-white rounded-[2rem] border border-gray-100 overflow-visible shadow-sm">
+          <div className="hidden lg:block overflow-x-auto pb-48">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50/50 border-b border-gray-100">
@@ -235,6 +400,34 @@ export function TeacherStudentManagement() {
                 )}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="lg:hidden p-4 pb-80 space-y-4 bg-gray-50/50">
+            {isLoading ? (
+              [1, 2, 3].map(i => (
+                <div key={i} className="h-48 bg-white rounded-2xl border border-gray-100 animate-pulse" />
+              ))
+            ) : processedStudents.length === 0 ? (
+              <div className="py-20 text-center flex flex-col items-center gap-4">
+                 <div className="size-16 bg-white rounded-full flex items-center justify-center text-gray-200 shadow-sm border border-gray-50">
+                  <GraduationCapIcon className="size-8" />
+                </div>
+                <p className="text-gray-400 font-bold text-xs">No students found</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-4">
+                {processedStudents.map(student => (
+                  <StudentCard
+                    key={student.id}
+                    student={student}
+                    updateStatus={updateStatus}
+                    updatingId={updatingId}
+                    setAdmissionModal={setAdmissionModal}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

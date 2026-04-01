@@ -41,7 +41,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
             {!isZoomMeeting && <Sidebar />}
             <div className={`flex-1 flex flex-col ${isZoomMeeting ? 'h-screen overflow-hidden' : ''}`}>
                 {!isZoomMeeting && <Topbar />}
-                <main className={`flex-1 ${!isZoomMeeting ? 'pb-20 lg:pb-0' : ''}`}>
+                <main className={`flex-1 ${!isZoomMeeting ? 'pb-32 lg:pb-0' : ''}`}>
                     {children}
                 </main>
                 {!isZoomMeeting && <BottomNav />}

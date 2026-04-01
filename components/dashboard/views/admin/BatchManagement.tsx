@@ -307,16 +307,16 @@ export function AdminBatchManagement() {
           className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
           onWheel={(e) => e.stopPropagation()}
         >
-          <div className="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl">
-            <div className="p-8 border-b border-gray-100">
-              <h2 className="text-2xl font-bold text-gray-900">
+          <div className="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl max-h-[90vh] flex flex-col">
+            <div className="p-6 sm:p-8 border-b border-gray-100 shrink-0">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
                 Create New Batch
               </h2>
-              <p className="text-gray-500">
+              <p className="text-gray-500 text-sm">
                 Enter batch details and assign a teacher
               </p>
             </div>
-            <form onSubmit={handleCreateBatch} className="p-8 space-y-6">
+            <form onSubmit={handleCreateBatch} className="p-6 sm:p-8 space-y-6 overflow-y-auto flex-1 minimal-scrollbar">
               <div className="space-y-4">
                 <div>
                   <label className="text-sm font-bold text-gray-700 mb-2 block">
@@ -490,16 +490,16 @@ export function AdminBatchManagement() {
           className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
           onWheel={(e) => e.stopPropagation()}
         >
-          <div className="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl">
-            <div className="p-8 border-b border-gray-100">
-              <h2 className="text-2xl font-bold text-gray-900">
+          <div className="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl max-h-[90vh] flex flex-col">
+            <div className="p-6 sm:p-8 border-b border-gray-100 shrink-0">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
                 Manage Teachers: {selectedBatch?.name}
               </h2>
-              <p className="text-gray-500">
+              <p className="text-gray-500 text-sm">
                 Assign or remove teachers for this batch
               </p>
             </div>
-            <div className="p-8 max-h-[90vh] overflow-y-auto space-y-4 minimal-scrollbar" style={{ overscrollBehavior: 'contain' }}>
+            <div className="p-4 sm:p-8 overflow-y-auto space-y-4 minimal-scrollbar flex-1" style={{ overscrollBehavior: 'contain' }}>
               {teachers.map((t) => {
                 const isAssigned = selectedBatch?.teachers?.some(
                   (bt: any) => bt.id === t.id,

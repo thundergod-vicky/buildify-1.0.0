@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   SearchIcon,
   UserCogIcon,
@@ -19,6 +20,7 @@ import {
   EyeIcon,
   SortDescIcon,
   MoreHorizontal,
+  UserPlusIcon,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { showToast } from "@/lib/toast";
@@ -115,6 +117,45 @@ export function AdminUserManagement() {
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  const searchParams = useSearchParams();
+  const lastProcessedParams = useRef("");
+
+  useEffect(() => {
+    const studentId = searchParams.get('studentId');
+    const search = searchParams.get('search');
+    const currentParamsString = searchParams.toString();
+    
+    if (users.length > 0 && lastProcessedParams.current !== currentParamsString) {
+      let student: UserWithCounts | null = null;
+      
+      if (studentId) {
+        student = users.find(u => u.id === studentId) || null;
+      } else if (search) {
+        const searchLower = search.toLowerCase();
+        const matches = users.filter(u => 
+          (u.email?.toLowerCase() === searchLower || 
+           u.name?.toLowerCase() === searchLower ||
+           u.enrollmentId?.toLowerCase() === searchLower) && 
+          u.role === Role.STUDENT
+        );
+        
+        if (matches.length === 1) {
+          student = matches[0];
+        }
+        setSearchQuery(search);
+      }
+
+      if (student) {
+        lastProcessedParams.current = currentParamsString;
+        setAdmissionModal({
+          isOpen: true,
+          userId: student.id,
+          userName: student.name || "Student",
+        });
+      }
+    }
+  }, [searchParams, users]);
 
   useEffect(() => {
     const isModalOpen =
@@ -330,49 +371,50 @@ export function AdminUserManagement() {
     });
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 font-urbanist">
-          User Management
-        </h1>
-        <p className="text-gray-500 mt-1">
-          Control access levels and manage all platform participants
-        </p>
+    <div className="p-3 sm:p-8 max-w-7xl mx-auto space-y-3 sm:space-y-8 overflow-x-hidden">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 sm:gap-6">
+        <div className="max-w-full">
+          <h1 className="text-xl sm:text-3xl font-black text-gray-900 font-urbanist tracking-tight truncate">
+            User Management
+          </h1>
+          <p className="text-gray-500 font-medium text-[10px] sm:text-sm mt-0.5 leading-relaxed">
+            Manage participants and permissions
+          </p>
+        </div>
+        <button
+          onClick={() => setIsAddModalOpen(true)}
+          className="w-full sm:w-auto px-6 py-3 bg-indigo-600 text-white rounded-[2rem] text-xs font-black shadow-xl shadow-indigo-100 hover:bg-indigo-700 active:scale-95 transition-all flex items-center justify-center gap-2"
+        >
+          <UserPlusIcon className="size-4" />
+          Add New User
+        </button>
       </div>
 
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4">
         {/* Search and Action Row */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-          <div className="relative w-full max-w-md group">
-            <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-gray-400 group-focus-within:text-indigo-500 transition-colors" />
+        <div className="flex flex-col md:flex-row gap-3 justify-between items-stretch md:items-center">
+          <div className="relative flex-1 group">
+            <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-gray-400 group-focus-within:text-indigo-500 transition-colors" />
             <input
               type="text"
-              placeholder="Search by name, email or ID..."
+              placeholder="Search by name..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-white border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-sm"
+              className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all shadow-sm font-medium text-xs sm:text-sm"
             />
           </div>
-          <div className="flex gap-2 w-full sm:w-auto">
-            <button
-              onClick={() => setIsAddModalOpen(true)}
-              className="flex-1 sm:flex-none px-6 py-3 bg-indigo-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-100 hover:bg-indigo-700 active:scale-95 transition-all flex items-center justify-center gap-2"
-            >
-              <UsersIcon className="size-4" />
-              Add User
-            </button>
-            <div className="px-4 py-3 bg-white border border-gray-100 text-gray-700 rounded-xl text-sm font-bold shadow-sm flex items-center whitespace-nowrap">
-              {processedUsers.length} Results
+          <div className="flex gap-2 justify-between md:justify-end items-center px-1">
+            <div className="text-[9px] font-black text-gray-400 uppercase tracking-widest shrink-0">
+              {processedUsers.length} Users
             </div>
           </div>
         </div>
 
         {/* Filter and Sort Row */}
-        <div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center bg-gray-50/50 p-2 rounded-4xl border border-gray-100">
-          {/* Quick Filter Tabs */}
-          <div className="flex p-1 bg-white rounded-3xl shadow-sm border border-gray-100 overflow-x-auto no-scrollbar max-w-full">
+        <div className="flex flex-col lg:flex-row gap-3 justify-between items-stretch lg:items-center bg-gray-50/50 p-1.5 rounded-3xl border border-gray-100">
+          <div className="flex p-0.5 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto no-scrollbar">
             {[
-              { id: "ALL", label: "All Users", icon: UsersIcon },
+              { id: "ALL", label: "All", icon: UsersIcon },
               { id: "STUDENT", label: "Students", icon: GraduationCapIcon },
               { id: "TEACHER", label: "Teachers", icon: UserCogIcon },
               { id: "PARENT", label: "Parents", icon: UsersIcon },
@@ -380,41 +422,35 @@ export function AdminUserManagement() {
               <button
                 key={tab.id}
                 onClick={() => setRoleFilter(tab.id)}
-                className={`flex items-center gap-2 px-6 py-2.5 rounded-2xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
                   roleFilter === tab.id
-                    ? "bg-indigo-600 text-white shadow-lg shadow-indigo-100 scale-105 z-10"
+                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-100 scale-105 z-10"
                     : "text-gray-400 hover:text-gray-600 hover:bg-gray-50"
                 }`}
               >
-                <tab.icon className="size-3.5" />
+                <tab.icon className="size-3" />
                 {tab.label}
               </button>
             ))}
           </div>
 
-          {/* Sort Controls */}
-          <div className="flex items-center gap-2 px-4 w-full lg:w-auto">
-            <div className="flex items-center gap-3 bg-white p-1 rounded-2xl border border-gray-100 shadow-sm flex-1 lg:flex-none">
-              <div className="pl-3 py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest border-r border-gray-50 pr-4">
-                Sort By
+          <div className="flex flex-wrap items-center gap-3 p-1">
+            <div className="flex items-center gap-3 bg-white p-1 rounded-2xl border border-gray-100 shadow-sm flex-1 md:flex-none">
+              <div className="pl-4 py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest border-r border-gray-50 pr-4">
+                Sort
               </div>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as "name" | "createdAt" | "role")}
-                className="bg-transparent text-xs font-bold text-gray-700 py-2 pr-4 pl-2 outline-none cursor-pointer appearance-none"
+                className="bg-transparent text-xs font-bold text-gray-700 py-2 pr-8 pl-2 outline-none cursor-pointer appearance-none"
               >
-                <option value="name">Name</option>
+                <option value="name">Alphabetical</option>
                 <option value="createdAt">Date Joined</option>
-                <option value="role">Account Type</option>
+                <option value="role">Platform Role</option>
               </select>
               <button
-                onClick={() =>
-                  setSortOrder(sortOrder === "asc" ? "desc" : "asc")
-                }
-                className="p-2 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-100 transition-colors shadow-sm"
-                title={
-                  sortOrder === "asc" ? "Sort Descending" : "Sort Ascending"
-                }
+                onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+                className="p-2 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-100 transition-colors"
               >
                 {sortOrder === "asc" ? (
                   <SortAscIcon className="size-4" />
@@ -424,13 +460,12 @@ export function AdminUserManagement() {
               </button>
             </div>
 
-            {/* Grouping Toggle */}
             <button
               onClick={() => setIsGrouped(!isGrouped)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
+              className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-[0.15em] transition-all border ${
                 isGrouped
-                  ? "bg-indigo-600 text-white border-indigo-600 shadow-md"
-                  : "bg-white text-gray-600 border-gray-100 hover:bg-gray-50 shadow-sm"
+                  ? "bg-slate-900 text-white border-slate-900 shadow-lg"
+                  : "bg-white text-slate-600 border-gray-100 hover:bg-gray-50 shadow-sm"
               }`}
             >
               <UsersIcon className="size-3.5" />
@@ -440,24 +475,25 @@ export function AdminUserManagement() {
         </div>
       </div>
 
-      <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
+      <div className="bg-white rounded-[2.5rem] border border-gray-100 overflow-visible shadow-sm">
+        {/* Desktop Table View */}
+        <div className="hidden lg:block overflow-x-auto pb-48">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-gray-50/50 border-b border-gray-100">
-                <th className="px-6 py-4 text-sm font-bold text-gray-900 uppercase tracking-wider">
+                <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">
                   User Information
                 </th>
-                <th className="px-6 py-4 text-sm font-bold text-gray-900 uppercase tracking-wider">
+                <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">
                   Enrollment ID
                 </th>
-                <th className="px-6 py-4 text-sm font-bold text-gray-900 uppercase tracking-wider">
+                <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">
                   Platform Role
                 </th>
-                <th className="px-6 py-4 text-sm font-bold text-gray-900 uppercase tracking-wider">
+                <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">
                   Activity Stats
                 </th>
-                <th className="px-6 py-4 text-sm font-bold text-gray-900 uppercase tracking-wider text-right">
+                <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">
                   Actions
                 </th>
               </tr>
@@ -466,26 +502,26 @@ export function AdminUserManagement() {
               {isLoading ? (
                 [1, 2, 3, 4, 5].map((i) => (
                   <tr key={i} className="animate-pulse">
-                    <td colSpan={5} className="px-6 py-8">
-                      <div className="h-10 bg-gray-50 rounded-xl w-full"></div>
+                    <td colSpan={5} className="px-8 py-10">
+                      <div className="h-12 bg-gray-50 rounded-2xl w-full"></div>
                     </td>
                   </tr>
                 ))
               ) : processedUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-32 text-center">
-                    <div className="flex flex-col items-center gap-2">
-                      <div className="size-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-300">
-                        <UsersIcon className="size-8" />
+                  <td colSpan={5} className="px-8 py-32 text-center">
+                    <div className="flex flex-col items-center gap-4">
+                      <div className="size-20 bg-gray-50 rounded-full flex items-center justify-center text-gray-300">
+                        <UsersIcon className="size-10" />
                       </div>
-                      <p className="text-gray-500 font-medium">
-                        No users match your criteria
-                      </p>
+                      <div>
+                        <p className="text-gray-900 font-bold">No users match your criteria</p>
+                        <p className="text-gray-400 text-sm mt-1">Try adjusting your filters or search query</p>
+                      </div>
                     </div>
                   </td>
                 </tr>
               ) : isGrouped ? (
-                // Grouped View
                 ROLES.map((role) => {
                   const roleUsers = processedUsers.filter((u) => u.role === role);
                   if (roleUsers.length === 0) return null;
@@ -495,10 +531,10 @@ export function AdminUserManagement() {
                       <tr className="bg-gray-50/80">
                         <td
                           colSpan={5}
-                          className="px-6 py-3 text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] border-y border-gray-100/50"
+                          className="px-8 py-4 text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em] border-y border-gray-100/50"
                         >
                           <div className="flex items-center gap-2">
-                            <ShieldCheckIcon className="size-3" />
+                            <ShieldCheckIcon className="size-3.5" />
                             {role}s ({roleUsers.length})
                           </div>
                         </td>
@@ -526,7 +562,6 @@ export function AdminUserManagement() {
                   );
                 })
               ) : (
-                // Flat View
                 processedUsers.map((user) => (
                   <UserRow
                     key={user.id}
@@ -550,6 +585,37 @@ export function AdminUserManagement() {
             </tbody>
           </table>
         </div>
+
+        {/* Mobile Filtered/Card View */}
+        <div className="lg:hidden p-4 pb-72 space-y-4 bg-gray-50/50">
+          {isLoading ? (
+            [1, 2, 3].map(i => (
+              <div key={i} className="h-48 bg-white rounded-3xl border border-gray-100 animate-pulse" />
+            ))
+          ) : processedUsers.length === 0 ? (
+            <div className="py-20 text-center flex flex-col items-center gap-4">
+               <div className="size-16 bg-white rounded-full flex items-center justify-center text-gray-200 shadow-sm border border-gray-50">
+                <UsersIcon className="size-8" />
+              </div>
+              <p className="text-gray-400 font-bold text-sm">No users found</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-4">
+              {processedUsers.map(user => (
+                <UserCard
+                  key={user.id}
+                  user={user}
+                  currentUser={currentUser}
+                  setDeleteConfirm={setDeleteConfirm}
+                  setDetailsModal={setDetailsModal}
+                  setAdmissionModal={setAdmissionModal}
+                  setPasswordModal={setPasswordModal}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
         <ConfirmationModal
           isOpen={confirmModal.isOpen}
           onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
@@ -1038,7 +1104,6 @@ export function AdminUserManagement() {
           )}
         </AnimatePresence>
       </div>
-    </div>
   );
 }
 
@@ -1435,4 +1500,162 @@ function UserRow({
       </td>
     </tr>
   );
+}
+
+function UserCard({
+  user,
+  currentUser,
+  setDeleteConfirm,
+  setDetailsModal,
+  setAdmissionModal,
+  setPasswordModal,
+}: {
+  user: UserWithCounts;
+  currentUser: User | null;
+  setDeleteConfirm: (modal: { isOpen: boolean; userId: string; userName: string }) => void;
+  setDetailsModal: (modal: { isOpen: boolean; userId: string; userName: string }) => void;
+  setAdmissionModal: (modal: { isOpen: boolean; userId: string; userName: string }) => void;
+  setPasswordModal: (modal: { isOpen: boolean; userId: string; userName: string; newPassword: '' }) => void;
+}) {
+  const [isActionsOpen, setIsActionsOpen] = useState(false);
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm hover:shadow-md transition-all group">
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className={cn(
+            "size-10 rounded-xl flex items-center justify-center font-black text-base",
+              user.role === "ADMIN" ? "bg-indigo-100 text-indigo-700" :
+              user.role === "TEACHER" ? "bg-purple-100 text-purple-700" :
+              user.role === "PARENT" ? "bg-blue-100 text-blue-700" :
+              user.role === "ACADEMIC_OPERATIONS" ? "bg-orange-100 text-orange-700" :
+              user.role === "ACCOUNTS" ? "bg-emerald-100 text-emerald-700" :
+              "bg-blue-100 text-blue-700"
+          )}>
+            {user.name?.[0]?.toUpperCase() || "U"}
+          </div>
+          <div>
+            <h4 className="font-black text-gray-900 text-sm group-hover:text-indigo-600 transition-colors flex items-center gap-1.5 leading-none">
+              {user.name || "Unnamed User"}
+              {user.role === "ADMIN" && <ShieldCheckIcon className="size-3 text-indigo-600" />}
+            </h4>
+            <div className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1 flex items-center gap-2">
+               <span className="truncate max-w-[120px]">{user.email}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div className="relative">
+          <button
+            onClick={() => setIsActionsOpen(!isActionsOpen)}
+            className={cn(
+              "p-2 rounded-xl border transition-all",
+              isActionsOpen ? "bg-indigo-600 border-indigo-600 text-white" : "border-gray-100 text-gray-400 hover:bg-gray-50"
+            )}
+          >
+            <MoreHorizontal className="size-5" />
+          </button>
+          
+          <AnimatePresence>
+            {isActionsOpen && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                className="absolute right-0 top-full mt-2 w-56 bg-white rounded-3xl shadow-2xl border border-gray-100 z-50 p-2 py-3 overflow-hidden"
+              >
+                <div className="space-y-1">
+                  <button
+                    onClick={() => { setIsActionsOpen(false); setDetailsModal({ isOpen: true, userId: user.id, userName: user.name }); }}
+                    className="flex items-center gap-3 w-full p-3 text-left text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 rounded-2xl transition-all"
+                  >
+                    <EyeIcon className="size-4" />
+                    <span className="text-xs font-bold">View Profile</span>
+                  </button>
+                  <button
+                    onClick={() => { setIsActionsOpen(false); setEditingUser(user); }}
+                    className="flex items-center gap-3 w-full p-3 text-left text-gray-600 hover:bg-indigo-50 hover:text-indigo-600 rounded-2xl transition-all"
+                  >
+                    <UserCogIcon className="size-4" />
+                    <span className="text-xs font-bold">Edit Details</span>
+                  </button>
+                  {currentUser?.role === Role.ADMIN && (
+                    <button
+                      onClick={() => { setIsActionsOpen(false); setPasswordModal({ isOpen: true, userId: user.id, userName: user.name, newPassword: '' }); }}
+                      className="flex items-center gap-3 w-full p-3 text-left text-gray-600 hover:bg-amber-50 hover:text-amber-600 rounded-2xl transition-all"
+                    >
+                      <Lock className="size-4" />
+                      <span className="text-xs font-bold">Reset Password</span>
+                    </button>
+                  )}
+                  {user.role === Role.STUDENT && (
+                    <button
+                      onClick={() => { setIsActionsOpen(false); setAdmissionModal({ isOpen: true, userId: user.id, userName: user.name }); }}
+                      className="flex items-center gap-3 w-full p-3 text-left text-gray-600 hover:bg-emerald-50 hover:text-emerald-600 rounded-2xl transition-all"
+                    >
+                      <GraduationCapIcon className="size-4" />
+                      <span className="text-xs font-bold">Admission Info</span>
+                    </button>
+                  )}
+                  {currentUser?.role !== Role.ACADEMIC_OPERATIONS && (
+                    <button
+                      onClick={() => { setIsActionsOpen(false); setDeleteConfirm({ isOpen: true, userId: user.id, userName: user.name }); }}
+                      className="flex items-center gap-3 w-full p-3 text-left text-rose-500 hover:bg-rose-50 rounded-2xl transition-all mt-2 pt-2 border-t border-gray-50"
+                    >
+                      <Trash2Icon className="size-4" />
+                      <span className="text-xs font-bold">Delete User</span>
+                    </button>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="bg-gray-50/50 rounded-xl p-3 border border-gray-100 flex flex-col justify-center">
+          <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest block mb-0.5">
+            Enrollment ID
+          </span>
+          <span className="text-[10px] font-black text-gray-700 font-mono truncate">
+            {user.enrollmentId || "PENDING"}
+          </span>
+        </div>
+        <div className="bg-gray-50/50 rounded-xl p-3 border border-gray-100 flex flex-col justify-center">
+          <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest block mb-0.5">
+            Account Type
+          </span>
+          <span className={cn(
+            "text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md w-fit",
+            user.role === Role.ADMIN ? "bg-indigo-100 text-indigo-700" :
+            user.role === Role.STUDENT ? "bg-blue-100 text-blue-700" :
+            "bg-gray-100 text-gray-600"
+          )}>
+            {user.role}
+          </span>
+        </div>
+      </div>
+
+      <div className="mt-3 pt-3 border-t border-gray-50 flex items-center justify-between">
+        <div className="flex gap-4">
+          <div className="flex flex-col">
+            <span className="text-xs font-black text-gray-900">{user._count?.enrollments || 0}</span>
+            <span className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Enrollments</span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-xs font-black text-gray-900">{user._count?.teachingCourses || 0}</span>
+            <span className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Courses</span>
+          </div>
+        </div>
+        <span className="text-[8px] font-bold text-gray-300 italic">
+          Joined {new Date(user.createdAt).toLocaleDateString()}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function cn(...inputs: (string | boolean | undefined | null)[]) {
+  return inputs.filter(Boolean).join(" ");
 }

@@ -33,6 +33,7 @@ import { toast } from "react-toastify";
 import { api } from "@/lib/api";
 import { auth as authService } from "@/lib/auth";
 import { resolveImageUrl, cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 const MEDAL_COLORS: Record<string, string> = {
     WOOD: "text-[#8B4513] bg-[#8B4513]/10",
@@ -46,6 +47,7 @@ const MEDAL_COLORS: Record<string, string> = {
 };
 
 export default function Topbar() {
+    const router = useRouter();
     const { user, logout, updateProfile } = useAuth();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
@@ -132,6 +134,28 @@ export default function Topbar() {
     };
 
     const publicProfileUrl = user?.profileSlug ? `${window.location.origin}/profile/${user.profileSlug}` : '';
+
+    const getNotificationLink = (note: any) => {
+        if (note.actionUrl) return note.actionUrl;
+        const title = note.title.toLowerCase();
+        const message = note.message.toLowerCase();
+        if (title.includes("admission") || message.includes("admission")) {
+            const emailMatch = note.message.match(/\(([^)]+@[^)]+)\)/);
+            if (emailMatch) return `/dashboard?view=users&search=${emailMatch[1]}`;
+            
+            const nameMatch = note.message.match(/^(.+?)\s+has submitted/);
+            if (nameMatch) return `/dashboard?view=users&search=${nameMatch[1]}`;
+
+            const formIdMatch = note.message.match(/Form ID: (ADH-\d+)/);
+            if (formIdMatch) return `/dashboard?view=users&search=${formIdMatch[1]}`;
+            
+            return "/dashboard?view=users";
+        }
+        if (title.includes("registered") || title.includes("joined")) return "/dashboard?view=users";
+        if (title.includes("class") || title.includes("scheduled") || title.includes("session")) return "/dashboard?view=schedule";
+        if (title.includes("welcome")) return "/dashboard?view=courses";
+        return null;
+    };
 
     const fetchNotifications = async () => {
         setIsLoadingNotis(true);
@@ -286,33 +310,42 @@ export default function Topbar() {
                                         </div>
                                     </div>
                                 ) : (
-                                    notifications.map((note) => (
-                                        <div 
-                                            key={note.id} 
-                                            className={cn(
-                                                "p-4 rounded-2xl transition-all border border-transparent",
-                                                !note.isRead ? "bg-yellow-50/50 border-blue-100/50 hover:bg-blue-50" : "hover:bg-gray-50"
-                                            )}
-                                        >
+                                    notifications.map((note) => {
+                                        const link = getNotificationLink(note);
+                                        return (
+                                            <div 
+                                                key={note.id} 
+                                                onClick={() => {
+                                                    if (link) {
+                                                        router.push(link);
+                                                        setIsNotiOpen(false);
+                                                    }
+                                                }}
+                                                className={cn(
+                                                    "p-4 rounded-2xl transition-all border border-transparent group relative",
+                                                    !note.isRead ? "bg-blue-50/30 border-blue-100/20 hover:bg-blue-50/50" : "hover:bg-gray-50",
+                                                    link && "cursor-pointer active:scale-[0.98]"
+                                                )}
+                                            >
                                             <div className="flex gap-4">
                                                 <div className={cn(
-                                                    "p-2 rounded-xl h-fit shrink-0",
-                                                    note.type === 'ALERT' ? 'bg-red-100 text-red-600' :
-                                                    note.type === 'WARNING' ? 'bg-yellow-100 text-yellow-600' :
-                                                    'bg-blue-100 text-blue-600'
+                                                    "p-2 rounded-xl h-fit shrink-0 transition-transform group-hover:scale-110",
+                                                    note.type === 'ALERT' ? 'bg-red-50 text-red-600' :
+                                                    note.type === 'WARNING' ? 'bg-yellow-50 text-yellow-600' :
+                                                    'bg-blue-50 text-blue-600'
                                                 )}>
                                                     {note.type === 'ALERT' ? <AlertTriangleIcon className="size-4" /> : <InfoIcon className="size-4" />}
                                                 </div>
-                                                <div className="flex-1 min-w-0">
+                                                <div className="flex-1 min-w-0 pr-2">
                                                     <div className="flex justify-between items-start gap-2">
-                                                        <h4 className={cn("text-sm font-bold truncate", !note.isRead ? "text-gray-900" : "text-gray-600")}>
+                                                        <h4 className={cn("text-xs sm:text-sm font-bold truncate", !note.isRead ? "text-gray-900" : "text-gray-600")}>
                                                             {note.title}
                                                         </h4>
-                                                        <span className="text-[10px] font-medium text-gray-400 whitespace-nowrap pt-0.5">
+                                                        <span className="text-[9px] font-medium text-gray-400 whitespace-nowrap pt-0.5">
                                                             {new Date(note.createdAt).toLocaleDateString()}
                                                         </span>
                                                     </div>
-                                                    <p className="text-xs text-gray-500 mt-1 leading-relaxed line-clamp-2">
+                                                    <p className="text-[11px] text-gray-500 mt-0.5 leading-relaxed line-clamp-2">
                                                         {note.message}
                                                     </p>
                                                     
@@ -322,7 +355,7 @@ export default function Topbar() {
                                                                 e.stopPropagation();
                                                                 markAsRead(note.id);
                                                             }}
-                                                            className="mt-2 flex items-center gap-1.5 text-[10px] font-black text-blue-600 uppercase tracking-widest hover:text-blue-700 transition-colors"
+                                                            className="mt-2 flex items-center gap-1.5 text-[9px] font-black text-blue-600 uppercase tracking-widest hover:text-blue-700 transition-colors"
                                                         >
                                                             <CheckCircleIcon className="size-3" />
                                                             Mark as read
@@ -330,8 +363,9 @@ export default function Topbar() {
                                                     )}
                                                 </div>
                                             </div>
-                                        </div>
-                                    ))
+                                            </div>
+                                        );
+                                    })
                                 )}
                             </div>
                             

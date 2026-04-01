@@ -13,7 +13,7 @@ import { api } from "@/lib/api";
 import { toast } from "react-toastify";
 import { auth } from "@/lib/auth";
 import { useAuth } from "@/contexts/AuthContext";
-import { Role, ClassSession, Batch, Subject } from "@/types";
+import { Role, ClassSession, Batch } from "@/types";
 import { CreateSessionModal } from "./CreateSessionModal"; // Added import for CreateSessionModal
 
 export function ClassRoutine() {
@@ -95,33 +95,33 @@ export function ClassRoutine() {
   };
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div className="space-y-2">
-          <h1 className="text-4xl font-black text-gray-900 font-urbanist tracking-tight">
+    <div className="p-3 sm:p-8 max-w-7xl mx-auto space-y-4 sm:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 overflow-x-hidden">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3 sm:gap-6">
+        <div className="max-w-full">
+          <h1 className="text-xl sm:text-4xl font-black text-gray-900 font-urbanist tracking-tight truncate">
             Classes Routine
           </h1>
-          <p className="text-gray-500 font-medium">
-            Synchronized institutional schedule and faculty assignments
+          <p className="text-gray-500 font-medium text-[10px] sm:text-base mt-0.5 leading-relaxed truncate">
+            Institutional schedule and faculty assignments
           </p>
         </div>
         {(user?.role === Role.ADMIN ||
           user?.role === Role.ACADEMIC_OPERATIONS) && (
-          <div className="flex gap-3">
+          <div className="flex gap-2 w-full sm:w-auto">
             <button
               onClick={() => {
                 setEditingSession(null);
                 setIsModalOpen(true);
               }}
-              className="px-8 py-4 bg-gray-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-black flex items-center gap-2 transition-all shadow-xl shadow-gray-200"
+              className="flex-1 sm:flex-none px-4 sm:px-8 py-2.5 sm:py-4 bg-gray-900 text-white rounded-xl sm:rounded-2xl font-black text-[10px] sm:text-xs uppercase tracking-widest hover:bg-black flex items-center justify-center gap-2 transition-all shadow-xl shadow-gray-100"
             >
-              <PlusIcon className="size-4" /> Schedule New
+              <PlusIcon className="size-3.5 sm:size-4" /> Schedule New
             </button>
           </div>
         )}
       </div>
 
-      <div className="bg-white/50 backdrop-blur-md p-1.5 rounded-[1.5rem] border border-gray-100 shadow-sm flex gap-1.5 overflow-x-auto w-full minimal-scrollbar">
+      <div className="bg-white/50 backdrop-blur-md p-1.5 rounded-2xl border border-gray-100 shadow-sm flex gap-2 overflow-x-auto w-full minimal-scrollbar">
         {weekDays.map((d) => {
           const dateStr = d.toISOString().split("T")[0];
           const isToday = new Date().toISOString().split("T")[0] === dateStr;
@@ -130,9 +130,9 @@ export function ClassRoutine() {
             <button
               key={dateStr}
               onClick={() => setSelectedDateFilter(dateStr)}
-              className={`px-6 py-3.5 rounded-2xl text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all duration-300 whitespace-nowrap flex items-center gap-2 flex-1 justify-center min-w-[140px] ${isSelected ? "bg-blue-600 text-white shadow-lg shadow-blue-200" : "bg-transparent text-gray-400 hover:text-gray-900 hover:bg-gray-50"}`}
+              className={`px-6 py-3 rounded-2xl text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all duration-300 whitespace-nowrap flex items-center gap-2 flex-1 justify-center min-w-[120px] sm:min-w-[140px] ${isSelected ? "bg-blue-600 text-white shadow-lg shadow-blue-200" : "bg-transparent text-gray-400 hover:text-gray-900 hover:bg-gray-50"}`}
             >
-              <CalendarIcon className="size-3.5 opacity-50 block md:hidden lg:block hidden" />
+              <CalendarIcon className="size-3.5 opacity-50 hidden sm:block" />
               {isToday
                 ? "Today"
                 : d.toLocaleDateString("en-US", {
@@ -169,42 +169,42 @@ export function ClassRoutine() {
           sessions.map((item) => (
             <div
               key={item.id}
-              className="bg-white p-8 rounded-[3rem] border border-gray-100 shadow-lg shadow-gray-100/50 flex flex-col lg:flex-row lg:items-center justify-between gap-8 hover:scale-[1.01] hover:shadow-2xl hover:shadow-blue-100 transition-all duration-500 group relative overflow-hidden"
+              className="bg-white p-4 sm:p-8 rounded-[2rem] sm:rounded-[3rem] border border-gray-100 shadow-lg shadow-gray-100/50 flex flex-col lg:flex-row lg:items-center justify-between gap-5 sm:gap-8 hover:scale-[1.01] hover:shadow-2xl hover:shadow-blue-100 transition-all duration-500 group relative overflow-hidden"
             >
               <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full blur-3xl -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
 
-              <div className="flex items-center gap-8 relative z-10">
-                <div className="size-20 bg-gradient-to-br from-blue-50 via-white to-blue-50 text-blue-600 rounded-[1.75rem] flex items-center justify-center shadow-inner border border-blue-100 group-hover:rotate-6 transition-transform duration-500">
-                  <ClockIcon className="size-8" />
+              <div className="flex items-center gap-4 sm:gap-8 relative z-10">
+                <div className="size-14 sm:size-20 bg-gradient-to-br from-blue-50 via-white to-blue-50 text-blue-600 rounded-xl sm:rounded-[1.75rem] flex items-center justify-center shadow-inner border border-blue-100 shrink-0">
+                  <ClockIcon className="size-6 sm:size-8" />
                 </div>
-                <div className="space-y-1">
-                  <div className="flex items-center gap-3">
-                    <span className="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em] bg-blue-50 px-3 py-1 rounded-full">
+                <div className="space-y-0.5 sm:space-y-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                    <span className="text-[9px] sm:text-[10px] font-black text-blue-600 uppercase tracking-widest bg-blue-50 px-2.5 py-0.5 rounded-full">
                       {item.type}
                     </span>
-                    <p className="text-xs font-black text-gray-400 uppercase tracking-widest">
+                    <p className="text-[10px] sm:text-xs font-black text-gray-400 uppercase tracking-widest">
                       {item.startTime} - {item.endTime}
                     </p>
                   </div>
-                  <h3 className="text-2xl font-black text-gray-900 font-urbanist">
+                  <h3 className="text-base sm:text-2xl font-black text-gray-900 font-urbanist leading-tight truncate">
                     {item.title}
                   </h3>
                   {item.subject && (
-                    <p className="text-xs font-bold text-blue-600 uppercase tracking-widest">
+                    <p className="text-[10px] sm:text-xs font-bold text-blue-600 uppercase tracking-widest">
                       {item.subject.name}
                     </p>
                   )}
                   {item.isOnline && (item.meetingId || item.meetingUrl) && (
-                    <div className="mt-2 p-2 bg-blue-50/50 rounded-xl border border-blue-100/50 w-fit">
-                      <div className="flex items-center gap-3 text-[9px] font-bold">
-                        <div className="flex items-center gap-1 text-blue-600">
+                    <div className="mt-1 sm:mt-2 p-1.5 sm:p-2 bg-blue-50/50 rounded-lg sm:rounded-xl border border-blue-100/50 w-fit max-w-full">
+                      <div className="flex items-center gap-3 text-[8px] sm:text-[9px] font-bold">
+                        <div className="flex items-center gap-1 text-blue-600 truncate">
                           <span className="text-gray-400 font-black uppercase tracking-widest mr-1">ID:</span>
-                          {item.meetingId || "See Link"}
+                          <span className="truncate">{item.meetingId || "See Link"}</span>
                         </div>
                         {item.meetingPasscode && (
-                          <div className="flex items-center gap-1 text-blue-600">
-                            <span className="text-gray-400 font-black uppercase tracking-widest mr-1">Passcode:</span>
-                            {item.meetingPasscode}
+                          <div className="flex items-center gap-1 text-blue-600 truncate border-l border-blue-100/50 pl-2">
+                            <span className="text-gray-400 font-black uppercase tracking-widest mr-1">PX:</span>
+                            <span className="truncate">{item.meetingPasscode}</span>
                           </div>
                         )}
                       </div>
@@ -213,42 +213,42 @@ export function ClassRoutine() {
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-10 lg:gap-16 relative z-10">
-                <div className="space-y-2">
-                  <p className="text-[9px] text-gray-300 font-black uppercase tracking-[0.2em]">
+              <div className="grid grid-cols-2 lg:flex lg:flex-wrap gap-4 sm:gap-10 lg:gap-16 relative z-10 w-full lg:w-auto">
+                <div className="space-y-1 sm:space-y-2">
+                  <p className="text-[8px] sm:text-[9px] text-gray-300 font-black uppercase tracking-widest">
                     Lead Faculty
                   </p>
-                  <div className="flex items-center gap-3">
-                    <div className="size-8 bg-blue-50 text-blue-600 rounded-full border border-white flex items-center justify-center">
-                      <GraduationCapIcon className="size-4" />
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="size-6 sm:size-8 bg-blue-50 text-blue-600 rounded-full border border-white flex items-center justify-center shrink-0">
+                      <GraduationCapIcon className="size-3.5 sm:size-4" />
                     </div>
-                    <p className="font-black text-gray-700 text-sm italic">
+                    <p className="font-black text-gray-700 text-[10px] sm:text-sm italic truncate">
                       {item.teacher?.name}
                     </p>
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <p className="text-[9px] text-gray-300 font-black uppercase tracking-[0.2em]">
+                <div className="space-y-1 sm:space-y-2 text-right lg:text-left">
+                  <p className="text-[8px] sm:text-[9px] text-gray-300 font-black uppercase tracking-widest">
                     Target Batch
                   </p>
-                  <p className="font-black text-indigo-600 text-sm px-4 py-1.5 bg-indigo-50/50 rounded-xl border border-indigo-100/30">
+                  <p className="font-black text-indigo-600 text-[9px] sm:text-sm px-3 sm:px-4 py-1 sm:py-1.5 bg-indigo-50/50 rounded-lg sm:rounded-xl border border-indigo-100/30 w-fit truncate ml-auto lg:ml-0">
                     {item.batch?.name}
                   </p>
                 </div>
-                <div className="space-y-2">
-                  <p className="text-[9px] text-gray-300 font-black uppercase tracking-[0.2em]">
+                <div className="space-y-1 sm:space-y-2 col-span-2 lg:col-span-1">
+                  <p className="text-[8px] sm:text-[9px] text-gray-300 font-black uppercase tracking-widest">
                     Session Venue
                   </p>
-                  <div className="flex items-center gap-2 font-black text-gray-700 text-sm">
-                    <div className="size-6 bg-rose-50 rounded-lg flex items-center justify-center">
+                  <div className="flex items-center gap-2 sm:gap-3 font-black text-gray-700 text-[10px] sm:text-sm">
+                    <div className="size-5 sm:size-6 bg-rose-50 rounded-lg flex items-center justify-center shrink-0">
                       <MapPinIcon className="size-3 text-rose-500" />
                     </div>
-                    {item.venue || (item.isOnline ? "Zoom Classroom" : "TBA")}
+                    <span className="truncate">{item.venue || (item.isOnline ? "Zoom Classroom" : "TBA")}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 relative z-10">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-4 relative z-10 w-full lg:w-auto mt-2 lg:mt-0">
                 {item.isOnline &&
                   (() => {
                     const sessionDate = new Date(item.date);
@@ -389,7 +389,7 @@ export function ClassRoutine() {
                                 }
                               }
                             }}
-                            className={`px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border whitespace-nowrap shadow-lg ${
+                            className={`px-4 py-3 rounded-xl sm:rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border whitespace-nowrap shadow-lg flex-1 sm:flex-none text-center ${
                               (item.recordings?.length ?? 0) > 0
                                 ? item.recordings?.some(
                                     (r) => r.status === "processing",
@@ -401,7 +401,7 @@ export function ClassRoutine() {
                           >
                             {(() => {
                               if ((item.recordings?.length ?? 0) === 0)
-                                return "Recording Unavailable";
+                                return "No Recording";
                               if (
                                 item.recordings?.some(
                                   (r) => r.status === "processing",
@@ -429,31 +429,31 @@ export function ClassRoutine() {
                             toast.error("No Zoom details provided for this session.");
                           }
                         }}
-                        className="px-5 py-3 bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all border border-blue-600 whitespace-nowrap shadow-lg shadow-blue-100"
+                        className="px-4 py-3 bg-blue-600 text-white rounded-xl sm:rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all border border-blue-600 whitespace-nowrap shadow-lg shadow-blue-100 flex-1 sm:flex-none text-center"
                       >
-                        Join Classroom
+                        Join Class
                       </button>
                     );
                   })()}
                 {(user?.role === Role.ADMIN ||
                   user?.role === Role.ACADEMIC_OPERATIONS) && (
-                  <>
+                  <div className="flex gap-2 w-full sm:w-auto">
                     <button
                       onClick={() => {
                         setEditingSession(item);
                         setIsModalOpen(true);
                       }}
-                      className="px-5 py-3 bg-gray-50 text-gray-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-100 transition-all border border-gray-100"
+                      className="flex-1 px-4 py-3 bg-gray-50 text-gray-600 rounded-xl sm:rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-100 transition-all border border-gray-100 text-center"
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => handleDelete(item.id)}
-                      className="px-5 py-3 bg-red-50 text-red-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-red-100 transition-all border border-red-100"
+                      className="flex-1 px-4 py-3 bg-red-50 text-red-600 rounded-xl sm:rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-red-100 transition-all border border-red-100 text-center"
                     >
                       Cancel
                     </button>
-                  </>
+                  </div>
                 )}
               </div>
             </div>
