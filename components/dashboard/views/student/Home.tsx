@@ -55,7 +55,7 @@ export function StudentHome() {
         : "0.0";
 
     return (
-        <div className="p-8 space-y-8">
+        <div className="p-4 md:p-8 space-y-6 md:space-y-8">
             {user?.role === 'STUDENT' && user?.admission?.status !== 'APPROVED' && (
                 <AnimatedContent>
                     <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 p-4 rounded-2xl flex items-center justify-between">
@@ -68,17 +68,17 @@ export function StudentHome() {
 
             {/* Welcome Banner */}
             <AnimatedContent distance={20}>
-                <div className="bg-gradient-to-r from-blue-600 to-sky-400 rounded-3xl p-8 text-white relative overflow-hidden">
+                <div className="bg-gradient-to-r from-blue-600 to-sky-400 rounded-2xl md:rounded-3xl p-6 md:p-8 text-white relative overflow-hidden">
                     <div className="relative z-10 max-w-2xl">
-                        <div className="flex items-center gap-3 mb-2">
-                            <h1 className="text-3xl font-bold font-urbanist">Welcome back, {user?.name || 'Student'}! 👋</h1>
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-2">
+                            <h1 className="text-2xl md:text-3xl font-bold font-urbanist">Welcome back, {user?.name || 'Student'}! 👋</h1>
                             {user?.enrollmentId && (
                                 <span className="bg-white/20 backdrop-blur-sm border border-white/20 px-3 py-1 rounded-full text-xs font-bold tracking-wider">
                                     ID: {user.enrollmentId}
                                 </span>
                             )}
                         </div>
-                        <p className="mt-2 text-blue-50/80 text-lg">
+                        <p className="mt-2 text-blue-50/80 text-sm md:text-lg">
                             Welcome to the dashboard! Here you can track your progress and manage your courses.
                         </p>
                         <div className="mt-6 flex items-center gap-4">
@@ -146,9 +146,9 @@ export function StudentHome() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Ongoing & Upcoming Section */}
-                <div className="lg:col-span-2 space-y-8">
+                <div className="lg:col-span-2 space-y-6 md:space-y-8">
                     <AnimatedContent delay={0.5} distance={20}>
-                        <div className="bg-white rounded-3xl border border-gray-100 p-6">
+                        <div className="bg-white rounded-2xl md:rounded-3xl border border-gray-100 p-4 md:p-6">
                             <div className="flex items-center justify-between mb-6">
                                 <h2 className="text-xl font-bold text-gray-900">Ongoing Session</h2>
                                 <Link href="/dashboard/live" className="text-sm font-semibold text-blue-600 flex items-center gap-1 hover:gap-2 transition-all">
@@ -180,7 +180,7 @@ export function StudentHome() {
                     </AnimatedContent>
 
                     <AnimatedContent delay={0.6} distance={20}>
-                        <div className="bg-white rounded-3xl border border-gray-100 p-6">
+                        <div className="bg-white rounded-2xl md:rounded-3xl border border-gray-100 p-4 md:p-6">
                             <h2 className="text-xl font-bold text-gray-900 mb-6">Learning Path</h2>
                             <div className="space-y-4">
                                 {loading ? (
@@ -222,9 +222,9 @@ export function StudentHome() {
                 </div>
 
                 {/* Performance & Quizzes */}
-                <div className="space-y-8">
+                <div className="space-y-6 md:space-y-8">
                     <AnimatedContent delay={0.7} distance={20}>
-                        <div className="bg-white rounded-3xl border border-gray-100 p-6 h-full">
+                        <div className="bg-white rounded-2xl md:rounded-3xl border border-gray-100 p-4 md:p-6 h-full">
                             <h2 className="text-xl font-bold text-gray-900 mb-6">Performance Trend</h2>
                             <div className="flex items-center justify-center py-12">
                                 <div className="size-12 border-4 border-gray-200 border-t-yellow-500 rounded-full animate-spin"></div>
@@ -233,7 +233,7 @@ export function StudentHome() {
                     </AnimatedContent>
 
                     <AnimatedContent delay={0.8} distance={20}>
-                        <div className="bg-white rounded-3xl border border-gray-100 p-6">
+                        <div className="bg-white rounded-2xl md:rounded-3xl border border-gray-100 p-4 md:p-6">
                             <h2 className="text-xl font-bold text-gray-900 mb-6">Upcoming Tests</h2>
                             <div className="flex items-center justify-center py-12">
                                 <div className="size-12 border-4 border-gray-200 border-t-yellow-500 rounded-full animate-spin"></div>

@@ -34,8 +34,8 @@ export function AcademicHome() {
   }
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="relative overflow-hidden bg-gradient-to-br from-indigo-600 via-blue-600 to-sky-500 rounded-[3rem] p-10 text-white shadow-2xl shadow-blue-200">
+    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6 md:space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="relative overflow-hidden bg-gradient-to-br from-indigo-600 via-blue-600 to-sky-500 rounded-3xl md:rounded-[3rem] p-6 md:p-10 text-white shadow-2xl shadow-blue-200">
         <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full -mr-32 -mt-32 blur-3xl animate-pulse" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-400/20 rounded-full -ml-16 -mb-16 blur-2xl" />
         
@@ -45,24 +45,24 @@ export function AcademicHome() {
               <div className="size-2 bg-green-400 rounded-full animate-ping" />
               Live Operations
             </div>
-            <h1 className="text-4xl md:text-5xl font-black font-urbanist leading-tight">
+            <h1 className="text-2xl md:text-5xl font-black font-urbanist leading-tight">
               Academic <br />
               <span className="text-blue-100">Operations Hub</span>
             </h1>
-            <p className="text-blue-50/80 text-lg max-w-md font-medium leading-relaxed">
+            <p className="text-blue-50/80 text-sm md:text-lg max-w-md font-medium leading-relaxed">
               Real-time synchronization of institutional schedules, faculty assignments, and student doubt resolution.
             </p>
           </div>
           
           <div className="flex gap-4">
-            <div className="p-8 bg-white/10 backdrop-blur-xl rounded-[2.5rem] border border-white/20 shadow-xl flex flex-col items-center justify-center min-w-[140px] hover:scale-105 transition-transform duration-500 group">
-              <span className="text-4xl font-black mb-1 group-hover:text-blue-200 transition-colors">
+            <div className="p-4 md:p-8 bg-white/10 backdrop-blur-xl rounded-2xl md:rounded-[2.5rem] border border-white/20 shadow-xl flex flex-col items-center justify-center min-w-[100px] md:min-w-[140px] hover:scale-105 transition-transform duration-500 group">
+              <span className="text-2xl md:text-4xl font-black mb-1 group-hover:text-blue-200 transition-colors">
                 {stats?.todayClasses || 0}
               </span>
               <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Today&apos;s Classes</span>
             </div>
-            <div className="p-8 bg-white/10 backdrop-blur-xl rounded-[2.5rem] border border-white/20 shadow-xl flex flex-col items-center justify-center min-w-[140px] hover:scale-105 transition-transform duration-500 group">
-              <span className="text-4xl font-black mb-1 group-hover:text-amber-200 transition-colors">
+            <div className="p-4 md:p-8 bg-white/10 backdrop-blur-xl rounded-2xl md:rounded-[2.5rem] border border-white/20 shadow-xl flex flex-col items-center justify-center min-w-[100px] md:min-w-[140px] hover:scale-105 transition-transform duration-500 group">
+              <span className="text-2xl md:text-4xl font-black mb-1 group-hover:text-amber-200 transition-colors">
                 {stats?.pendingDoubts || 0}
               </span>
               <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Pending Doubts</span>
@@ -71,7 +71,7 @@ export function AcademicHome() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         <StatCard
           title="Active Teachers"
           value={stats?.activeTeachers?.toString() || "0"}
@@ -107,34 +107,34 @@ export function AcademicHome() {
       </div>
 
       <div className="grid grid-cols-1 gap-10">
-          <div className="space-y-8">
-              <div className="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-xl shadow-gray-200/40 relative overflow-hidden group">
+          <div className="space-y-6 md:space-y-8">
+              <div className="bg-white p-6 md:p-10 rounded-3xl md:rounded-[3rem] border border-gray-100 shadow-xl shadow-gray-200/40 relative overflow-hidden group">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full blur-3xl group-hover:bg-blue-100 transition-colors" />
                   <div className="relative z-10">
-                      <div className="flex items-center justify-between mb-8">
-                          <h3 className="text-2xl font-black text-gray-900 font-urbanist tracking-tight">Upcoming Academic Milestones</h3>
-                          <button className="p-3 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors text-gray-400">
-                              <CalendarIcon className="size-5" />
+                      <div className="flex items-center justify-between mb-6 md:mb-8">
+                          <h3 className="text-xl md:text-2xl font-black text-gray-900 font-urbanist tracking-tight">Upcoming Academic Milestones</h3>
+                          <button className="p-2 md:p-3 bg-gray-50 rounded-xl md:rounded-2xl hover:bg-gray-100 transition-colors text-gray-400">
+                              <CalendarIcon className="size-4 md:size-5" />
                           </button>
                       </div>
                       <div className="space-y-4">
                           {(stats?.milestones?.length > 0 ? stats.milestones : [
                               { title: "No upcoming milestones", date: "-", type: "None", color: "gray" }
                           ]).map((item: any, i: number) => (
-                              <div key={i} className="flex items-center justify-between p-6 bg-gray-50/50 rounded-3xl border border-gray-100 hover:border-blue-200 hover:bg-white hover:shadow-lg transition-all duration-300 group/item">
-                                  <div className="flex items-center gap-5">
-                                      <div className={`size-14 bg-white rounded-2xl flex items-center justify-center shadow-sm group-hover/item:scale-110 transition-transform duration-500`}>
-                                          <div className={`size-3 rounded-full bg-${item.color}-500 shadow-lg shadow-${item.color}-200`} />
+                              <div key={i} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 md:p-6 bg-gray-50/50 rounded-2xl md:rounded-3xl border border-gray-100 hover:border-blue-200 hover:bg-white hover:shadow-lg transition-all duration-300 group/item gap-4">
+                                  <div className="flex items-center gap-3 md:gap-5">
+                                      <div className={`size-12 md:size-14 bg-white rounded-xl md:rounded-2xl flex items-center justify-center shadow-sm group-hover/item:scale-110 transition-transform duration-500 shrink-0`}>
+                                          <div className={`size-2.5 md:size-3 rounded-full bg-${item.color}-500 shadow-lg shadow-${item.color}-200`} />
                                       </div>
                                       <div>
-                                          <p className="font-black text-gray-900">{item.title}</p>
-                                          <div className="flex items-center gap-3 mt-1">
-                                              <span className="text-xs text-gray-400 font-bold uppercase tracking-widest">{item.date}</span>
-                                              <span className={`px-3 py-1 bg-${item.color}-50 text-${item.color}-600 rounded-full text-[9px] font-black uppercase tracking-widest`}>{item.type}</span>
+                                          <p className="font-black text-sm md:text-base text-gray-900">{item.title}</p>
+                                          <div className="flex items-center gap-2 md:gap-3 mt-1">
+                                              <span className="text-[10px] md:text-xs text-gray-400 font-bold uppercase tracking-widest">{item.date}</span>
+                                              <span className={`px-2 md:px-3 py-0.5 md:py-1 bg-${item.color}-50 text-${item.color}-600 rounded-full text-[8px] md:text-[9px] font-black uppercase tracking-widest`}>{item.type}</span>
                                           </div>
                                       </div>
                                   </div>
-                                  <div className="size-10 bg-white rounded-xl flex items-center justify-center border border-gray-100 text-gray-300 group-hover/item:text-blue-600 group-hover/item:border-blue-100 transition-colors">
+                                  <div className="hidden sm:flex size-10 bg-white rounded-xl items-center justify-center border border-gray-100 text-gray-300 group-hover/item:text-blue-600 group-hover/item:border-blue-100 transition-colors">
                                       <CalendarIcon className="size-4" />
                                   </div>
                               </div>

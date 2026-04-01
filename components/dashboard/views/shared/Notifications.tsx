@@ -54,8 +54,8 @@ export function NotificationsView() {
   if (isLoading) return <div className="flex justify-center p-8"><Loader2 className="animate-spin text-blue-600" /></div>;
 
   return (
-    <div className="p-8 space-y-6">
-       <div className="flex justify-between items-center max-w-3xl">
+    <div className="p-4 md:p-8 space-y-6">
+       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center max-w-3xl gap-4">
            <h1 className="text-2xl font-bold font-urbanist text-gray-900">Notifications</h1>
            {notifications.some(n => !n.isRead) && (
                <button 

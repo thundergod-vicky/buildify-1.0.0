@@ -200,7 +200,7 @@ export default function Topbar() {
     const greeting = timeBasedGreeting();
 
     return (
-        <header className="h-20 bg-white border-b border-gray-100 flex items-center justify-between px-8 sticky top-0 z-50">
+        <header className="h-16 md:h-20 bg-white border-b border-gray-100 flex items-center justify-between px-3 md:px-8 sticky top-0 z-50">
             <div className="flex-1 max-w-xl flex items-center overflow-hidden">
                 <motion.div 
                     initial={{ opacity: 0, x: -20 }}
@@ -220,15 +220,15 @@ export default function Topbar() {
                             >
                                 {greeting.icon}
                             </motion.span>
-                            <h2 className="text-lg font-black text-gray-900 tracking-tight leading-none">
+                            <h2 className="text-xs sm:text-sm md:text-lg font-black text-gray-900 tracking-tight leading-none whitespace-nowrap">
                                 {greeting.text}, <span className="text-blue-600">{user?.name ? user.name.split(' ')[0] : 'Scholar'}</span>
                             </h2>
                         </div>
                         
-                        <div className="flex items-center gap-2 mt-1 px-1">
-                            <div className="size-1 bg-blue-400 rounded-full animate-pulse shadow-sm shadow-blue-200"></div>
-                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">
-                                {user?.role.replace(/_/g, ' ')} Session <span className="text-blue-500 ml-1">• LIVE</span> • {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                        <div className="flex items-center gap-1.5 mt-1 px-1">
+                            <div className="size-1 bg-blue-400 rounded-full animate-pulse shadow-sm shadow-blue-200 shrink-0"></div>
+                            <p className="text-[8px] md:text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none truncate max-w-[120px] sm:max-w-none">
+                                {user?.role.replace(/_/g, ' ')} Session <span className="text-blue-500 ml-1">• LIVE</span> • <span className="hidden sm:inline">{currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span><span className="sm:hidden">{currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                             </p>
                             <SparklesIcon className="size-2 text-yellow-400 animate-bounce" />
                         </div>
@@ -244,14 +244,14 @@ export default function Topbar() {
                             isNotiOpen && "bg-yellow-50 text-yellow-600 ring-2 ring-blue-100"
                         )}
                     >
-                        <BellIcon className={cn("size-5 group-hover:text-blue-600", isNotiOpen && "text-blue-600")} />
+                        <BellIcon className={cn("size-4 md:size-5 group-hover:text-blue-600", isNotiOpen && "text-blue-600")} />
                         {unreadCount > 0 && (
-                            <span className="absolute top-2.5 right-2.5 size-2 bg-red-500 border-2 border-white rounded-full"></span>
+                            <span className="absolute top-2 md:top-2.5 right-2 md:right-2.5 size-1.5 md:size-2 bg-red-500 border-2 border-white rounded-full"></span>
                         )}
                     </button>
 
                     {isNotiOpen && (
-                        <div className="absolute right-0 mt-3 w-96 bg-white border border-gray-100 rounded-[2.5rem] shadow-2xl shadow-gray-200/50 z-50 overflow-hidden flex flex-col h-[480px]">
+                        <div className="fixed inset-x-3 top-[72px] sm:absolute sm:inset-x-auto sm:right-0 sm:mt-3 sm:w-96 bg-white border border-gray-100 rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl shadow-gray-200/50 z-[60] overflow-hidden flex flex-col h-[400px] sm:h-[480px]">
                             <div className="p-5 border-b border-gray-50 flex items-center justify-between bg-white shrink-0">
                                 <h3 className="font-bold text-gray-900">Notifications</h3>
                                 {unreadCount > 0 && (
@@ -269,7 +269,7 @@ export default function Topbar() {
                                 )}
                             </div>
 
-                            <div className="p-2 space-y-1 flex-1 overflow-y-auto minimal-scrollbar overscroll-behavior-contain" style={{ maxHeight: 'calc(480px - 120px)' }}>
+                            <div className="p-2 space-y-1 flex-1 overflow-y-auto minimal-scrollbar overscroll-behavior-auto">
                                 {isLoadingNotis ? (
                                     <div className="flex flex-col items-center justify-center p-12 space-y-3">
                                         <Loader2Icon className="size-8 text-blue-600 animate-spin" />
@@ -346,6 +346,7 @@ export default function Topbar() {
                             </div>
                         </div>
                     )}
+                    {isNotiOpen && <div className="fixed inset-0 z-[55] sm:hidden" onClick={() => setIsNotiOpen(false)} />}
                 </div>
                 
                 <div className="h-8 w-px bg-gray-100 mx-2"></div>
@@ -355,7 +356,7 @@ export default function Topbar() {
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
                         className={`flex items-center gap-3 p-1.5 pr-3 rounded-xl transition-all group ${isMenuOpen ? 'bg-yellow-50 ring-2 ring-blue-100' : 'hover:bg-gray-50'}`}
                     >
-                        <div className={`size-9 rounded-lg flex items-center justify-center transition-colors overflow-hidden ${isMenuOpen ? 'bg-blue-600 text-white' : 'bg-yellow-100 text-blue-600'}`}>
+                        <div className={`size-8 md:size-9 rounded-lg flex items-center justify-center transition-colors overflow-hidden ${isMenuOpen ? 'bg-blue-600 text-white' : 'bg-yellow-100 text-blue-600'}`}>
                             {user?.profileImage ? (
                                 <img 
                                     src={resolveImageUrl(user.profileImage)} 
@@ -363,7 +364,7 @@ export default function Topbar() {
                                     className="w-full h-full object-cover"
                                 />
                             ) : (
-                                <UserIcon className="size-5" />
+                                <UserIcon className="size-4 md:size-5" />
                             )}
                         </div>
                         <div className="text-left hidden md:block">
@@ -377,12 +378,12 @@ export default function Topbar() {
                                 )}
                             </div>
                         </div>
-                        <ChevronDownIcon className={`size-4 text-gray-400 group-hover:text-gray-900 transition-transform duration-200 ${isMenuOpen ? 'rotate-180 text-gray-900' : ''}`} />
+                        <ChevronDownIcon className={`size-3 md:size-4 text-gray-400 group-hover:text-gray-900 transition-transform duration-200 ${isMenuOpen ? 'rotate-180 text-gray-900' : ''}`} />
                     </button>
 
                     {/* Dropdown Menu */}
                     {isMenuOpen && (
-                        <div className="absolute right-0 mt-3 w-80 bg-white border border-gray-100 rounded-3xl shadow-2xl shadow-gray-200/50 py-2 z-50 animate-in fade-in zoom-in duration-200 overflow-hidden">
+                        <div className="absolute right-0 mt-3 w-[calc(100vw-2rem)] sm:w-80 bg-white border border-gray-100 rounded-2xl sm:rounded-3xl shadow-2xl shadow-gray-200/50 py-2 z-50 animate-in fade-in zoom-in duration-200 overflow-hidden">
                             {user?.role === Role.STUDENT && (
                                 <div className="p-4 border-b border-gray-50 bg-gray-50/30">
                                     <div className="flex items-center justify-between mb-3">
