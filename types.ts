@@ -182,6 +182,7 @@ export interface User {
   webinarApiKey?: string;
   webinarEmail?: string;
   webinarName?: string;
+  userCode?: string;
   // Relations
   parentOf?: ParentStudent[];
   studentOf?: ParentStudent[];
