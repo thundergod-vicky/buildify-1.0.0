@@ -55,7 +55,6 @@ export function Calendar({ mode = 'student' }: { mode?: 'student' | 'teacher' | 
     // States for editing
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingSession, setEditingSession] = useState<any>(null);
-    const [teachers, setTeachers] = useState<{ id: string; name: string }[]>([]);
     const [batches, setBatches] = useState<Batch[]>([]);
 
 
@@ -114,15 +113,11 @@ export function Calendar({ mode = 'student' }: { mode?: 'student' | 'teacher' | 
 
         if (mode === 'teacher' || mode === 'operations') {
             const token = auth.getToken() || "";
-            api.get<any[]>("/users/teachers", token).then(res => {
-                setTeachers(res.map((t) => ({ id: t.id, name: t.name })));
-            }).catch(console.error);
-
-            api.get<any[]>("/batches", token).then(res => {
+            api.get<Batch[]>("/batches", token).then(res => {
                 setBatches(res);
             }).catch(console.error);
         }
-    }, [mode]);
+    }, [mode, fetchEvents]);
 
     const renderHeader = () => {
         const monthName = currentDate.toLocaleString('default', { month: 'long' });
