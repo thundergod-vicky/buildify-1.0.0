@@ -41,6 +41,13 @@ class ApiClient {
     const isJson = contentType?.includes('application/json');
 
     if (!response.ok) {
+      if (response.status === 401 && typeof window !== 'undefined') {
+        // Automatically logout on 401
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('auth_user');
+        window.location.href = '/auth';
+      }
+
       // Try to parse error as JSON, but handle non-JSON error responses
       let errorMessage = response.statusText;
       if (isJson && contentLength !== '0') {
