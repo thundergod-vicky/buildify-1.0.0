@@ -604,7 +604,6 @@ export function Calendar({ mode = 'student' }: { mode?: 'student' | 'teacher' | 
                     setEditingSession(null);
                 }}
                 onSuccess={fetchEvents}
-                teachers={teachers}
                 batches={batches}
                 editingSession={editingSession}
             />
