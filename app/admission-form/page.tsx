@@ -190,27 +190,43 @@ export default function AdmissionFormPage() {
             <label className="block text-sm font-semibold text-gray-600 mb-2 text-center">
               Student Photo <span className="text-gray-400 font-normal">(Optional)</span>
             </label>
-            <div className="relative w-32 h-36 border-2 border-dashed border-gray-300 rounded-xl overflow-hidden flex items-center justify-center bg-gray-50 cursor-pointer hover:border-blue-500 hover:bg-blue-50/50 transition-colors">
+            <div className="relative w-32 h-36 border-2 border-dashed border-gray-300 rounded-xl overflow-hidden flex items-center justify-center bg-gray-50 group hover:border-blue-500 hover:bg-blue-50/50 transition-colors">
               {photoPreview ? (
-                <Image
-                  src={photoPreview}
-                  alt="Student Preview"
-                  fill
-                  className="object-cover"
-                />
+                <>
+                  <Image
+                    src={photoPreview}
+                    alt="Student Preview"
+                    fill
+                    className="object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      setPhotoPreview(null);
+                      setPhotoFile(null);
+                    }}
+                    className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10 hover:bg-red-700"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                  </button>
+                </>
               ) : (
-                <span className="text-xs text-gray-400 text-center px-2 font-medium">
-                  Click to upload
-                  <br />
-                  photo
-                </span>
+                <>
+                  <span className="text-xs text-gray-400 text-center px-2 font-medium">
+                    Click to upload
+                    <br />
+                    photo
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="absolute inset-0 opacity-0 cursor-pointer"
+                    onChange={handlePhotoUpload}
+                  />
+                </>
               )}
-              <input
-                type="file"
-                accept="image/*"
-                className="absolute inset-0 opacity-0 cursor-pointer"
-                onChange={handlePhotoUpload}
-              />
             </div>
           </div>
         </div>

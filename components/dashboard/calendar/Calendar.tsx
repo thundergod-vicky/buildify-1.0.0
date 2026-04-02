@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { 
     ChevronLeftIcon, 
     ChevronRightIcon, 
@@ -69,7 +69,7 @@ export function Calendar({ mode = 'student' }: { mode?: 'student' | 'teacher' | 
         setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
     };
 
-    const fetchEvents = () => {
+    const fetchEvents = useCallback(() => {
         let endpoint: string;
         if (mode === 'teacher') {
             endpoint = '/class-sessions/my-sessions';
@@ -106,7 +106,7 @@ export function Calendar({ mode = 'student' }: { mode?: 'student' | 'teacher' | 
             }));
             setEvents(mappedEvents);
         }).catch(console.error);
-    };
+    }, [mode]);
 
     useEffect(() => {
         fetchEvents();

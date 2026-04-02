@@ -88,31 +88,55 @@ function DashboardContent() {
   // For students: call /admissions/me to check if they have submitted admission
   useEffect(() => {
     if (isLoading || !user) return;
-    if (user.role !== Role.STUDENT) {
+    if (user.role === Role.STUDENT) {
+      const token = auth.getToken();
+      admissionsApi
+        .getMyAdmission(token || undefined)
+        .then((data) => {
+          console.log("Student Admission Data:", data);
+          setHasAdmission(!!(data && data.id));
+        })
+        .catch((err) => {
+          console.error("Admission check error:", err);
+          setHasAdmission(false);
+        })
+        .finally(() => {
+          setAdmissionChecked(true);
+        });
+    } else if (user.role === Role.PARENT) {
+      console.log("Checking Parent Onboarding for:", user.id);
+      const token = auth.getToken();
+      admissionsApi
+        .getMyParentOnboarding(token || undefined)
+        .then((data) => {
+          console.log("Parent Onboarding Data:", data);
+          setHasAdmission(!!(data && data.id));
+        })
+        .catch((err) => {
+          console.error("Parent onboarding check error:", err);
+          setHasAdmission(false);
+        })
+        .finally(() => {
+          setAdmissionChecked(true);
+        });
+    } else {
       setHasAdmission(true);
       setAdmissionChecked(true);
-      return;
     }
-    const token = auth.getToken();
-    admissionsApi
-      .getMyAdmission(token || undefined)
-      .then((data) => {
-        // Only mark as true if actual data was returned (must have an id)
-        setHasAdmission(!!(data && data.id));
-      })
-      .catch(() => {
-        setHasAdmission(false);
-      })
-      .finally(() => {
-        setAdmissionChecked(true);
-      });
   }, [user, isLoading]);
 
   useEffect(() => {
+    console.log("Admission State:", { admissionChecked, hasAdmission, role: user?.role });
     if (admissionChecked && !hasAdmission) {
-      router.push("/admission-form");
+      if (user?.role === Role.STUDENT) {
+        console.log("Redirecting student to admission form");
+        router.push("/admission-form");
+      } else if (user?.role === Role.PARENT) {
+        console.log("Redirecting parent to onboarding form");
+        router.push("/parent-onboarding");
+      }
     }
-  }, [admissionChecked, hasAdmission, router]);
+  }, [admissionChecked, hasAdmission, router, user]);
 
   if (isLoading || !admissionChecked)
     return <div className="p-8">Syncing user session...</div>;
@@ -127,6 +151,8 @@ function DashboardContent() {
     );
   if (user.role === Role.STUDENT && !hasAdmission)
     return <div className="p-8">Redirecting to admission form...</div>;
+  if (user.role === Role.PARENT && !hasAdmission)
+    return <div className="p-8">Redirecting to onboarding form...</div>;
 
   if (currentView === "zoom-meeting") {
     return <ZoomMeeting />;
