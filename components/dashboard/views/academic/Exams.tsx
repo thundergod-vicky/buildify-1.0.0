@@ -2,29 +2,26 @@
 
 import { useState, useEffect, useRef } from "react";
 import { 
-  CalendarIcon, 
-  ShieldCheckIcon, 
-  AlertTriangleIcon, 
-  SearchIcon, 
   PlusIcon, 
   Trash2Icon, 
   EditIcon, 
   ClockIcon, 
-  UsersIcon,
   SaveIcon,
   XIcon,
   CheckCircle2Icon,
   ArrowLeftIcon,
   FileJsonIcon,
-  FileSpreadsheetIcon,
-  ChevronRightIcon
+  ChevronRightIcon,
+  UploadIcon,
+  CalendarIcon,
+  SearchIcon,
+  AlertTriangleIcon
 } from "lucide-react";
 import { showToast } from "@/lib/toast";
 import { api } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { useAuth } from "@/contexts/AuthContext";
-import { Role } from "@/types";
-import { ConfirmationModal } from "@/components/ui/confirmation-modal";
+import { User } from "@/types";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Exam {
@@ -35,28 +32,39 @@ interface Exam {
   startTime: string | null;
   endTime: string | null;
   duration: number | null;
-  questions: any[] | null;
+  questions: ExamQuestion[] | null;
   totalQuestions: number;
   batchId: string | null;
   batch?: { id: string, name: string };
-  assignedStudents: any[];
+  assignedStudents: User[];
   createdAt: string;
+}
+
+interface ExamQuestion {
+  id?: number | string;
+  category: string;
+  difficulty: "Easy" | "Medium" | "Hard";
+  question: string;
+  options: string[];
+  correctAnswer: number;
+  explanation: string;
 }
 
 interface Batch {
   id: string;
   name: string;
-  students: any[];
+  students: User[];
 }
 
 export function ExamSchedules() {
-  const { user } = useAuth();
+  useAuth();
   const [exams, setExams] = useState<Exam[]>([]);
   const [batches, setBatches] = useState<Batch[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingExam, setEditingExam] = useState<Exam | null>(null);
+  const [sortBy, setSortBy] = useState<"latest" | "title" | "duration" | "time">("latest");
   const [isSaving, setIsSaving] = useState(false);
 
   // Form State for Creation
@@ -74,7 +82,7 @@ export function ExamSchedules() {
     endTime: string;
     duration: number;
     status: 'DRAFT' | 'PLANNED' | 'SCHEDULED';
-    questions: any[];
+    questions: ExamQuestion[];
     assignedStudentIds: string[];
   } | null>(null);
 
@@ -183,10 +191,28 @@ export function ExamSchedules() {
     }
   };
 
-  const filteredExams = exams.filter(e => 
-    e.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    e.batch?.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredExams = exams
+    .filter(e => 
+      e.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      e.batch?.name.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .sort((a, b) => {
+      if (sortBy === "latest") {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }
+      if (sortBy === "title") {
+        return a.title.localeCompare(b.title);
+      }
+      if (sortBy === "duration") {
+        return (b.duration || 0) - (a.duration || 0);
+      }
+      if (sortBy === "time") {
+        const timeA = a.startTime ? new Date(a.startTime).getTime() : Infinity;
+        const timeB = b.startTime ? new Date(b.startTime).getTime() : Infinity;
+        return timeA - timeB;
+      }
+      return 0;
+    });
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -212,101 +238,114 @@ export function ExamSchedules() {
   }
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div className="space-y-2">
-          <h1 className="text-4xl font-black text-gray-900 font-urbanist tracking-tight">Exam Schedules</h1>
-          <p className="text-gray-500 font-medium">Manage and monitor institutional examination timelines and proctoring</p>
+    <div className="p-4 sm:p-8 max-w-6xl mx-auto space-y-6 sm:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div className="space-y-1">
+          <h1 className="text-xl sm:text-2xl font-black text-gray-900 font-urbanist tracking-tight">Exam Schedules</h1>
+          <p className="text-[10px] sm:text-sm text-gray-500 font-medium">Manage and monitor institutional examination timelines and proctoring</p>
         </div>
         <button 
           onClick={() => setIsCreateModalOpen(true)}
-          className="bg-gray-900 text-white px-10 py-4 rounded-[2rem] font-black text-xs uppercase tracking-widest shadow-2xl shadow-gray-200 hover:bg-black transition-all hover:-translate-y-1 flex items-center gap-2"
+          className="bg-gray-900 text-white px-6 sm:px-8 py-2.5 sm:py-3.5 rounded-xl sm:rounded-2xl font-black text-[10px] sm:text-xs uppercase tracking-widest shadow-xl shadow-gray-200 hover:bg-black transition-all flex items-center justify-center gap-2"
         >
-          <PlusIcon className="size-4" />
+          <PlusIcon className="size-3.5 sm:size-4" />
           Create New Slot
         </button>
       </div>
 
-      <div className="flex items-center gap-4 bg-white p-4 rounded-3xl border border-gray-100 shadow-sm max-w-md">
-        <SearchIcon className="size-5 text-gray-400 ml-2" />
-        <input 
-          type="text"
-          placeholder="Search exams or batches..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="flex-1 bg-transparent border-none outline-none text-sm font-medium"
-        />
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        <div className="flex-1 flex items-center gap-3 bg-white p-1 rounded-xl border border-gray-100 shadow-sm">
+          <SearchIcon className="size-4 text-gray-400 ml-2.5" />
+          <input 
+            type="text"
+            placeholder="Search exams or batches..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="flex-1 bg-transparent border-none outline-none text-xs sm:text-sm font-medium py-2 pr-3"
+          />
+        </div>
+
+        <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl border border-gray-100 shadow-sm shrink-0">
+          <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest hidden sm:block">Sort:</span>
+          <select 
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as any)}
+            className="bg-transparent text-[10px] sm:text-xs font-black text-gray-700 outline-none cursor-pointer appearance-none uppercase tracking-widest pl-1 pr-6"
+          >
+            <option value="latest">Latest Added</option>
+            <option value="time">Starts At (Time)</option>
+            <option value="title">Alphabetical</option>
+            <option value="duration">Max Duration</option>
+          </select>
+        </div>
       </div>
 
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {[1,2,3].map(i => <div key={i} className="h-64 bg-gray-50 animate-pulse rounded-[3rem]" />)}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          {[1,2,3].map(i => <div key={i} className="h-48 bg-gray-50 animate-pulse rounded-2xl sm:rounded-3xl" />)}
         </div>
       ) : filteredExams.length === 0 ? (
-        <div className="text-center py-32 bg-gray-50 rounded-[4rem] border-2 border-dashed border-gray-200">
-          <p className="text-gray-400 font-bold uppercase tracking-widest">No exams found</p>
+        <div className="text-center py-20 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
+          <p className="text-gray-400 font-bold text-[10px] sm:text-xs uppercase tracking-widest">No exams found</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {filteredExams.map((exam) => (
-            <div key={exam.id} className="bg-white p-10 rounded-[3rem] border border-gray-100 shadow-xl shadow-gray-100/50 relative overflow-hidden group hover:shadow-2xl hover:-translate-y-1 transition-all duration-500">
-              <div className="flex items-center justify-between mb-8">
-                <div className={`size-14 bg-${getStatusColor(exam.status)}-50 text-${getStatusColor(exam.status)}-600 rounded-2xl flex items-center justify-center shadow-inner border border-${getStatusColor(exam.status)}-100/50`}>
-                  <CalendarIcon className="size-6" />
+            <div key={exam.id} className="bg-white p-5 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] border border-gray-100 shadow-lg shadow-gray-100/50 relative overflow-hidden group hover:shadow-2xl transition-all duration-500">
+              <div className="flex items-center justify-between mb-4 sm:mb-6">
+                <div className={`size-10 sm:size-12 bg-${getStatusColor(exam.status)}-50 text-${getStatusColor(exam.status)}-600 rounded-xl flex items-center justify-center shadow-inner border border-${getStatusColor(exam.status)}-100/50`}>
+                  <CalendarIcon className="size-5 sm:size-6" />
                 </div>
-                <div className="flex flex-col items-end gap-2">
-                    <span className={`px-4 py-1.5 bg-${getStatusColor(exam.status)}-50 text-${getStatusColor(exam.status)}-600 rounded-full text-[9px] font-black uppercase tracking-[0.2em]`}>
+                <div className="flex flex-col items-end gap-1.5">
+                    <span className={`px-3 py-1 bg-${getStatusColor(exam.status)}-50 text-${getStatusColor(exam.status)}-600 rounded-full text-[8px] sm:text-[9px] font-black uppercase tracking-wider`}>
                         {exam.status}
                     </span>
                     {exam.status === 'SCHEDULED' && exam.startTime && (
-                         <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">
+                         <span className="text-[8px] sm:text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
                             {new Date(exam.startTime) < new Date() ? 'LIVE / COMPLETED' : 'UPCOMING'}
                          </span>
                     )}
                 </div>
               </div>
 
-              <h3 className="text-2xl font-black text-gray-900 mb-2 leading-tight">{exam.title}</h3>
-              <p className="text-sm text-gray-400 mb-6 font-medium">
+              <h3 className="text-base sm:text-lg font-black text-gray-900 mb-1 leading-tight">{exam.title}</h3>
+              <p className="text-[10px] sm:text-xs text-gray-400 mb-4 sm:mb-6 font-medium">
                 Target: <span className="text-gray-900 font-black italic">{exam.batch?.name || 'All Assigned'}</span>
               </p>
 
-              <div className="flex flex-wrap gap-2 mb-8">
-                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 rounded-xl text-[10px] font-black text-gray-500 uppercase tracking-tighter">
-                    <ClockIcon className="size-3" />
+              <div className="flex flex-wrap gap-1.5 mb-4 sm:mb-6">
+                <div className="flex items-center gap-1 px-2.5 py-1 bg-gray-50 rounded-lg text-[8px] sm:text-[9px] font-black text-gray-500 uppercase tracking-tight">
+                    <ClockIcon className="size-2.5 sm:size-3" />
                     {exam.duration || 0} Min
                 </div>
-                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 rounded-xl text-[10px] font-black text-gray-500 uppercase tracking-tighter">
-                    <FileJsonIcon className="size-3" />
+                <div className="flex items-center gap-1 px-2.5 py-1 bg-gray-50 rounded-lg text-[8px] sm:text-[9px] font-black text-gray-500 uppercase tracking-tight">
+                    <FileJsonIcon className="size-2.5 sm:size-3" />
                     {exam.totalQuestions} Items
                 </div>
               </div>
               
-              <div className="flex items-center justify-between pt-8 border-t border-gray-50 relative z-20">
-                <div className="flex gap-4">
+              <div className="flex items-center justify-between pt-4 sm:pt-6 border-t border-gray-50 relative z-20">
+                <div className="flex gap-2 sm:gap-3">
                     <button 
                         onClick={(e) => { e.stopPropagation(); handleStartEditing(exam); }}
-                        className="p-4 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 transition-all shadow-xl shadow-blue-500/20 active:scale-95 z-30"
+                        className="p-2 sm:p-2.5 bg-blue-600 text-white rounded-lg sm:rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/10 active:scale-95 z-30"
                         title="Edit Exam"
                     >
-                        <EditIcon className="size-5" />
+                        <EditIcon className="size-3.5 sm:size-4" />
                     </button>
                     <button 
                         onClick={(e) => { e.stopPropagation(); handleDeleteExam(exam.id); }}
-                        className="p-4 bg-rose-50 text-rose-600 rounded-2xl hover:bg-rose-600 hover:text-white transition-all shadow-xl shadow-rose-500/5 active:scale-95 z-30"
+                        className="p-2 sm:p-2.5 bg-rose-50 text-rose-600 rounded-lg sm:rounded-xl hover:bg-rose-600 hover:text-white transition-all shadow-lg shadow-rose-500/5 active:scale-95 z-30"
                         title="Delete Exam"
                     >
-                        <Trash2Icon className="size-5" />
+                        <Trash2Icon className="size-3.5 sm:size-4" />
                     </button>
                 </div>
                 <div className="text-right">
-                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Starts At</p>
-                    <p className="text-sm font-black text-gray-900 font-mono tracking-tighter transition-colors group-hover:text-blue-600">
+                    <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest leading-none mb-0.5 sm:mb-1">Starts At</p>
+                    <p className="text-[10px] sm:text-xs font-black text-gray-900 font-mono tracking-tight transition-colors group-hover:text-blue-600">
                         {exam.startTime ? new Date(exam.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'TBD'}
                     </p>
-                    {exam.startTime && (
-                         <p className="text-[8px] font-bold text-gray-400 uppercase">{new Date(exam.startTime).toLocaleDateString()}</p>
-                    )}
                 </div>
               </div>
             </div>
@@ -393,7 +432,25 @@ export function ExamSchedules() {
   );
 }
 
-function ExamEditor({ formData, setFormData, onBack, onSave, isSaving, batches }: any) {
+function ExamEditor({ formData, setFormData, onBack, onSave, isSaving, batches }: {
+  formData: {
+    title: string;
+    description: string;
+    startTime: string;
+    endTime: string;
+    duration: number;
+    status: 'DRAFT' | 'PLANNED' | 'SCHEDULED';
+    questions: ExamQuestion[];
+    assignedStudentIds: string[];
+    batchId?: string; // Added batchId to formData type
+  };
+  setFormData: (data: any) => void;
+  onBack: () => void;
+  onSave: () => void;
+  isSaving: boolean;
+  batches: Batch[];
+  examId: string;
+}) {
   const [activeTab, setActiveTab] = useState<'details' | 'questions' | 'students'>('details');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -412,7 +469,7 @@ function ExamEditor({ formData, setFormData, onBack, onSave, isSaving, batches }
     });
   };
 
-  const updateQuestion = (index: number, field: string, value: any) => {
+  const updateQuestion = (index: number, field: keyof ExamQuestion, value: any) => {
     const newQuestions = [...formData.questions];
     newQuestions[index] = { ...newQuestions[index], [field]: value };
     setFormData({ ...formData, questions: newQuestions });
@@ -427,7 +484,7 @@ function ExamEditor({ formData, setFormData, onBack, onSave, isSaving, batches }
   };
 
   const removeQuestion = (index: number) => {
-    setFormData({ ...formData, questions: formData.questions.filter((_:any, i:any) => i !== index) });
+    setFormData({ ...formData, questions: formData.questions.filter((_, i) => i !== index) });
   };
 
   const handleBulkUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -523,7 +580,7 @@ function ExamEditor({ formData, setFormData, onBack, onSave, isSaving, batches }
             </button>
         </div>
 
-        <div className="flex bg-gray-100 p-1.5 rounded-[2.5rem] w-fit mx-auto shadow-inner">
+        <div className="flex bg-gray-100 p-1 rounded-full w-fit mx-auto shadow-inner">
             {[
                 { id: 'details', label: 'Schedule & Info' },
                 { id: 'questions', label: `Item Bank (${formData.questions.length})` },
@@ -532,50 +589,50 @@ function ExamEditor({ formData, setFormData, onBack, onSave, isSaving, batches }
                 <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id as any)}
-                    className={`px-8 py-3.5 rounded-full text-xs font-black uppercase tracking-widest transition-all ${activeTab === tab.id ? 'bg-white text-indigo-600 shadow-xl scale-105' : 'text-gray-400 hover:text-gray-600'}`}
+                    className={`px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === tab.id ? 'bg-white text-indigo-600 shadow-lg scale-105' : 'text-gray-400 hover:text-gray-600'}`}
                 >
                     {tab.label}
                 </button>
             ))}
         </div>
 
-        <div className="bg-white rounded-[4rem] border border-gray-100 p-12 shadow-2xl shadow-gray-100/50">
+        <div className="bg-white rounded-[2rem] border border-gray-100 p-6 sm:p-8 shadow-2xl shadow-gray-100/50">
             {activeTab === 'details' && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                    <div className="space-y-8">
-                        <div className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-6">
+                        <div className="space-y-2">
                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">Assigned Batch</label>
                             <select 
                                 value={formData.batchId || ""}
                                 onChange={e => setFormData({...formData, batchId: e.target.value})}
-                                className="w-full px-8 py-5 bg-gray-50 rounded-3xl border-2 border-transparent focus:border-indigo-500 focus:bg-white outline-none transition-all font-black text-xs uppercase tracking-widest appearance-none cursor-pointer"
+                                className="w-full px-6 py-3.5 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-indigo-500 focus:bg-white outline-none transition-all font-black text-[10px] uppercase tracking-widest appearance-none cursor-pointer"
                             >
                                 <option value="">Select Batch (Default: All)</option>
                                 {batches.map((b:any) => <option key={b.id} value={b.id}>{b.name}</option>)}
                             </select>
                         </div>
 
-                        <div className="space-y-3">
+                        <div className="space-y-2">
                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">Exam Description</label>
                             <textarea 
                                 value={formData.description}
                                 onChange={e => setFormData({...formData, description: e.target.value})}
-                                rows={4}
-                                className="w-full px-8 py-6 bg-gray-50 rounded-[2.5rem] border-2 border-transparent focus:border-indigo-500 focus:bg-white outline-none transition-all text-sm font-medium leading-relaxed"
+                                rows={3}
+                                className="w-full px-6 py-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-indigo-500 focus:bg-white outline-none transition-all text-sm font-medium leading-relaxed"
                                 placeholder="Instructions for students..."
                             />
                         </div>
 
-                        <div className="grid grid-cols-2 gap-8">
-                            <div className="space-y-3">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">Duration (Mins)</label>
                                 <div className="relative">
-                                    <ClockIcon className="absolute left-6 top-1/2 -translate-y-1/2 size-5 text-gray-300" />
+                                    <ClockIcon className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-gray-300" />
                                     <input 
                                         type="number"
                                         value={formData.duration}
                                         onChange={e => setFormData({...formData, duration: parseInt(e.target.value) || 0})}
-                                        className="w-full pl-16 pr-8 py-5 bg-gray-50 rounded-3xl border-2 border-transparent focus:border-indigo-500 focus:bg-white outline-none transition-all font-black text-lg"
+                                        className="w-full pl-10 pr-4 py-3 bg-gray-50 rounded-2xl border-2 border-transparent focus:border-indigo-500 focus:bg-white outline-none transition-all font-black text-base"
                                     />
                                 </div>
                             </div>
@@ -737,7 +794,7 @@ function ExamEditor({ formData, setFormData, onBack, onSave, isSaving, batches }
 
                     {!formData.batchId ? (
                         <div className="text-center py-20 bg-gray-50 rounded-[3rem] border-2 border-dashed border-gray-200">
-                             <p className="text-gray-400 font-bold uppercase tracking-widest">Select a batch in 'Schedule & Info' first</p>
+                             <p className="text-gray-400 font-bold uppercase tracking-widest">Select a batch in &apos;Schedule &amp; Info&apos; first</p>
                         </div>
                     ) : studentsInBatch.length === 0 ? (
                         <div className="text-center py-20 bg-gray-50 rounded-[3rem] border-2 border-dashed border-gray-200">
@@ -745,7 +802,7 @@ function ExamEditor({ formData, setFormData, onBack, onSave, isSaving, batches }
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {studentsInBatch.map((student:any) => (
+                            {studentsInBatch.map((student: User) => (
                                 <div 
                                     key={student.id} 
                                     onClick={() => {
@@ -776,23 +833,3 @@ function ExamEditor({ formData, setFormData, onBack, onSave, isSaving, batches }
   )
 }
 
-function UploadIcon(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-      <polyline points="17 8 12 3 7 8" />
-      <line x1="12" x2="12" y1="3" y2="15" />
-    </svg>
-  )
-}

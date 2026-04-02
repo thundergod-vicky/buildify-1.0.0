@@ -21,11 +21,12 @@ import {
   SortDescIcon,
   MoreHorizontal,
   UserPlusIcon,
+  CheckCircleIcon,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { showToast } from "@/lib/toast";
 import { ConfirmationModal } from "@/components/ui/confirmation-modal";
-import { User, Role } from "@/types";
+import { AdmissionStatus, User, Role } from "@/types";
 import { api } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import { useAuth } from "@/contexts/AuthContext";
@@ -113,6 +114,11 @@ export function AdminUserManagement() {
     newPassword: "",
   });
   const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [admissionFilter, setAdmissionFilter] = useState<"ALL" | "APPROVED" | "PENDING" | "NOT_SUBMITTED">("ALL");
+  
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState<number | 'all'>(10);
 
   useEffect(() => {
     fetchUsers();
@@ -345,10 +351,18 @@ export function AdminUserManagement() {
 
       if (!matchesSearch) return false;
 
-      // 2. Role Filter (Tabs)
-      if (roleFilter !== "ALL" && u.role !== roleFilter) return false;
+      // 3. Admission Status Filter
+      if (admissionFilter !== "ALL") {
+        if (admissionFilter === "APPROVED") {
+          if (u.admission?.status !== AdmissionStatus.APPROVED) return false;
+        } else if (admissionFilter === "PENDING") {
+          if (u.admission?.status !== AdmissionStatus.PENDING && u.admission?.status !== AdmissionStatus.REJECTED) return false;
+        } else if (admissionFilter === "NOT_SUBMITTED") {
+          if (u.admission) return false;
+        }
+      }
 
-      // 3. Security: Operations should not see/manage Admin accounts
+      // 4. Security: Operations should not see/manage Admin accounts
       if (currentUser?.role === Role.ACADEMIC_OPERATIONS) {
         return u.role !== Role.ADMIN;
       }
@@ -369,6 +383,17 @@ export function AdminUserManagement() {
 
       return sortOrder === "asc" ? comparison : -comparison;
     });
+
+  // Pagination Logic
+  const totalPages = itemsPerPage === 'all' ? 1 : Math.ceil(processedUsers.length / itemsPerPage);
+  const paginatedUsers = itemsPerPage === 'all' 
+    ? processedUsers 
+    : processedUsers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  // Reset to page 1 when search or page size changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, itemsPerPage, sortBy, sortOrder, roleFilter, admissionFilter]);
 
   return (
     <div className="p-3 sm:p-8 max-w-7xl mx-auto space-y-3 sm:space-y-8 overflow-x-hidden">
@@ -435,6 +460,22 @@ export function AdminUserManagement() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3 p-1">
+            {roleFilter === "STUDENT" && (
+              <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-2xl border border-gray-100 shadow-sm shrink-0">
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest hidden sm:block">Status:</span>
+                <select 
+                  value={admissionFilter}
+                  onChange={(e) => setAdmissionFilter(e.target.value as any)}
+                  className="bg-transparent text-[10px] font-black text-gray-700 outline-none cursor-pointer appearance-none uppercase tracking-widest pl-1 pr-6"
+                >
+                  <option value="ALL">All Status</option>
+                  <option value="APPROVED">Approved Only</option>
+                  <option value="PENDING">Pending Only</option>
+                  <option value="NOT_SUBMITTED">Not Submitted</option>
+                </select>
+              </div>
+            )}
+
             <div className="flex items-center gap-3 bg-white p-1 rounded-2xl border border-gray-100 shadow-sm flex-1 md:flex-none">
               <div className="pl-4 py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest border-r border-gray-50 pr-4">
                 Sort
@@ -539,7 +580,7 @@ export function AdminUserManagement() {
                           </div>
                         </td>
                       </tr>
-                      {roleUsers.map((user) => (
+                      {roleUsers.slice((currentPage - 1) * (itemsPerPage === 'all' ? roleUsers.length : itemsPerPage), currentPage * (itemsPerPage === 'all' ? roleUsers.length : itemsPerPage)).map((user) => (
                         <UserRow
                           key={user.id}
                           user={user}
@@ -562,7 +603,7 @@ export function AdminUserManagement() {
                   );
                 })
               ) : (
-                processedUsers.map((user) => (
+                paginatedUsers.map((user) => (
                   <UserRow
                     key={user.id}
                     user={user}
@@ -599,25 +640,70 @@ export function AdminUserManagement() {
               </div>
               <p className="text-gray-400 font-bold text-sm">No users found</p>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-4">
-              {processedUsers.map(user => (
-                <UserCard
-                  key={user.id}
-                  user={user}
-                  currentUser={currentUser}
-                  setDeleteConfirm={setDeleteConfirm}
-                  setDetailsModal={setDetailsModal}
-                  setAdmissionModal={setAdmissionModal}
-                  setPasswordModal={setPasswordModal}
-                  setEditingUser={setEditingUser}
-                />
-              ))}
+            ) : (
+              <div className="grid grid-cols-1 gap-4">
+                {paginatedUsers.map(user => (
+                  <UserCard
+                    key={user.id}
+                    user={user}
+                    currentUser={currentUser}
+                    setDeleteConfirm={setDeleteConfirm}
+                    setDetailsModal={setDetailsModal}
+                    setAdmissionModal={setAdmissionModal}
+                    setPasswordModal={setPasswordModal}
+                    setEditingUser={setEditingUser}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+          
+          {/* Pagination Controls */}
+          {!isLoading && processedUsers.length > 0 && (
+            <div className="p-4 sm:p-6 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4 bg-gray-50/30">
+              <div className="flex items-center gap-3">
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Show:</span>
+                <div className="flex bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+                  {[10, 20, 50, 100, 'all'].map((size) => (
+                    <button
+                      key={size}
+                      onClick={() => setItemsPerPage(size as any)}
+                      className={cn(
+                        "px-3 py-1.5 text-[10px] font-black uppercase transition-all border-r border-gray-100 last:border-0",
+                        itemsPerPage === size ? "bg-indigo-600 text-white" : "text-gray-500 hover:bg-gray-50"
+                      )}
+                    >
+                      {size === 'all' ? 'All' : size}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                  Page <span className="text-gray-900">{currentPage}</span> of <span className="text-gray-900">{totalPages}</span>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(currentPage - 1)}
+                    className="p-2 border border-gray-200 rounded-xl bg-white hover:bg-gray-50 text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm"
+                  >
+                    <SortAscIcon className="size-4 -rotate-90" />
+                  </button>
+                  <button
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(currentPage + 1)}
+                    className="p-2 border border-gray-200 rounded-xl bg-white hover:bg-gray-50 text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm"
+                  >
+                    <SortAscIcon className="size-4 rotate-90" />
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </div>
-      </div>
-        <ConfirmationModal
+      <ConfirmationModal
           isOpen={confirmModal.isOpen}
           onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
           onConfirm={() => {
@@ -671,12 +757,12 @@ export function AdminUserManagement() {
                         Full Name
                       </label>
                       <input
-                        value={editingUser.name || ""}
+                        value={editingUser?.name || ""}
                         onChange={(e) =>
-                          setEditingUser({
-                            ...editingUser,
+                          setEditingUser(prev => prev ? {
+                            ...prev,
                             name: e.target.value,
-                          })
+                          } : null)
                         }
                         type="text"
                         className="w-full px-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl outline-none focus:border-indigo-500 focus:bg-white transition-all font-bold text-sm text-slate-700 shadow-inner"
@@ -692,12 +778,12 @@ export function AdminUserManagement() {
                         <div className="relative group">
                           <MailIcon className="absolute left-5 top-1/2 -translate-y-1/2 size-4 text-slate-300 group-focus-within:text-indigo-400 transition-colors" />
                           <input
-                            value={editingUser.email || ""}
+                            value={editingUser?.email || ""}
                             onChange={(e) =>
-                              setEditingUser({
-                                ...editingUser,
+                              setEditingUser(prev => prev ? {
+                                ...prev,
                                 email: e.target.value,
-                              })
+                              } : null)
                             }
                             type="email"
                             readOnly={currentUser?.role !== Role.ADMIN}
@@ -722,12 +808,12 @@ export function AdminUserManagement() {
                         <div className="relative group">
                           <PhoneIcon className="absolute left-5 top-1/2 -translate-y-1/2 size-4 text-slate-300 group-focus-within:text-indigo-400 transition-colors" />
                           <input
-                            value={editingUser.phone || ""}
+                            value={editingUser?.phone || ""}
                             onChange={(e) =>
-                              setEditingUser({
-                                ...editingUser,
+                              setEditingUser(prev => prev ? {
+                                ...prev,
                                 phone: e.target.value,
-                              })
+                              } : null)
                             }
                             type="tel"
                             readOnly={currentUser?.role !== Role.ADMIN}
@@ -760,12 +846,12 @@ export function AdminUserManagement() {
                             Webinar Display Name
                           </label>
                           <input
-                            value={editingUser.webinarName || ""}
+                            value={editingUser?.webinarName || ""}
                             onChange={(e) =>
-                              setEditingUser({
-                                ...editingUser,
+                              setEditingUser(prev => prev ? {
+                                ...prev,
                                 webinarName: e.target.value,
-                              })
+                              } : null)
                             }
                             type="text"
                             className="w-full px-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl outline-none focus:border-indigo-500 focus:bg-white transition-all font-bold text-sm text-slate-700 shadow-inner"
@@ -778,12 +864,12 @@ export function AdminUserManagement() {
                             Webinar Account Email
                           </label>
                           <input
-                            value={editingUser.webinarEmail || ""}
+                            value={editingUser?.webinarEmail || ""}
                             onChange={(e) =>
-                              setEditingUser({
-                                ...editingUser,
+                              setEditingUser(prev => prev ? {
+                                ...prev,
                                 webinarEmail: e.target.value,
-                              })
+                              } : null)
                             }
                             type="email"
                             className="w-full px-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl outline-none focus:border-indigo-500 focus:bg-white transition-all font-bold text-sm text-slate-700 shadow-inner"
@@ -798,12 +884,12 @@ export function AdminUserManagement() {
                           <div className="relative group">
                             <Lock className="absolute left-5 top-1/2 -translate-y-1/2 size-4 text-slate-300 group-focus-within:text-indigo-400 transition-colors" />
                             <input
-                              value={editingUser.webinarApiKey || ""}
+                              value={editingUser?.webinarApiKey || ""}
                               onChange={(e) =>
-                                setEditingUser({
-                                  ...editingUser,
+                                setEditingUser(prev => prev ? {
+                                  ...prev,
                                   webinarApiKey: e.target.value,
-                                })
+                                } : null)
                               }
                               type="password"
                               className="w-full pl-12 pr-6 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl outline-none focus:border-indigo-500 focus:bg-white transition-all font-bold text-sm text-slate-700 shadow-inner"
@@ -1211,6 +1297,9 @@ function UserRow({
           <div>
             <div className="font-bold text-gray-900 flex items-center gap-1.5">
               {user.name || "Unnamed User"}
+              {user.admission?.status === AdmissionStatus.APPROVED && (
+                <CheckCircleIcon className="size-3.5 text-emerald-500 fill-emerald-50" />
+              )}
               {user.role === "ADMIN" && (
                 <ShieldCheckIcon className="size-3.5 text-indigo-600" />
               )}
@@ -1540,6 +1629,7 @@ function UserCard({
           <div>
             <h4 className="font-black text-gray-900 text-sm group-hover:text-indigo-600 transition-colors flex items-center gap-1.5 leading-none">
               {user.name || "Unnamed User"}
+              {user.admission?.status === AdmissionStatus.APPROVED && <CheckCircleIcon className="size-3 text-emerald-500 fill-emerald-50" />}
               {user.role === "ADMIN" && <ShieldCheckIcon className="size-3 text-indigo-600" />}
             </h4>
             <div className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1 flex items-center gap-2">

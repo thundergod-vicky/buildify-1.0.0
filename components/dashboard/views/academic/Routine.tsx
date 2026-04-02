@@ -8,6 +8,8 @@ import {
   PlusIcon,
   CalendarIcon,
   GraduationCapIcon,
+  SearchIcon,
+  FilterIcon,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { toast } from "react-toastify";
@@ -18,11 +20,16 @@ import { CreateSessionModal } from "./CreateSessionModal"; // Added import for C
 
 export function ClassRoutine() {
   const [sessions, setSessions] = useState<ClassSession[]>([]);
-  const [teachers, setTeachers] = useState<{ id: string; name: string }[]>([]);
   const [batches, setBatches] = useState<Batch[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSession, setEditingSession] = useState<ClassSession | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  // Search and Filter states
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<"time" | "added" | "modified">("time");
+  const [statusFilter, setStatusFilter] = useState<"all" | "upcoming" | "ongoing" | "completed">("all");
+
   const { user } = useAuth();
 
   const getLocalYMD = (d: Date) => {
@@ -64,13 +71,6 @@ export function ClassRoutine() {
         console.error("Failed to load sessions:", e);
       }
 
-      // Fetch teachers
-      try {
-        const teachRes = await api.get<any[]>("/users/teachers", token);
-        setTeachers(teachRes.map((t) => ({ id: t.id, name: t.name })));
-      } catch (e) {
-        console.error("Failed to load teachers:", e);
-      }
 
       // Fetch batches
       try {
@@ -101,14 +101,67 @@ export function ClassRoutine() {
     }
   };
 
+  const filteredSessions = sessions
+    .filter((session) => {
+      // Search Filter
+      const lowerQ = searchQuery.toLowerCase();
+      const titleMatch = session.title?.toLowerCase().includes(lowerQ);
+      const teacherMatch = session.teacher?.name?.toLowerCase().includes(lowerQ);
+      const subjectMatch = session.subject?.name?.toLowerCase().includes(lowerQ);
+      const batchMatch = session.batch?.name?.toLowerCase().includes(lowerQ);
+      const matchesSearch = !searchQuery || titleMatch || teacherMatch || subjectMatch || batchMatch;
+
+      if (!matchesSearch) return false;
+
+      // Status Filter
+      if (statusFilter === "all") return true;
+
+      const now = new Date();
+      const sessionDate = new Date(session.date);
+      const [startH, startM] = session.startTime.split(":").map(Number);
+      const [endH, endM] = session.endTime.split(":").map(Number);
+
+      const startDate = new Date(sessionDate);
+      startDate.setHours(startH, startM, 0, 0);
+
+      const endDate = new Date(sessionDate);
+      endDate.setHours(endH, endM, 0, 0);
+
+      if (statusFilter === "upcoming") {
+        return now < startDate;
+      } else if (statusFilter === "ongoing") {
+        return now >= startDate && now <= endDate;
+      } else if (statusFilter === "completed") {
+        return now > endDate;
+      }
+
+      return true;
+    })
+    .sort((a, b) => {
+      if (sortBy === "time") {
+        // Correct chronological sort for both 24h and 12h formats if present
+        // but assuming HH:mm 24h as per CreateSessionModal
+        return a.startTime.localeCompare(b.startTime);
+      } else if (sortBy === "added") {
+        const timeA = new Date(a.createdAt || 0).getTime();
+        const timeB = new Date(b.createdAt || 0).getTime();
+        return timeB - timeA;
+      } else if (sortBy === "modified") {
+        const timeA = new Date(a.updatedAt || 0).getTime();
+        const timeB = new Date(b.updatedAt || 0).getTime();
+        return timeB - timeA;
+      }
+      return 0;
+    });
+
   return (
-    <div className="p-3 sm:p-8 max-w-7xl mx-auto space-y-4 sm:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 overflow-x-hidden">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3 sm:gap-6">
+    <div className="p-3 sm:p-6 max-w-7xl mx-auto space-y-4 sm:space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 overflow-x-hidden">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3 sm:gap-4">
         <div className="max-w-full">
-          <h1 className="text-xl sm:text-4xl font-black text-gray-900 font-urbanist tracking-tight truncate">
+          <h1 className="text-xl sm:text-2xl font-black text-gray-900 font-urbanist tracking-tight truncate">
             Classes Routine
           </h1>
-          <p className="text-gray-500 font-medium text-[10px] sm:text-base mt-0.5 leading-relaxed truncate">
+          <p className="text-gray-500 font-medium text-[10px] sm:text-sm mt-0.5 leading-relaxed truncate">
             Institutional schedule and faculty assignments
           </p>
         </div>
@@ -120,7 +173,7 @@ export function ClassRoutine() {
                 setEditingSession(null);
                 setIsModalOpen(true);
               }}
-              className="flex-1 sm:flex-none px-4 sm:px-8 py-2.5 sm:py-4 bg-gray-900 text-white rounded-xl sm:rounded-2xl font-black text-[10px] sm:text-xs uppercase tracking-widest hover:bg-black flex items-center justify-center gap-2 transition-all shadow-xl shadow-gray-100"
+              className="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-3 bg-gray-900 text-white rounded-xl sm:rounded-[1.25rem] font-black text-[10px] sm:text-xs uppercase tracking-widest hover:bg-black flex items-center justify-center gap-2 transition-all shadow-xl shadow-gray-100"
             >
               <PlusIcon className="size-3.5 sm:size-4" /> Schedule New
             </button>
@@ -128,7 +181,7 @@ export function ClassRoutine() {
         )}
       </div>
 
-      <div className="bg-white/50 backdrop-blur-md p-1.5 rounded-2xl border border-gray-100 shadow-sm flex gap-2 overflow-x-auto w-full minimal-scrollbar">
+      <div className="bg-white/50 backdrop-blur-md p-1 rounded-xl border border-gray-100 shadow-sm flex gap-2 overflow-x-auto w-full minimal-scrollbar">
         {weekDays.map((d) => {
           const dateStr = getLocalYMD(d);
           const isToday = getLocalYMD(new Date()) === dateStr;
@@ -137,7 +190,7 @@ export function ClassRoutine() {
             <button
               key={dateStr}
               onClick={() => setSelectedDateFilter(dateStr)}
-              className={`px-6 py-3 rounded-2xl text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all duration-300 whitespace-nowrap flex items-center gap-2 flex-1 justify-center min-w-[120px] sm:min-w-[140px] ${isSelected ? "bg-blue-600 text-white shadow-lg shadow-blue-200" : "bg-transparent text-gray-400 hover:text-gray-900 hover:bg-gray-50"}`}
+              className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 whitespace-nowrap flex items-center gap-2 flex-1 justify-center min-w-[110px] sm:min-w-[130px] ${isSelected ? "bg-blue-600 text-white shadow-lg shadow-blue-200" : "bg-transparent text-gray-400 hover:text-gray-900 hover:bg-gray-50"}`}
             >
               <CalendarIcon className="size-3.5 opacity-50 hidden sm:block" />
               {isToday
@@ -152,6 +205,49 @@ export function ClassRoutine() {
         })}
       </div>
 
+      {/* Search and Filters */}
+      <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-2.5 bg-gray-50/50 p-1 rounded-2xl border border-gray-100 w-full">
+        <div className="relative flex-1 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex items-center p-0.5 min-w-0">
+          <SearchIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 size-3.5 text-gray-400 z-10" />
+          <input
+            type="text"
+            placeholder="Search by name, faculty, or batch..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 bg-transparent text-xs sm:text-sm outline-none transition-all placeholder:text-gray-400 font-medium text-gray-700 relative z-0"
+          />
+        </div>
+        
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-gray-100 shadow-sm flex-1 sm:flex-none">
+            <FilterIcon className="size-3 text-gray-400 shrink-0" />
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as any)}
+              className="bg-transparent text-[10px] font-black text-gray-700 outline-none cursor-pointer appearance-none uppercase tracking-widest pl-1 pr-6 flex-1 sm:flex-none"
+            >
+              <option value="all">All Sessions</option>
+              <option value="upcoming">Upcoming</option>
+              <option value="ongoing">Ongoing</option>
+              <option value="completed">Completed</option>
+            </select>
+          </div>
+
+          <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-gray-100 shadow-sm flex-1 sm:flex-none">
+            <FilterIcon className="size-3 text-gray-400 shrink-0" />
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as any)}
+              className="bg-transparent text-[10px] font-black text-gray-700 outline-none cursor-pointer appearance-none uppercase tracking-widest pl-1 pr-6 flex-1 sm:flex-none"
+            >
+              <option value="time">Sort By Time</option>
+              <option value="added">Sort By Date Added</option>
+              <option value="modified">Sort By Date Modified</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 gap-6">
         {loading ? (
           <div className="p-20 flex flex-col items-center justify-center gap-6">
@@ -160,40 +256,40 @@ export function ClassRoutine() {
               Syncing Matrix...
             </div>
           </div>
-        ) : sessions.length === 0 ? (
+        ) : filteredSessions.length === 0 ? (
           <div className="p-20 text-center bg-white rounded-[3rem] border border-gray-100 border-dashed">
             <div className="size-20 bg-gray-50 mx-auto rounded-full flex items-center justify-center mb-4">
-              <CalendarIcon className="size-8 text-gray-300" />
+              <SearchIcon className="size-8 text-gray-300" />
             </div>
             <h3 className="text-xl font-black text-gray-900 font-urbanist mb-2">
-              No sessions scheduled
+              No sessions found
             </h3>
             <p className="text-gray-400 font-medium">
-              There are no classes scheduled for this date.
+              We could not find any classes matching your criteria.
             </p>
           </div>
         ) : (
-          sessions.map((item) => (
+          filteredSessions.map((item) => (
             <div
               key={item.id}
-              className="bg-white p-4 sm:p-8 rounded-[2rem] sm:rounded-[3rem] border border-gray-100 shadow-lg shadow-gray-100/50 flex flex-col lg:flex-row lg:items-center justify-between gap-5 sm:gap-8 hover:scale-[1.01] hover:shadow-2xl hover:shadow-blue-100 transition-all duration-500 group relative overflow-hidden"
+              className="bg-white p-4 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] border border-gray-100 shadow-lg shadow-gray-100/50 flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-6 hover:scale-[1.01] hover:shadow-2xl hover:shadow-blue-100 transition-all duration-500 group relative overflow-hidden"
             >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full blur-3xl -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+              <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-full blur-2xl -mr-12 -mt-12 opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
 
-              <div className="flex items-center gap-4 sm:gap-8 relative z-10">
-                <div className="size-14 sm:size-20 bg-gradient-to-br from-blue-50 via-white to-blue-50 text-blue-600 rounded-xl sm:rounded-[1.75rem] flex items-center justify-center shadow-inner border border-blue-100 shrink-0">
-                  <ClockIcon className="size-6 sm:size-8" />
+              <div className="flex items-center gap-4 sm:gap-6 relative z-10">
+                <div className="size-12 sm:size-16 bg-gradient-to-br from-blue-50 via-white to-blue-50 text-blue-600 rounded-lg sm:rounded-[1.25rem] flex items-center justify-center shadow-inner border border-blue-100 shrink-0">
+                  <ClockIcon className="size-5 sm:size-7" />
                 </div>
-                <div className="space-y-0.5 sm:space-y-1 min-w-0">
-                  <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                    <span className="text-[9px] sm:text-[10px] font-black text-blue-600 uppercase tracking-widest bg-blue-50 px-2.5 py-0.5 rounded-full">
+                <div className="space-y-0.5 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-[8px] sm:text-[9px] font-black text-blue-600 uppercase tracking-widest bg-blue-50 px-2 py-0.5 rounded-full">
                       {item.type}
                     </span>
-                    <p className="text-[10px] sm:text-xs font-black text-gray-400 uppercase tracking-widest">
+                    <p className="text-[8px] sm:text-[10px] font-black text-gray-400 uppercase tracking-widest">
                       {item.startTime} - {item.endTime}
                     </p>
                   </div>
-                  <h3 className="text-base sm:text-2xl font-black text-gray-900 font-urbanist leading-tight truncate">
+                  <h3 className="text-sm sm:text-lg font-black text-gray-900 font-urbanist leading-tight truncate">
                     {item.title}
                   </h3>
                   {item.subject && (
@@ -425,6 +521,19 @@ export function ClassRoutine() {
                     return (
                       <button
                         onClick={() => {
+                          const [hours, minutes] = item.startTime.split(":").map(Number);
+                          const sessionStart = new Date(item.date);
+                          sessionStart.setHours(hours, minutes, 0, 0);
+                          const now = new Date();
+                          const diffInMinutes = (sessionStart.getTime() - now.getTime()) / (60 * 1000);
+
+                          // Restriction for Teachers and Students (not for Admin/Academic Ops usually, but applying to role check)
+                          const restrictedRoles = [Role.TEACHER, Role.STUDENT];
+                          if (user && restrictedRoles.includes(user.role as Role) && diffInMinutes > 15) {
+                            toast.warning("you can join this meeting only before 15 mins of the meeting start");
+                            return;
+                          }
+
                           if (item.meetingUrl) {
                             window.open(item.meetingUrl, "_blank");
                           } else if (item.meetingId) {
@@ -475,7 +584,6 @@ export function ClassRoutine() {
           setEditingSession(null);
         }}
         onSuccess={fetchData}
-        teachers={teachers}
         batches={batches}
         editingSession={editingSession}
       />

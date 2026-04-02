@@ -224,7 +224,7 @@ export default function Topbar() {
     const greeting = timeBasedGreeting();
 
     return (
-        <header className="h-16 md:h-20 bg-white border-b border-gray-100 flex items-center justify-between px-3 md:px-8 sticky top-0 z-50">
+        <header className="h-14 md:h-16 bg-white border-b border-gray-100 flex items-center justify-between px-3 md:px-6 sticky top-0 z-50">
             <div className="flex-1 max-w-xl flex items-center overflow-hidden">
                 <motion.div 
                     initial={{ opacity: 0, x: -20 }}
@@ -244,14 +244,14 @@ export default function Topbar() {
                             >
                                 {greeting.icon}
                             </motion.span>
-                            <h2 className="text-xs sm:text-sm md:text-lg font-black text-gray-900 tracking-tight leading-none whitespace-nowrap">
+                            <h2 className="text-[10px] sm:text-xs md:text-sm font-black text-gray-900 tracking-tight leading-none whitespace-nowrap">
                                 {greeting.text}, <span className="text-blue-600">{user?.name ? user.name.split(' ')[0] : 'Scholar'}</span>
                             </h2>
                         </div>
                         
-                        <div className="flex items-center gap-1.5 mt-1 px-1">
+                        <div className="flex items-center gap-1.5 mt-0.5 px-0.5">
                             <div className="size-1 bg-blue-400 rounded-full animate-pulse shadow-sm shadow-blue-200 shrink-0"></div>
-                            <p className="text-[8px] md:text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none truncate max-w-[120px] sm:max-w-none">
+                            <p className="text-[7px] md:text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none truncate max-w-[120px] sm:max-w-none">
                                 {user?.role.replace(/_/g, ' ')} Session <span className="text-blue-500 ml-1">• LIVE</span> • <span className="hidden sm:inline">{currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span><span className="sm:hidden">{currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                             </p>
                             <SparklesIcon className="size-2 text-yellow-400 animate-bounce" />
@@ -390,7 +390,7 @@ export default function Topbar() {
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
                         className={`flex items-center gap-3 p-1.5 pr-3 rounded-xl transition-all group ${isMenuOpen ? 'bg-yellow-50 ring-2 ring-blue-100' : 'hover:bg-gray-50'}`}
                     >
-                        <div className={`size-8 md:size-9 rounded-lg flex items-center justify-center transition-colors overflow-hidden ${isMenuOpen ? 'bg-blue-600 text-white' : 'bg-yellow-100 text-blue-600'}`}>
+                        <div className={`size-7 md:size-8 rounded-lg flex items-center justify-center transition-colors overflow-hidden ${isMenuOpen ? 'bg-blue-600 text-white' : 'bg-yellow-100 text-blue-600'}`}>
                             {user?.profileImage ? (
                                 <img 
                                     src={resolveImageUrl(user.profileImage)} 
@@ -398,13 +398,13 @@ export default function Topbar() {
                                     className="w-full h-full object-cover"
                                 />
                             ) : (
-                                <UserIcon className="size-4 md:size-5" />
+                                <UserIcon className="size-3.5 md:size-4" />
                             )}
                         </div>
                         <div className="text-left hidden md:block">
-                            <p className="text-sm font-semibold text-gray-900 leading-none">{user?.name || "User"}</p>
-                            <div className="flex items-center gap-2 mt-1">
-                                <p className="text-xs text-gray-500">{displayRole || "Student"}</p>
+                            <p className="text-xs font-semibold text-gray-900 leading-none">{user?.name || "User"}</p>
+                            <div className="flex items-center gap-2 mt-0.5">
+                                <p className="text-[10px] text-gray-500">{displayRole || "Student"}</p>
                                 {user?.role === Role.STUDENT && user?.admission?.status !== 'APPROVED' && (
                                     <span className="bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase">
                                         Free

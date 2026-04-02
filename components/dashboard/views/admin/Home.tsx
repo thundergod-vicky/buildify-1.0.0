@@ -14,8 +14,16 @@ import Link from "next/link";
 import { api } from "@/lib/api";
 import { auth } from "@/lib/auth";
 
+interface AdminStats {
+    users: { total: number; students: number; teachers: number };
+    revenue: { total: number };
+    courses: { total: number };
+    uptime: string;
+    systemStatus: string;
+}
+
 export function AdminHome() {
-    const [stats, setStats] = useState<any>(null);
+    const [stats, setStats] = useState<AdminStats | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -23,7 +31,7 @@ export function AdminHome() {
             try {
                 const token = auth.getToken();
                 if (!token) return;
-                const response: any = await api.get("/admin/stats", token);
+                const response = await api.get<any>("/admin/stats", token);
                 setStats(response);
             } catch (error) {
                 console.error("Failed to fetch admin stats:", error);
@@ -36,12 +44,12 @@ export function AdminHome() {
     }, []);
 
     return (
-        <div className="p-8 space-y-8">
+        <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
             <AnimatedContent distance={20}>
-                <div className="bg-gradient-to-r from-gray-900 to-indigo-900 rounded-3xl p-8 text-white relative overflow-hidden">
+                <div className="bg-gradient-to-r from-gray-900 to-indigo-900 rounded-2xl md:rounded-3xl p-5 md:p-8 text-white relative overflow-hidden">
                     <div className="relative z-10">
-                        <h1 className="text-3xl font-bold font-urbanist drop-shadow-sm">System Control Center 🛡️</h1>
-                        <p className="mt-2 text-indigo-100/80 text-lg">
+                        <h1 className="text-xl md:text-3xl font-bold font-urbanist drop-shadow-sm">System Control Center 🛡️</h1>
+                        <p className="mt-1 text-indigo-100/80 text-xs md:text-lg">
                             Monitor and manage the entire Adhyayan ecosystem from one place.
                         </p>
                     </div>
@@ -105,7 +113,7 @@ export function AdminHome() {
                                 Administrative Quick Links
                             </h2>
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                             {[
                                 { name: "User Directory", desc: "Manage roles & permissions", view: "users", color: "blue" },
                                 { name: "Course Oversight", desc: "Audit and manage content", view: "manage-courses", color: "purple" },
@@ -115,12 +123,12 @@ export function AdminHome() {
                                 <Link 
                                     key={i}
                                     href={`/dashboard?view=${link.view}`}
-                                    className="p-6 rounded-2xl border border-gray-50 hover:border-indigo-100 hover:bg-indigo-50/30 transition-all group"
+                                    className="p-4 sm:p-5 rounded-2xl border border-gray-50 hover:border-indigo-100 hover:bg-indigo-50/30 transition-all group"
                                 >
-                                    <h3 className="font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">{link.name}</h3>
-                                    <p className="text-sm text-gray-500 mt-1">{link.desc}</p>
-                                    <div className="mt-4 flex items-center text-xs font-bold text-indigo-600 uppercase tracking-wider">
-                                        Open Tool <ArrowRightIcon className="size-4 ml-1 group-hover:ml-2 transition-all" />
+                                    <h3 className="font-bold text-gray-900 group-hover:text-indigo-600 transition-colors text-sm sm:text-base">{link.name}</h3>
+                                    <p className="text-[10px] sm:text-sm text-gray-500 mt-1 leading-tight">{link.desc}</p>
+                                    <div className="mt-3 flex items-center text-[10px] font-bold text-indigo-600 uppercase tracking-wider">
+                                        Open Tool <ArrowRightIcon className="size-3 ml-1 group-hover:ml-2 transition-all" />
                                     </div>
                                 </Link>
                             ))}
@@ -129,10 +137,10 @@ export function AdminHome() {
                 </AnimatedContent>
 
                 <AnimatedContent delay={0.6}>
-                    <div className="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm h-full flex flex-col justify-between">
+                    <div className="bg-white rounded-3xl border border-gray-100 p-5 md:p-8 shadow-sm h-full flex flex-col justify-between">
                         <div>
-                            <h2 className="text-xl font-bold text-gray-900 mb-6">User Distribution</h2>
-                            <div className="space-y-6">
+                            <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-4 md:mb-6">User Distribution</h2>
+                            <div className="space-y-4 md:space-y-6">
                                 <div>
                                     <div className="flex justify-between text-sm mb-2">
                                         <span className="font-bold text-gray-600">Students</span>

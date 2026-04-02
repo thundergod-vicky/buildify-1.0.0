@@ -12,14 +12,12 @@ export function CreateSessionModal({
   isOpen,
   onClose,
   onSuccess,
-  teachers,
   batches,
   editingSession,
 }: {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  teachers: { id: string; name: string }[];
   batches: (Batch & { subjects?: Subject[] })[];
   editingSession?: ClassSession | null;
 }) {
@@ -59,13 +57,8 @@ export function CreateSessionModal({
       });
     } else {
       const now = new Date();
-      const start = now.toLocaleTimeString("en-GB", {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-      const end = new Date(
-        now.getTime() + 1 * 60 * 60 * 1000,
-      ).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+      const start = now.toTimeString().slice(0, 5);
+      const end = new Date(now.getTime() + 60 * 60 * 1000).toTimeString().slice(0, 5);
 
       setFormData({
         title: "",
@@ -85,15 +78,26 @@ export function CreateSessionModal({
   const [availableSubjects, setAvailableSubjects] = useState<
     { id: string; name: string }[]
   >([]);
+  const [availableTeachers, setAvailableTeachers] = useState<
+    { id: string; name: string }[]
+  >([]);
   const [fetchingSubjects, setFetchingSubjects] = useState(false);
+  const [fetchingTeachers, setFetchingTeachers] = useState(false);
 
   useEffect(() => {
-    async function updateSubjects() {
+    async function updateBatchData() {
       if (formData.batchId) {
         setFetchingSubjects(true);
+        setFetchingTeachers(true);
         try {
           let selectedBatch = batches.find((b) => b.id === formData.batchId);
-          if (!selectedBatch?.subjects || selectedBatch.subjects.length === 0) {
+          // If we don't have teachers/subjects, fetch the full batch object
+          if (
+            !selectedBatch?.subjects ||
+            selectedBatch.subjects.length === 0 ||
+            !selectedBatch?.teachers ||
+            selectedBatch.teachers.length === 0
+          ) {
             const token = auth.getToken() || "";
             selectedBatch = await api.get<any>(
               `/batches/${formData.batchId}`,
@@ -101,18 +105,25 @@ export function CreateSessionModal({
             );
           }
           setAvailableSubjects(selectedBatch?.subjects || []);
+          setAvailableTeachers(selectedBatch?.teachers || []);
         } catch (e) {
-          console.error("Failed to fetch batch subjects:", e);
+          console.error("Failed to fetch batch data:", e);
           setAvailableSubjects([]);
+          setAvailableTeachers([]);
         } finally {
-          setTimeout(() => setFetchingSubjects(false), 300);
+          setTimeout(() => {
+            setFetchingSubjects(false);
+            setFetchingTeachers(false);
+          }, 300);
         }
       } else {
         setAvailableSubjects([]);
+        setAvailableTeachers([]);
         setFetchingSubjects(false);
+        setFetchingTeachers(false);
       }
     }
-    updateSubjects();
+    updateBatchData();
   }, [formData.batchId, batches]);
 
   useEffect(() => {
@@ -172,17 +183,17 @@ export function CreateSessionModal({
       className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm animate-in fade-in"
       onWheel={(e) => e.stopPropagation()}
     >
-      <div className="bg-white rounded-[2rem] w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+      <div className="bg-white rounded-[1.5rem] w-full max-w-xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh]">
         <form
           onSubmit={handleSubmit}
           className="flex flex-col h-full overflow-hidden"
         >
-          <div className="p-8 border-b border-gray-100 flex items-center justify-between bg-white shrink-0">
+          <div className="p-5 md:p-6 border-b border-gray-100 flex items-center justify-between bg-white shrink-0">
             <div>
-              <h3 className="text-2xl font-black text-gray-900 font-urbanist">
+              <h3 className="text-xl font-black text-gray-900 font-urbanist">
                 {editingSession ? "Edit Session" : "Schedule Class"}
               </h3>
-              <p className="text-gray-500 font-medium text-sm mt-1">
+              <p className="text-gray-400 font-medium text-[10px] mt-0.5">
                 Assignments will trigger alerts to faculty and batch students
               </p>
             </div>
@@ -195,9 +206,9 @@ export function CreateSessionModal({
             </button>
           </div>
 
-          <div className="p-8 overflow-y-auto flex-1 min-h-0 minimal-scrollbar space-y-6 overscroll-contain">
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+          <div className="p-5 md:p-6 overflow-y-auto flex-1 min-h-0 minimal-scrollbar space-y-4 overscroll-contain">
+            <div className="space-y-1.5">
+              <label className="text-[9px] font-black uppercase tracking-widest text-gray-400">
                 Session Title
               </label>
               <input
@@ -206,14 +217,14 @@ export function CreateSessionModal({
                 onChange={(e) =>
                   setFormData({ ...formData, title: e.target.value })
                 }
-                className="w-full p-4 bg-gray-50 border-2 border-transparent focus:border-blue-100 focus:bg-white rounded-2xl outline-none transition-all font-bold text-gray-900"
+                className="w-full p-2.5 sm:p-3 bg-gray-50 border-2 border-transparent focus:border-blue-100 focus:bg-white rounded-xl outline-none transition-all font-bold text-sm text-gray-900"
                 placeholder="e.g. Advanced Mathematics Part 3"
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-[9px] font-black uppercase tracking-widest text-gray-400">
                   Session Type
                 </label>
                 <select
@@ -224,15 +235,15 @@ export function CreateSessionModal({
                       type: e.target.value as any,
                     })
                   }
-                  className="w-full p-4 bg-gray-50 border-2 border-transparent focus:border-blue-100 focus:bg-white rounded-2xl outline-none transition-all font-bold text-gray-900"
+                  className="w-full p-2.5 sm:p-3 bg-gray-50 border-2 border-transparent focus:border-blue-100 focus:bg-white rounded-xl outline-none transition-all font-bold text-sm text-gray-900"
                 >
                   <option value="LECTURE">Lecture</option>
                   <option value="PRACTICAL">Practical</option>
                   <option value="WORKSHOP">Workshop</option>
                 </select>
               </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+              <div className="space-y-1.5">
+                <label className="text-[9px] font-black uppercase tracking-widest text-gray-400">
                   Session Venue
                 </label>
                 <input
@@ -240,15 +251,15 @@ export function CreateSessionModal({
                   onChange={(e) =>
                     setFormData({ ...formData, venue: e.target.value })
                   }
-                  className="w-full p-4 bg-gray-50 border-2 border-transparent focus:border-blue-100 focus:bg-white rounded-2xl outline-none transition-all font-bold text-gray-900"
+                  className="w-full p-2.5 sm:p-3 bg-gray-50 border-2 border-transparent focus:border-blue-100 focus:bg-white rounded-xl outline-none transition-all font-bold text-sm text-gray-900"
                   placeholder="e.g. Room 302"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-[9px] font-black uppercase tracking-widest text-gray-400">
                   Target Batch
                 </label>
                 <select
@@ -257,7 +268,7 @@ export function CreateSessionModal({
                   onChange={(e) =>
                     setFormData({ ...formData, batchId: e.target.value })
                   }
-                  className="w-full p-4 bg-gray-50 border-2 border-transparent focus:border-blue-100 focus:bg-white rounded-2xl outline-none transition-all font-bold text-gray-900"
+                  className="w-full p-2.5 sm:p-3 bg-gray-50 border-2 border-transparent focus:border-blue-100 focus:bg-white rounded-xl outline-none transition-all font-bold text-sm text-gray-900"
                 >
                   <option value="">Select a batch...</option>
                   {batches.map((b) => (
@@ -267,11 +278,11 @@ export function CreateSessionModal({
                   ))}
                 </select>
               </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 flex items-center gap-2">
+              <div className="space-y-1.5">
+                <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 flex items-center gap-2">
                   Subject (Optional)
                   {fetchingSubjects && (
-                    <div className="size-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                    <div className="size-2.5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
                   )}
                 </label>
                 <select
@@ -280,7 +291,7 @@ export function CreateSessionModal({
                     setFormData({ ...formData, subjectId: e.target.value })
                   }
                   disabled={!formData.batchId || fetchingSubjects}
-                  className="w-full p-4 bg-gray-50 border-2 border-transparent focus:border-blue-100 focus:bg-white rounded-2xl outline-none transition-all font-bold text-gray-900 disabled:opacity-50"
+                  className="w-full p-2.5 sm:p-3 bg-gray-50 border-2 border-transparent focus:border-blue-100 focus:bg-white rounded-xl outline-none transition-all font-bold text-sm text-gray-900 disabled:opacity-50"
                 >
                   <option value="">
                     {fetchingSubjects
@@ -297,10 +308,13 @@ export function CreateSessionModal({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 flex items-center gap-2">
                   Lead Faculty
+                  {fetchingTeachers && (
+                    <div className="size-2.5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                  )}
                 </label>
                 <select
                   required
@@ -308,14 +322,24 @@ export function CreateSessionModal({
                   onChange={(e) =>
                     setFormData({ ...formData, teacherId: e.target.value })
                   }
-                  className="w-full p-4 bg-gray-50 border-2 border-transparent focus:border-blue-100 focus:bg-white rounded-2xl outline-none transition-all font-bold text-gray-900"
+                  disabled={!formData.batchId || fetchingTeachers}
+                  className="w-full p-2.5 sm:p-3 bg-gray-50 border-2 border-transparent focus:border-blue-100 focus:bg-white rounded-xl outline-none transition-all font-bold text-sm text-gray-900 disabled:opacity-50"
                 >
-                  <option value="">Select a teacher...</option>
-                  {teachers.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.name}
-                    </option>
-                  ))}
+                  <option value="">
+                    {fetchingTeachers
+                      ? "Fetching faculty..."
+                      : !formData.batchId
+                        ? "Select a batch first..."
+                        : availableTeachers.length === 0
+                          ? "No teachers assigned to this batch"
+                          : "Select a teacher..."}
+                  </option>
+                  {!fetchingTeachers &&
+                    availableTeachers.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {t.name}
+                      </option>
+                    ))}
                 </select>
               </div>
             </div>
@@ -357,9 +381,9 @@ export function CreateSessionModal({
               </motion.div>
             )}
 
-            <div className="grid grid-cols-3 gap-6">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-[9px] font-black uppercase tracking-widest text-gray-400">
                   Date
                 </label>
                 <input
@@ -369,11 +393,11 @@ export function CreateSessionModal({
                   onChange={(e) =>
                     setFormData({ ...formData, date: e.target.value })
                   }
-                  className="w-full p-4 bg-gray-50 border-2 border-transparent focus:border-blue-100 focus:bg-white rounded-2xl outline-none transition-all font-bold text-gray-900"
+                  className="w-full p-2.5 sm:p-3 bg-gray-50 border-2 border-transparent focus:border-blue-100 focus:bg-white rounded-xl outline-none transition-all font-bold text-sm text-gray-900"
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+              <div className="space-y-1.5">
+                <label className="text-[9px] font-black uppercase tracking-widest text-gray-400">
                   Start Time
                 </label>
                 <input
@@ -383,11 +407,11 @@ export function CreateSessionModal({
                   onChange={(e) =>
                     setFormData({ ...formData, startTime: e.target.value })
                   }
-                  className="w-full p-4 bg-gray-50 border-2 border-transparent focus:border-blue-100 focus:bg-white rounded-2xl outline-none transition-all font-bold text-gray-900"
+                  className="w-full p-2.5 sm:p-3 bg-gray-50 border-2 border-transparent focus:border-blue-100 focus:bg-white rounded-xl outline-none transition-all font-bold text-sm text-gray-900"
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+              <div className="space-y-1.5">
+                <label className="text-[9px] font-black uppercase tracking-widest text-gray-400">
                   End Time
                 </label>
                 <input
@@ -397,17 +421,17 @@ export function CreateSessionModal({
                   onChange={(e) =>
                     setFormData({ ...formData, endTime: e.target.value })
                   }
-                  className="w-full p-4 bg-gray-50 border-2 border-transparent focus:border-blue-100 focus:bg-white rounded-2xl outline-none transition-all font-bold text-gray-900"
+                  className="w-full p-2.5 sm:p-3 bg-gray-50 border-2 border-transparent focus:border-blue-100 focus:bg-white rounded-xl outline-none transition-all font-bold text-sm text-gray-900"
                 />
               </div>
             </div>
           </div>
 
-          <div className="p-8 border-t border-gray-100 bg-gray-50/30 shrink-0">
+          <div className="p-5 md:p-6 border-t border-gray-100 bg-gray-50/30 shrink-0">
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-5 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-[0.2em] text-xs hover:bg-blue-700 transition-colors shadow-xl shadow-blue-200 disabled:opacity-50"
+              className="w-full py-4 bg-blue-600 text-white rounded-xl font-black uppercase tracking-[0.2em] text-[10px] hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200 disabled:opacity-50"
             >
               {loading
                 ? "Saving..."

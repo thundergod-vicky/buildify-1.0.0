@@ -17,7 +17,7 @@ import {
 import { showToast } from "@/lib/toast";
 import { api } from "@/lib/api";
 import { auth } from "@/lib/auth";
-import { User } from "@/types";
+import { User, AdmissionStatus } from "@/types";
 import { AdmissionApprovalModal } from "@/components/dashboard/views/shared/AdmissionApprovalModal";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -53,8 +53,11 @@ function StudentCard({
             {student.name?.[0]?.toUpperCase() || "S"}
           </div>
           <div className="truncate">
-            <h4 className="font-black text-gray-900 text-sm leading-none mb-1 truncate max-w-[150px]">
+            <h4 className="font-black text-gray-900 text-sm leading-none mb-1 truncate max-w-[150px] flex items-center gap-1.5">
               {student.name || "Unnamed Student"}
+              {student.admission?.status === AdmissionStatus.APPROVED && (
+                <CheckCircle2Icon className="size-3 text-emerald-500 fill-emerald-50" />
+              )}
             </h4>
             <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest truncate max-w-[120px]">
               {student.email}
@@ -195,6 +198,11 @@ export function TeacherStudentManagement() {
   const [sortBy, setSortBy] = useState<"name" | "createdAt" | "enrollmentId">("name");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [admissionModal, setAdmissionModal] = useState<{ isOpen: boolean; studentId: string; studentName: string }>({ isOpen: false, studentId: "", studentName: "" });
+  
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState<number | 'all'>(10);
+  const [statusFilter, setStatusFilter] = useState<"ALL" | "APPROVED" | "PENDING" | "NOT_SUBMITTED">("ALL");
 
   useEffect(() => {
     fetchStudents();
@@ -234,9 +242,13 @@ export function TeacherStudentManagement() {
   const processedStudents = students
     .filter(
       (s) =>
-        s.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (s.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         s.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        s.enrollmentId?.toLowerCase().includes(searchQuery.toLowerCase())
+        s.enrollmentId?.toLowerCase().includes(searchQuery.toLowerCase())) &&
+        (statusFilter === "ALL" || 
+         (statusFilter === "APPROVED" && s.admission?.status === AdmissionStatus.APPROVED) ||
+         (statusFilter === "PENDING" && s.admission?.status === AdmissionStatus.PENDING) ||
+         (statusFilter === "NOT_SUBMITTED" && !s.admission))
     )
     .sort((a, b) => {
       let comp = 0;
@@ -249,6 +261,16 @@ export function TeacherStudentManagement() {
       }
       return sortOrder === "asc" ? comp : -comp;
     });
+
+  const totalPages = itemsPerPage === 'all' ? 1 : Math.ceil(processedStudents.length / itemsPerPage);
+  const paginatedStudents = itemsPerPage === 'all' 
+    ? processedStudents 
+    : processedStudents.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  // Reset to page 1 when search or filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, itemsPerPage, sortBy, sortOrder, statusFilter]);
 
   return (
     <>
@@ -284,13 +306,27 @@ export function TeacherStudentManagement() {
               <ArrowUpDownIcon className="size-3.5 text-gray-400 ml-2" />
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as "name" | "createdAt" | "enrollmentId")}
-                className="bg-transparent text-[10px] font-black uppercase tracking-widest text-gray-700 outline-none pr-4 cursor-pointer py-1.5 appearance-none"
+                onChange={(e) => setSortBy(e.target.value as any)}
+                className="bg-transparent text-[10px] font-black text-gray-700 outline-none cursor-pointer appearance-none uppercase tracking-widest pl-1 pr-6"
               >
                 <option value="name">Sort by Name</option>
-                <option value="createdAt">Date Joined</option>
                 <option value="enrollmentId">Enrollment ID</option>
+                <option value="createdAt">Joining Date</option>
               </select>
+            </div>
+
+            <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-gray-100 shadow-sm shrink-0">
+               <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest hidden sm:block">Status:</span>
+               <select 
+                 value={statusFilter}
+                 onChange={(e) => setStatusFilter(e.target.value as any)}
+                 className="bg-transparent text-[10px] font-black text-gray-700 outline-none cursor-pointer appearance-none uppercase tracking-widest pl-1 pr-6"
+               >
+                 <option value="ALL">All Students</option>
+                 <option value="APPROVED">Approved Only</option>
+                 <option value="PENDING">Pending Only</option>
+                 <option value="NOT_SUBMITTED">Not Submitted</option>
+               </select>
             </div>
             <button
               onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
@@ -321,12 +357,12 @@ export function TeacherStudentManagement() {
                       <td colSpan={5} className="px-6 py-8"><div className="h-10 bg-gray-100 rounded-xl w-full"></div></td>
                     </tr>
                   ))
-                ) : processedStudents.length === 0 ? (
+                ) : paginatedStudents.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="px-6 py-20 text-center text-gray-500">No students found matching your criteria</td>
                   </tr>
                 ) : (
-                  processedStudents.map((student) => (
+                  paginatedStudents.map((student) => (
                     <tr key={student.id} className="hover:bg-gray-50/50 transition-colors group">
                       <td className="px-6 py-4">
                         <div className="font-bold text-gray-900">{student.name || "Unnamed Student"}</div>
@@ -402,13 +438,12 @@ export function TeacherStudentManagement() {
             </table>
           </div>
 
-          {/* Mobile Card View */}
-          <div className="lg:hidden p-4 pb-80 space-y-4 bg-gray-50/50">
+          <div className="lg:hidden p-4 pb-12 space-y-4 bg-gray-50/50">
             {isLoading ? (
               [1, 2, 3].map(i => (
                 <div key={i} className="h-48 bg-white rounded-2xl border border-gray-100 animate-pulse" />
               ))
-            ) : processedStudents.length === 0 ? (
+            ) : paginatedStudents.length === 0 ? (
               <div className="py-20 text-center flex flex-col items-center gap-4">
                  <div className="size-16 bg-white rounded-full flex items-center justify-center text-gray-200 shadow-sm border border-gray-50">
                   <GraduationCapIcon className="size-8" />
@@ -417,7 +452,7 @@ export function TeacherStudentManagement() {
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-4">
-                {processedStudents.map(student => (
+                {paginatedStudents.map(student => (
                   <StudentCard
                     key={student.id}
                     student={student}
@@ -429,6 +464,51 @@ export function TeacherStudentManagement() {
               </div>
             )}
           </div>
+
+          {/* Pagination Controls */}
+          {!isLoading && processedStudents.length > 0 && (
+            <div className="p-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4 bg-gray-50/30">
+              <div className="flex items-center gap-3">
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Show:</span>
+                <div className="flex bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+                  {[10, 20, 50, 100, 'all'].map((size) => (
+                    <button
+                      key={size}
+                      onClick={() => setItemsPerPage(size as any)}
+                      className={cn(
+                        "px-3 py-1.5 text-[10px] font-black uppercase transition-all border-r border-gray-100 last:border-0",
+                        itemsPerPage === size ? "bg-indigo-600 text-white" : "text-gray-500 hover:bg-gray-50"
+                      )}
+                    >
+                      {size === 'all' ? 'All' : size}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                  Page <span className="text-gray-900">{currentPage}</span> of <span className="text-gray-900">{totalPages}</span>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(currentPage - 1)}
+                    className="p-2 border border-gray-200 rounded-xl bg-white hover:bg-gray-50 text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm"
+                  >
+                    <SortAscIcon className="size-4 -rotate-90" />
+                  </button>
+                  <button
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(currentPage + 1)}
+                    className="p-2 border border-gray-200 rounded-xl bg-white hover:bg-gray-50 text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm"
+                  >
+                    <SortAscIcon className="size-4 rotate-90" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

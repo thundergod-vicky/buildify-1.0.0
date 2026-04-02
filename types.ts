@@ -545,6 +545,8 @@ export interface ClassSession {
   subject?: Subject;
   recordings?: SessionRecording[];
   attachments?: SessionAttachment[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Batch {

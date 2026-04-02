@@ -37,6 +37,11 @@ export function AdminBatchManagement() {
   const [searchQuery, setSearchQuery] = useState("");
   const [studentSearchQuery, setStudentSearchQuery] = useState("");
   const [teacherSearchQuery, setTeacherSearchQuery] = useState("");
+  
+  // Delete Protection states
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [batchToDelete, setBatchToDelete] = useState<string | null>(null);
 
   const fetchData = async () => {
     try {
@@ -96,14 +101,19 @@ export function AdminBatchManagement() {
     }
   };
 
-  const handleDeleteBatch = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this batch?")) return;
+  const handleDeleteBatch = async () => {
+    if (deleteConfirmText.toLowerCase() !== "delete") return;
+    if (!batchToDelete) return;
+
     try {
       const token = auth.getToken();
       if (!token) return;
 
-      await api.delete(`/batches/${id}`, token);
-      toast.success("Batch deleted");
+      await api.delete(`/batches/${batchToDelete}`, token);
+      toast.success("Batch deleted successfully");
+      setIsDeleteDialogOpen(false);
+      setDeleteConfirmText("");
+      setBatchToDelete(null);
       fetchData();
     } catch {
       toast.error("Failed to delete batch");
@@ -139,31 +149,31 @@ export function AdminBatchManagement() {
   );
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-8">
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 font-urbanist">
+          <h1 className="text-xl sm:text-2xl font-black text-gray-900 font-urbanist">
             Batch Management
           </h1>
-          <p className="text-gray-500 mt-1">
+          <p className="text-[10px] sm:text-sm text-gray-500 mt-1">
             Organize students and teachers into class batches
           </p>
         </div>
         <button
           onClick={() => setIsCreateModalOpen(true)}
-          className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200"
+          className="flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-2.5 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200 text-[10px] sm:text-xs"
         >
-          <PlusIcon className="size-5" />
+          <PlusIcon className="size-4" />
           Create New Batch
         </button>
       </div>
 
       <div className="relative">
-        <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-gray-400" />
+        <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
         <input
           type="text"
           placeholder="Search batches or teachers..."
-          className="w-full pl-12 pr-4 py-4 bg-white border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm transition-all"
+          className="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm transition-all text-xs sm:text-sm"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
@@ -180,20 +190,20 @@ export function AdminBatchManagement() {
         ) : filteredBatches.length > 0 ? (
           filteredBatches.map((batch) => (
             <AnimatedContent key={batch.id}>
-              <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm hover:shadow-md transition-all group">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="size-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
-                    <LayersIcon className="size-6" />
+              <div className="bg-white rounded-2xl border border-gray-100 p-4 sm:p-5 shadow-sm hover:shadow-md transition-all group">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="size-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
+                    <LayersIcon className="size-5" />
                   </div>
                   <div className="flex gap-2">
                     <button
                       onClick={() =>
                         (window.location.href = `/dashboard?view=batch-details&batchId=${batch.id}`)
                       }
-                      className="p-2 text-blue-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
+                      className="p-1.5 text-blue-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
                       title="View Detailed Profile"
                     >
-                      <ExternalLinkIcon className="size-5" />
+                      <ExternalLinkIcon className="size-4" />
                     </button>
                     <button
                       onClick={async () => {
@@ -211,10 +221,10 @@ export function AdminBatchManagement() {
                         setStudentSearchQuery(""); // Reset search when opening
                         setIsAssignModalOpen(true);
                       }}
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
+                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg"
                       title="Assign Students"
                     >
-                      <UserPlusIcon className="size-5" />
+                      <UserPlusIcon className="size-4" />
                     </button>
                     <button
                       onClick={() => {
@@ -222,13 +232,17 @@ export function AdminBatchManagement() {
                         setTeacherSearchQuery(""); // Reset search when opening
                         setIsAssignTeacherModalOpen(true);
                       }}
-                      className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg"
+                      className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg"
                       title="Assign Teachers"
                     >
-                      <UserCheckIcon className="size-5" />
+                      <UserCheckIcon className="size-4" />
                     </button>
                     <button
-                      onClick={() => handleDeleteBatch(batch.id)}
+                      onClick={() => {
+                        setBatchToDelete(batch.id);
+                        setDeleteConfirmText("");
+                        setIsDeleteDialogOpen(true);
+                      }}
                       className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
                       title="Delete Batch"
                     >
@@ -237,10 +251,10 @@ export function AdminBatchManagement() {
                   </div>
                 </div>
 
-                <h3 className="text-xl font-bold text-gray-900 mb-2 truncate">
+                <h3 className="text-lg font-bold text-gray-900 mb-1 truncate">
                   {batch.name}
                 </h3>
-                <p className="text-sm text-gray-500 mb-6 line-clamp-2 min-h-[40px]">
+                <p className="text-xs text-gray-500 mb-4 line-clamp-2 min-h-[32px]">
                   {batch.description || "No description provided."}
                 </p>
 
@@ -249,17 +263,17 @@ export function AdminBatchManagement() {
                     <p className="text-[10px] text-gray-400 font-bold uppercase ml-1">
                       Teachers
                     </p>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-1.5">
                       {batch.teachers && batch.teachers.length > 0 ? (
                         batch.teachers.map((teacher: any) => (
                           <div
                             key={teacher.id}
-                            className="flex items-center gap-2 p-2 bg-blue-50 rounded-xl border border-blue-100/50"
+                            className="flex items-center gap-1.5 p-1.5 bg-blue-50 rounded-lg border border-blue-100/50"
                           >
-                            <div className="size-6 rounded-full bg-blue-600 flex items-center justify-center text-white text-[10px] font-bold">
+                            <div className="size-5 rounded-full bg-blue-600 flex items-center justify-center text-white text-[8px] font-bold">
                               {teacher.name?.[0] || "T"}
                             </div>
-                            <span className="text-xs font-bold text-gray-700">
+                            <span className="text-[10px] font-bold text-gray-700">
                               {teacher.name}
                             </span>
                           </div>
@@ -274,15 +288,15 @@ export function AdminBatchManagement() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-2xl">
-                    <div className="size-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-                      <UsersIcon className="size-4" />
+                  <div className="flex items-center gap-2.5 p-2 bg-gray-50 rounded-xl">
+                    <div className="size-7 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                      <UsersIcon className="size-3.5" />
                     </div>
                     <div>
-                      <p className="text-[10px] text-gray-400 font-bold uppercase">
+                      <p className="text-[8px] text-gray-400 font-bold uppercase leading-none">
                         Students
                       </p>
-                      <p className="text-sm font-bold text-gray-900">
+                      <p className="text-xs font-bold text-gray-900 mt-0.5">
                         {batch._count?.students || 0} Enrolled
                       </p>
                     </div>
@@ -633,34 +647,92 @@ export function AdminBatchManagement() {
                   </div>
                 );
               })}
-               {teachers.filter(
+              {teachers.filter(
                 (t) =>
                   t.name
                     ?.toLowerCase()
                     .includes(teacherSearchQuery.toLowerCase()) ||
                   t.email
                     ?.toLowerCase()
-                    .includes(teacherSearchQuery.toLowerCase())
+                    .includes(teacherSearchQuery.toLowerCase()),
               ).length === 0 && (
                 <div className="py-10 text-center text-gray-400 font-medium">
                   No teachers found matching your search.
                 </div>
               )}
             </div>
-            <div className="p-8 border-t border-gray-100 bg-gray-50">
-              <button
-                onClick={() => {
-                  setIsAssignTeacherModalOpen(false);
-                  setTeacherSearchQuery("");
-                }}
-                className="w-full px-6 py-3 bg-white border border-gray-100 text-gray-600 rounded-xl font-bold hover:bg-gray-50 transition-colors"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+    <div className="p-8 border-t border-gray-100 bg-gray-50">
+      <button
+        onClick={() => {
+          setIsAssignTeacherModalOpen(false);
+          setTeacherSearchQuery("");
+        }}
+        className="w-full px-6 py-3 bg-white border border-gray-100 text-gray-600 rounded-xl font-bold hover:bg-gray-50 transition-colors"
+      >
+        Close
+      </button>
     </div>
+  </div>
+</div>
+)}
+
+{/* Delete Confirmation Modal */}
+{isDeleteDialogOpen && (
+<div 
+  className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] flex items-center justify-center p-4 animate-in fade-in"
+  onWheel={(e) => e.stopPropagation()}
+>
+  <div className="bg-white rounded-[2.5rem] w-full max-w-md overflow-hidden shadow-2xl border border-red-100 flex flex-col p-8 space-y-6">
+    <div className="text-center space-y-4">
+      <div className="size-20 bg-red-50 rounded-full flex items-center justify-center mx-auto text-red-600">
+        <Trash2Icon className="size-10" />
+      </div>
+      <div className="space-y-2">
+        <h2 className="text-2xl font-black text-gray-900 font-urbanist">
+          Are you sure?
+        </h2>
+        <p className="text-gray-500 font-medium leading-relaxed">
+          This action is permanent and cannot be undone. All batch data and student/teacher associations will be deleted.
+        </p>
+      </div>
+    </div>
+
+    <div className="space-y-3">
+      <p className="text-center text-[10px] font-black uppercase tracking-widest text-gray-400">
+        Type <span className="text-red-600">delete</span> below to confirm
+      </p>
+      <input
+        type="text"
+        autoFocus
+        value={deleteConfirmText}
+        onChange={(e) => setDeleteConfirmText(e.target.value)}
+        className="w-full px-5 py-4 bg-gray-50 border-2 border-transparent focus:border-red-100 focus:bg-white rounded-2xl outline-none transition-all font-bold text-center text-gray-900 placeholder:text-gray-300"
+        placeholder="Type 'delete' here..."
+      />
+    </div>
+
+    <div className="flex gap-4 pt-2">
+      <button
+        onClick={() => {
+          setIsDeleteDialogOpen(false);
+          setDeleteConfirmText("");
+          setBatchToDelete(null);
+        }}
+        className="flex-1 px-6 py-4 bg-gray-50 text-gray-400 rounded-2xl font-black uppercase tracking-widest hover:bg-gray-100 hover:text-gray-600 transition-all border border-transparent"
+      >
+        Cancel
+      </button>
+      <button
+        onClick={handleDeleteBatch}
+        disabled={deleteConfirmText.toLowerCase() !== "delete"}
+        className="flex-1 px-6 py-4 bg-red-600 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-red-700 transition-all shadow-xl shadow-red-100 disabled:opacity-30 disabled:grayscale disabled:cursor-not-allowed"
+      >
+        Okay
+      </button>
+    </div>
+  </div>
+</div>
+)}
+</div>
   );
 }
