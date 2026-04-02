@@ -104,21 +104,28 @@ function DashboardContent() {
           setAdmissionChecked(true);
         });
     } else if (user.role === Role.PARENT) {
-      console.log("Checking Parent Onboarding for:", user.id);
-      const token = auth.getToken();
-      admissionsApi
-        .getMyParentOnboarding(token || undefined)
-        .then((data) => {
-          console.log("Parent Onboarding Data:", data);
-          setHasAdmission(!!(data && data.id));
-        })
-        .catch((err) => {
-          console.error("Parent onboarding check error:", err);
-          setHasAdmission(false);
-        })
-        .finally(() => {
-          setAdmissionChecked(true);
-        });
+      console.log("Checking Parent Onboarding from user profile:", !!(user as any).parentOnboarding);
+      // We now include parentOnboarding in the fresh profile fetch
+      if ((user as any).parentOnboarding) {
+        setHasAdmission(true);
+        setAdmissionChecked(true);
+      } else {
+        // Fallback to API check if for some reason it's missing from context
+        const token = auth.getToken();
+        admissionsApi
+          .getMyParentOnboarding(token || undefined)
+          .then((data) => {
+            console.log("Parent Onboarding Data (Fallback):", data);
+            setHasAdmission(!!(data && data.id));
+          })
+          .catch((err) => {
+            console.error("Parent onboarding check error:", err);
+            setHasAdmission(false);
+          })
+          .finally(() => {
+            setAdmissionChecked(true);
+          });
+      }
     } else {
       setHasAdmission(true);
       setAdmissionChecked(true);

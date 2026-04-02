@@ -105,6 +105,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return user?.role === role;
   };
 
+  const refreshUserProfile = async () => {
+    const token = authService.getToken();
+    if (token) {
+      try {
+        const freshUser = await authService.getProfile();
+        if (freshUser) {
+          setUser(freshUser);
+          authService.setUser(freshUser);
+        }
+      } catch (error) {
+        console.error("Error refreshing profile manually:", error);
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      (window as any).refreshUserProfile = refreshUserProfile;
+    }
+  }, [user]);
+
   return (
     <AuthContext.Provider
       value={{

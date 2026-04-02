@@ -66,6 +66,10 @@ export default function ParentOnboardingPage() {
     try {
       await admissionsApi.submitParentOnboarding(data, token || undefined);
       toast.success("Onboarding form submitted successfully!");
+      // Re-fetch profile to ensure dashboard has parentOnboarding and link requests
+      if (typeof (window as any).refreshUserProfile === 'function') {
+        await (window as any).refreshUserProfile();
+      }
       router.push("/dashboard");
     } catch (error: unknown) {
       toast.error((error as Error).message || "Failed to submit onboarding form");
