@@ -351,6 +351,11 @@ export function AdminUserManagement() {
 
       if (!matchesSearch) return false;
 
+      // 2. Role Filter
+      if (roleFilter !== "ALL") {
+        if (u.role !== roleFilter) return false;
+      }
+
       // 3. Admission Status Filter
       if (admissionFilter !== "ALL") {
         if (admissionFilter === "APPROVED") {
